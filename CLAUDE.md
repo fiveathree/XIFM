@@ -14,6 +14,7 @@ Football-manager × gacha web game. UI language is Cantonese (Traditional Chines
 | `index.html` | The whole game: HTML + CSS + JS in one file. **This is the source of truth.** |
 | `favicon.svg` | Standalone copy of the favicon (the page embeds it inline as a data URI in `<head>`). |
 | `README.md` | Player-facing description (Cantonese). |
+| `tools/check-data.js` | Data / card-ID stability check (see below). Not loaded by the game. |
 
 No build step, no dependencies, no framework. Plain DOM + template strings. Only external resource is Google Fonts (Saira Condensed, Noto Sans TC).
 
@@ -25,6 +26,7 @@ The game was first published as a claude.ai Artifact. The page boots through `wi
 <style>                    design tokens on :root, dark-only theme (color-scheme: dark)
 PLAYER DATABASE            const P = [...]  original players
 EXPANSION                  MOREV (extra versions for existing players) + P.push(...) new players + NATN additions
+2025/26 SEASON             V2526 (2025/26 versions appended to existing players) + P.push(...) new players + NATN
 grade / CARDS / BYID / POOL / DUPV   derived card list
 POSITIONS                  LINE, NEAR, ADJ, fit(), slotPos(), FORMS
 TEAMS                      LEAGUES, NATCODE, LEGSC, DIFF, oppScorers()
@@ -56,18 +58,23 @@ BOOT                       boot(): load + migrate state, starter pack on first r
 
 A card's ID is `${playerIndex}-${versionIndex}` and is what players' saves store (`S.owned`, `S.slots[].c`). Therefore:
 
-- **Only append.** Add new players at the end of `P` (or via `P.push`), and new versions at the end of a player's version list (or via `MOREV`).
-- **Never** insert, reorder or delete players or versions; never reorder `MOREV` application. Doing so silently swaps or breaks everyone's collection.
+- **Only append.** Add new players at the end of `P` (or via `P.push`), and new versions at the end of a player's version list (or via a version map).
+- **Never** insert, reorder or delete players or versions; never reorder the version-map blocks (`MOREV`, then `V2526`). Doing so silently swaps or breaks everyone's collection.
+- For a new season, add a **new block after the last one** (just before `const grade=`), same shape as the 2025/26 block: `const V2627={'Exact Name':[[season, club, rating]]}; P.forEach(p=>{if(V2627[p[0]])p[3].push(...V2627[p[0]])}); P.push(...new players); Object.assign(NATN,{...})`. Don't edit earlier blocks' order.
 - Changing a rating, club name or season text in place is fine (the ID doesn't change), but changing a rating across the 100 line changes UR status.
 - Duplicate player names are not allowed (check before adding).
 - UR (>100) is reserved for one prime-legend card per player; currently 11: Pelé, Maradona, Cruyff, Di Stéfano, Beckenbauer, Ronaldo Nazário, Zidane, Ronaldinho, Maldini, Messi, C. Ronaldo.
 
-Quick sanity script (Node):
+Data check (Node) — run after any data change, before committing. It compares against the last commit and fails if any existing card ID now points at a different card, if a version-map name matches no player, or on duplicate names, unknown nations/positions, ratings outside 50–100 for new cards, or a repeated season for one player:
 
 ```bash
-python3 -c "import re;s=open('index.html').read();open('/tmp/x.js','w').write(re.findall(r'<script>(.*?)</script>',s,re.S)[0])"
-node --check /tmp/x.js
-node -e "const s=require('fs').readFileSync('/tmp/x.js','utf8').split('/* ================== STATE')[0];eval(s+';const g={};CARDS.forEach(c=>g[c.g]=(g[c.g]||0)+1);console.log(CARDS.length,g);const n=P.map(p=>p[0]);console.log(\"dup names\",n.filter((x,i)=>n.indexOf(x)!==i));console.log(\"missing NAT\",[...new Set(CARDS.map(c=>c.nat))].filter(x=>!NATN[x]))')"
+git show HEAD:index.html > /tmp/old.html && node tools/check-data.js /tmp/old.html index.html
+```
+
+Currently 1308 cards (UR 11 · SSR 144 · SR 397 · R 614 · C 142), 793 players. Also syntax-check the script:
+
+```bash
+node -e "const s=require('fs').readFileSync('index.html','utf8');require('fs').writeFileSync('/tmp/x.js',s.match(/<script>([\s\S]*?)<\/script>/)[1])" && node --check /tmp/x.js
 ```
 
 ## Game rules (where to tune)
@@ -130,9 +137,9 @@ Floodlit night-match look: navy `--night` background, amber `--amber` accent, ch
 
 - Real player photos / club badges (licensing — currently text only)
 - Cloud save (would need a backend, e.g. Cloudflare Worker + KV)
-- Data for 2025/26 season and later transfers
+- Data for 2026/27 and the 2026 World Cup; `LEAGUES` team ratings are still the 2024/25 estimates
 - Red cards, two-legged ties, cup group stages, AI-side fatigue
 
-Done: substitutions / injuries / fatigue / in-match tactic changes, player upgrades with duplicates, knockout cups, 3 saved squad presets.
+Done: substitutions / injuries / fatigue / in-match tactic changes, player upgrades with duplicates, knockout cups, 3 saved squad presets, 2025/26 season data (versions + summer 2025 transfers).
 
 Tip for testing the match engine without waiting: in the browser console, start a match and call `$('#mskip').click()`.
