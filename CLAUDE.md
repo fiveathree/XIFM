@@ -109,7 +109,7 @@ User matches (`playMatch`) run minute by minute (55 ms/tick): each minute re-rat
 
 **Rewards** — win 300 / draw 120 / loss 60 + 20 per goal (cup ties too, a shoot-out counts as a draw); friendlies ×0.5. Season-end bonus by finishing position (3000, 1800, 1200, 800, 500, 300, 200, 100, 50) × difficulty (0.5 / 1 / 2). Minimum 7 players to kick off.
 
-**Leagues** — `LEAGUES` entries `{n, e, teams: [[name, rating], ...]}` (8 AI teams each + the user → 18 rounds). `legend` league uses `LEGSC` for named scorers; national teams map through `NATCODE`.
+**Leagues** — `LEAGUES` entries `{n, e, teams: [[name, rating], ...]}` (8 AI teams each + the user → 18 rounds), rated for 2025/26. Keep each list sorted strongest first: cups take teams by position. Team names should match card club names so AI goals get real scorers. Leagues/cups already in progress keep the copy of the teams they started with. `legend` league uses `LEGSC` for named scorers; national teams map through `NATCODE`.
 
 **New game** — 3000 coins + 17-card starter pack (1 attacking SR, rest C/R) and an auto-picked XI.
 
@@ -137,7 +137,7 @@ Floodlit night-match look: navy `--night` background, amber `--amber` accent, ch
 
 - Real player photos / club badges (licensing — currently text only)
 - Cloud save (would need a backend, e.g. Cloudflare Worker + KV)
-- Data for 2026/27 and the 2026 World Cup; `LEAGUES` team ratings are still the 2024/25 estimates
+- Data for 2026/27 and the 2026 World Cup (then re-rate `LEAGUES` again)
 - Red cards, two-legged ties, cup group stages, AI-side fatigue
 
 Done: substitutions / injuries / fatigue / in-match tactic changes, player upgrades with duplicates, knockout cups, 3 saved squad presets, 2025/26 season data (versions + summer 2025 transfers).
