@@ -30,13 +30,14 @@ POSITIONS                  LINE, NEAR, ADJ, fit(), slotPos(), FORMS
 TEAMS                      LEAGUES, NATCODE, LEGSC, DIFF, oppScorers()
 PLAYER ATTRIBUTES          stats(), PROF, ST_OUT / ST_GK
 TACTICS                    TAC, tacticFx()
-STATE                      KEY='legendxi-v1', fresh(), save(), load()
-HELPERS                    $, esc, cardHTML(), toast, setCoins (+ secret-code handler near the tab binding)
-TEAM EVAL                  evalTeam()  → per-slot effective ratings, chemistry, att/mid/def/ovr
-VIEWS                      go(), render() → rSquad / rGacha / rAlbum / rLeague
-MATCH ENGINE               poisson, xg, simGoals, buildEvents, playMatch, reward
-LEAGUE                     roundRobin, startLeague, nextRound, standings
-BOOT                       boot(): load state, starter pack on first run, render
+STATE                      KEY='legendxi-v1', fresh(), save(), load(), migrate() (defaults for newer fields)
+HELPERS                    $, esc, cardHTML(), toast, setCoins, stamina/injury helpers, LVMAX/BENCH/MAXSUB/UPC
+TEAM EVAL                  evalTeam(slots?, stamina?)  → per-slot effective ratings, chemistry, att/mid/def/ovr
+VIEWS                      go(), render() → rSquad (pitch, bench, presets) / rGacha / rAlbum (+ upgrade/sell) / rLeague
+MATCH ENGINE               poisson, xg, simGoals, shootout, userSide, power, afterMatch, playMatch, reward
+LEAGUE                     roundRobin, startLeague, nextRound, standings, rLeague (league / cup switch, friendly)
+CUP                        CUPS, startCup, cupAdvance, cupNext, rCup
+BOOT                       boot(): load + migrate state, starter pack on first run, render
 ```
 
 ## Player data format
@@ -71,7 +72,9 @@ node -e "const s=require('fs').readFileSync('/tmp/x.js','utf8').split('/* ======
 
 ## Game rules (where to tune)
 
-**Gacha** — `RATES` (UR 0.6 / SSR 4 / SR 14 / R 33 / C 48.4 %). Single 100, ten-pull 900; 10th card re-rolled to SR+ if none in the batch (`rollGrade(true)`: UR 3 / SSR 20 / SR 77). Duplicates refund `DUPV` (C 10, R 30, SR 120, SSR 500, UR 3000).
+**Gacha** — `RATES` (UR 0.6 / SSR 4 / SR 14 / R 33 / C 48.4 %). Single 100, ten-pull 900; 10th card re-rolled to SR+ if none in the batch (`rollGrade(true)`: UR 3 / SSR 20 / SR 77). Duplicates are kept as spare copies (`S.owned[id] > 1`); they are sold for `DUPV` (C 10, R 30, SR 120, SSR 500, UR 3000) from the player sheet or the album's "sell all" button.
+
+**Upgrades** — `S.lv[id]` 0–`LVMAX` (5). Level n→n+1 costs n+1 spare copies + `UPC[grade]×(n+1)` coins (free with `S.inf`). Each level gives +1 rating (`R(c)` = `c.r + lv`) and +1 to every attribute. Grade stays that of the base card. Use `R(c)` (not `c.r`) anywhere strength matters.
 
 **Positions** — `slotPos(x,y)` maps a pitch slot's % coordinates (y=0 is the opponent goal) to a position, so dragging a card changes its role. `fit(cardPos, slotPos)`: same 1.0, `NEAR` neighbour 0.93, same line 0.84, adjacent line 0.72, else 0.58, GK mismatch 0.35. Effective rating = `round(rating × fit) + chemistry`.
 
@@ -88,9 +91,16 @@ node -e "const s=require('fs').readFileSync('/tmp/x.js','utf8').split('/* ======
 - 邊路傳中 wing: wide players' 速度 + ST 體能 → att, def −1
 - 擺大巴 bus: att −6, def +6, tempo 0.8 · 全力進攻 allout: att +6, def −6, tempo 1.2
 
-**Match** — `xg(att, def) = 1.35·e^((att−def)/10)` clamped [0.15, 4.5], × both sides' tempo; goals are Poisson. Home side +1.5. AI team uses one rating for att and def, plus difficulty offset (`DIFF`: 新手 −18, 職業 −9, 世界級 0). Scorers weighted by position and `(eff/80)^3`. The 90-minute feed ticks every 55 ms; "跳到完場" skips.
+**Match** — `xg(att, def) = 1.35·e^((att−def)/10)` clamped [0.15, 4.5], × both sides' tempo. Home side +1.5 (none when `opts.neutral`). AI team uses one rating for att and def, plus difficulty offset (`DIFF`: 新手 −18, 職業 −9, 世界級 0). Scorers weighted by position and `(eff/80)^3`.
+User matches (`playMatch`) run minute by minute (55 ms/tick): each minute re-rates the user's current lineup, rolls a goal for each side with p = xg·tempo/90, and drains stamina. Auto-pause at 45' (half-time panel); "換人 · 戰術" pauses any time. Up to `MAXSUB` (5) subs from the bench copy; subbed-off players can't return; the tactic can change mid-match (match-only, `S.tactic` unchanged). "跳到完場" runs the rest instantly, auto-subbing injuries. `opts.knockout`: a draw goes to `shootout()` (76 % per kick). AI-vs-AI games use the one-shot Poisson `simGoals`.
 
-**Rewards** — win 300 / draw 120 / loss 60 + 20 per goal; friendlies ×0.5. Season-end bonus by finishing position (3000, 1800, 1200, 800, 500, 300, 200, 100, 50) × difficulty (0.5 / 1 / 2). Minimum 7 players to kick off.
+**Stamina & injuries** — `S.fit[id]` 0–100 (only values < 100 stored). Per minute on the pitch: outfield −(0.30 − (體能−60)·0.004) clamped [0.12, 0.36] × tempo; GK −0.1. Below 70: −1 rating per 4 points (`fatPen`). After each user match (`afterMatch`): players who played keep end stamina +12, everyone else +25 (a league bye counts as rest). Injury chance per player-minute 0.0001 (0.0002 below 55 stamina); an injured player leaves the pitch and misses 1–3 matches (`S.inj[id]`, counts down after each user match). Injured cards can't be picked; "自動排最強" skips them and allows for tiredness.
+
+**Bench & presets** — `S.bench`: 7 card ids or null. Auto-pick fills it with the best keeper, defender, midfielder, attacker, then the best of the rest. `S.squads`: 3 presets `{form, tactic, slots, bench}`; loading drops cards no longer owned.
+
+**Cups** (`CUPS`) — single-leg knockout on neutral ground. `ucl` takes the top 3 of each of the 5 club leagues (16 teams, prize ×1.5); the others take a league's top 7 + the user (8 teams). `S.cup.br` = rounds of ties `{a, b, ga, gb, pa?, pb?, w}`, team 0 = user. Once the user is out, the rest is simulated to show the champion. Prize by how far you got (`CUPPZ`: champion 4000, runner-up 2000, semi 1000, quarter 500, last 16 250) × difficulty (0.5 / 1 / 2).
+
+**Rewards** — win 300 / draw 120 / loss 60 + 20 per goal (cup ties too, a shoot-out counts as a draw); friendlies ×0.5. Season-end bonus by finishing position (3000, 1800, 1200, 800, 500, 300, 200, 100, 50) × difficulty (0.5 / 1 / 2). Minimum 7 players to kick off.
 
 **Leagues** — `LEAGUES` entries `{n, e, teams: [[name, rating], ...]}` (8 AI teams each + the user → 18 rounds). `legend` league uses `LEGSC` for named scorers; national teams map through `NATCODE`.
 
@@ -102,12 +112,15 @@ node -e "const s=require('fs').readFileSync('/tmp/x.js','utf8').split('/* ======
 
 ```js
 { coins, inf?, owned: {cardId: count}, team, form, tactic?,
-  slots: [{x, y, c: cardId|null} ×11], diff,
+  slots: [{x, y, c: cardId|null} ×11], bench: [cardId|null ×7], diff,
+  lv: {cardId: level}, fit: {cardId: stamina<100}, inj: {cardId: matchesLeft},
+  squads: [null | {form, tactic, slots, bench} ×3],
   league: null | {k, diff, teams, rounds, round, table, log, done?},
+  cup: null | {k, diff, teams, br, log, done: null|{stage, prize}, champ},
   stats: {pulls, w, d, l}, starter: true }
 ```
 
-When adding fields, give them defaults at read time (`S.tactic || 'balanced'` pattern) so old saves keep working. If a change is incompatible, bump `KEY` (this wipes everyone's progress — ask the user first).
+When adding fields, give them defaults in `migrate()` (or at read time, `S.tactic || 'balanced'` pattern) so old saves keep working. If a change is incompatible, bump `KEY` (this wipes everyone's progress — ask the user first).
 
 ## Design
 
@@ -116,8 +129,10 @@ Floodlit night-match look: navy `--night` background, amber `--amber` accent, ch
 ## Ideas not done yet
 
 - Real player photos / club badges (licensing — currently text only)
-- Substitutions, injuries, fatigue; second-half tactic changes
-- Player upgrade / merge duplicates instead of auto-refund
-- Cups / knockout tournaments, multiple saved squads
 - Cloud save (would need a backend, e.g. Cloudflare Worker + KV)
 - Data for 2025/26 season and later transfers
+- Red cards, two-legged ties, cup group stages, AI-side fatigue
+
+Done: substitutions / injuries / fatigue / in-match tactic changes, player upgrades with duplicates, knockout cups, 3 saved squad presets.
+
+Tip for testing the match engine without waiting: in the browser console, start a match and call `$('#mskip').click()`.
