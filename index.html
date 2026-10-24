@@ -159,6 +159,16 @@ h2{font-family:var(--f-disp);font-size:26px;letter-spacing:.03em;margin:0 0 4px;
 .pitem .ef small{display:block;font-size:11px;font-family:var(--f-body);font-weight:500}
 .pitem.inuse{opacity:.6}
 .vers{display:flex;gap:12px;overflow-x:auto;padding-bottom:6px;font-size:13px}
+.vbtn{background:none;border:2px solid transparent;border-radius:12px;padding:4px;display:flex;flex-direction:column;gap:4px;align-items:center;color:var(--mute);font-size:12px}
+.vbtn.on{border-color:var(--amber)}
+.vbtn .card.dim *{visibility:hidden}
+.detail{display:grid;grid-template-columns:auto minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:460px){.detail{grid-template-columns:minmax(0,1fr)}.detail>div:first-child{justify-self:center}}
+.stgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;align-content:start}
+.strow{display:grid;grid-template-columns:auto 1fr;gap:0 8px;align-items:baseline;font-size:13px;color:var(--mute)}
+.strow b{font-family:var(--f-disp);font-size:24px;text-align:right;font-variant-numeric:tabular-nums;line-height:1}
+.strow .bar{grid-column:1/-1}
+.sline b{color:var(--chalk);font-family:var(--f-disp);font-weight:700}
 
 /* ---------- league ---------- */
 .lgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
@@ -435,6 +445,539 @@ const P=[
 ];
 const NATN={BRA:'巴西',ARG:'阿根廷',FRA:'法國',GER:'德國',ITA:'意大利',ESP:'西班牙',ENG:'英格蘭',NED:'荷蘭',POR:'葡萄牙',URS:'蘇聯',NIR:'北愛爾蘭',CIV:'科特迪瓦',CMR:'喀麥隆',LBR:'利比里亞',UKR:'烏克蘭',SWE:'瑞典',CRO:'克羅地亞',POL:'波蘭',URU:'烏拉圭',WAL:'威爾斯',BEL:'比利時',EGY:'埃及',NOR:'挪威',SVN:'斯洛文尼亞',MAR:'摩洛哥',NGA:'尼日利亞',GEO:'格魯吉亞',CAN:'加拿大',KOR:'南韓',ALG:'阿爾及利亞',JPN:'日本',CHN:'中國',HKG:'香港',GHA:'加納',JAM:'牙買加',DEN:'丹麥',CRC:'哥斯達黎加',SUI:'瑞士',COL:'哥倫比亞',BUL:'保加利亞',ROU:'羅馬尼亞',CZE:'捷克',IRL:'愛爾蘭'};
 
+/* ===== EXPANSION: more C / R cards (versions appended, so existing card IDs stay valid) ===== */
+const MOREV={
+'Jamie Vardy':[['2024/25','Leicester',74]],
+'Sergio Busquets':[['2024','Inter Miami',77]],
+'Luis Suárez':[['2007/08','Ajax',78],['2024','Inter Miami',78]],
+"N'Golo Kanté":[['2024/25','Al Ittihad',79]],
+'Kasper Schmeichel':[['2024/25','Celtic',76]],
+'Jesse Lingard':[['2017/18','Man United',78]],
+'Ashley Young':[['2011/12','Man United',78]],
+'Riyad Mahrez':[['2014/15','Leicester',74]],
+'Neymar':[['2024/25','Al Hilal',75]],
+'Karim Benzema':[['2006/07','Lyon',72]],
+'Robert Lewandowski':[['2009/10','Lech Poznań',68]],
+'Thibaut Courtois':[['2011/12','Atlético Madrid',78]],
+'Eden Hazard':[['2008/09','Lille',70]],
+'Zlatan Ibrahimović':[['2000','Malmö FF',62]],
+'Didier Drogba':[['2002/03','Guingamp',70]],
+'Thierry Henry':[['1995/96','Monaco',68]],
+'Ronaldinho':[['2001/02','PSG',82]],
+'Andrea Pirlo':[['1999/00','Reggina',72]],
+'Gianluigi Buffon':[['1995/96','Parma',70]],
+'Iker Casillas':[['1999/00','Real Madrid',72],['2015/16','Porto',82]],
+'Steven Gerrard':[['1999/00','Liverpool',70],['2015','LA Galaxy',72]],
+'Frank Lampard':[['1997/98','West Ham',70]],
+'David Beckham':[['1994/95','Preston North End',58]],
+'Ryan Giggs':[['2013/14','Man United',74]],
+'Paul Scholes':[['1994/95','Man United',68]],
+'Michael Owen':[['2011/12','Man United',66]],
+'Wayne Rooney':[['2002/03','Everton',72],['2019/20','Derby County',70]],
+'Andriy Shevchenko':[['2007/08','Chelsea',74]],
+'Sergio Agüero':[['2006/07','Atlético Madrid',78]],
+'Marcus Rashford':[['2015/16','Man United',68]],
+'Phil Foden':[['2018/19','Man City',68]],
+'Cole Palmer':[['2021/22','Man City',64]],
+'Gareth Bale':[['2006/07','Southampton',64]],
+'Zheng Zhi':[['2013','Guangzhou Evergrande',72]],
+'Shinji Okazaki':[['2010','Japan',70]],
+'Takefusa Kubo':[['2019/20','Mallorca',70]],
+'Kaoru Mitoma':[['2024/25','Brighton',79]],
+'Son Heung-min':[['2015/16','Tottenham',76]],
+'Bukayo Saka':[['2020/21','Arsenal',78]],
+'Declan Rice':[['2020/21','West Ham',79]],
+'Alexander Isak':[['2019/20','Real Sociedad',76]],
+'Erling Haaland':[['2016','Bryne',52]],
+'Kylian Mbappé':[['2015/16','Monaco',64]],
+'Lamine Yamal':[['2023','Barcelona Atlètic',58]],
+};
+P.forEach(p=>{if(MOREV[p[0]])p[3].push(...MOREV[p[0]])});
+P.push(
+/* Premier League 2024/25 */
+['Bryan Mbeumo','RW','CMR',[['2024/25','Brentford',79]],'Mbeumo'],
+['Yoane Wissa','ST','COD',[['2024/25','Brentford',78]],'Wissa'],
+['Christian Nørgaard','CDM','DEN',[['2024/25','Brentford',76]],'Nørgaard'],
+['Mark Flekken','GK','NED',[['2024/25','Brentford',75]],'Flekken'],
+['Nathan Collins','CB','IRL',[['2024/25','Brentford',75]],'N. Collins'],
+['Mikkel Damsgaard','CAM','DEN',[['2024/25','Brentford',75]],'Damsgaard'],
+['Kevin Schade','LW','GER',[['2024/25','Brentford',73]],'Schade'],
+['Vitaly Janelt','CM','GER',[['2024/25','Brentford',72]],'Janelt'],
+['Alex Iwobi','RW','NGA',[['2024/25','Fulham',77]],'Iwobi'],
+['Raúl Jiménez','ST','MEX',[['2018/19','Wolves',80],['2024/25','Fulham',76]],'R. Jiménez'],
+['Bernd Leno','GK','GER',[['2024/25','Fulham',79]],'Leno'],
+['Antonee Robinson','LB','USA',[['2024/25','Fulham',79]],'A. Robinson'],
+['Andreas Pereira','CAM','BRA',[['2024/25','Fulham',76]],'A. Pereira'],
+['Saša Lukić','CM','SRB',[['2024/25','Fulham',74]],'Lukić'],
+['Calvin Bassey','CB','NGA',[['2024/25','Fulham',75]],'Bassey'],
+['Harry Wilson','RW','WAL',[['2024/25','Fulham',74]],'H. Wilson'],
+['Tom Cairney','CM','SCO',[['2024/25','Fulham',71]],'Cairney'],
+['Emile Smith Rowe','CAM','ENG',[['2020/21','Arsenal',78],['2024/25','Fulham',75]],'Smith Rowe'],
+['Eberechi Eze','CAM','ENG',[['2024/25','Crystal Palace',79]],'Eze'],
+['Jean-Philippe Mateta','ST','FRA',[['2024/25','Crystal Palace',78]],'Mateta'],
+['Marc Guéhi','CB','ENG',[['2024/25','Crystal Palace',79]],'Guéhi'],
+['Dean Henderson','GK','ENG',[['2024/25','Crystal Palace',77]],'D. Henderson'],
+['Adam Wharton','CM','ENG',[['2024/25','Crystal Palace',75]],'Wharton'],
+['Daniel Muñoz','RB','COL',[['2024/25','Crystal Palace',77]],'D. Muñoz'],
+['Ismaïla Sarr','RW','SEN',[['2024/25','Crystal Palace',76]],'I. Sarr'],
+['Tyrick Mitchell','LB','ENG',[['2024/25','Crystal Palace',73]],'T. Mitchell'],
+['Will Hughes','CM','ENG',[['2024/25','Crystal Palace',71]],'W. Hughes'],
+['Jefferson Lerma','CDM','COL',[['2024/25','Crystal Palace',74]],'Lerma'],
+['Antoine Semenyo','RW','GHA',[['2024/25','Bournemouth',77]],'Semenyo'],
+['Justin Kluivert','CAM','NED',[['2024/25','Bournemouth',77]],'J. Kluivert'],
+['Dean Huijsen','CB','ESP',[['2024/25','Bournemouth',77]],'Huijsen'],
+['Illia Zabarnyi','CB','UKR',[['2024/25','Bournemouth',77]],'Zabarnyi'],
+['Milos Kerkez','LB','HUN',[['2024/25','Bournemouth',78]],'Kerkez'],
+['Evanilson','ST','BRA',[['2024/25','Bournemouth',75]]],
+['Ryan Christie','CM','SCO',[['2024/25','Bournemouth',72]],'Christie'],
+['Marcus Tavernier','LM','ENG',[['2024/25','Bournemouth',74]],'Tavernier'],
+['Lewis Cook','CM','ENG',[['2024/25','Bournemouth',72]],'L. Cook'],
+['Kepa Arrizabalaga','GK','ESP',[['2018/19','Chelsea',81],['2024/25','Bournemouth',77]],'Kepa'],
+['Jørgen Strand Larsen','ST','NOR',[['2024/25','Wolves',76]],'Strand Larsen'],
+['João Gomes','CDM','BRA',[['2024/25','Wolves',77]],'João Gomes'],
+['Rayan Aït-Nouri','LB','ALG',[['2024/25','Wolves',78]],'Aït-Nouri'],
+['José Sá','GK','POR',[['2024/25','Wolves',75]],'José Sá'],
+['Nélson Semedo','RB','POR',[['2024/25','Wolves',73]],'N. Semedo'],
+['Hwang Hee-chan','ST','KOR',[['2023/24','Wolves',77],['2024/25','Wolves',72]],'Hwang Hee-chan'],
+['Mario Lemina','CDM','GAB',[['2024/25','Wolves',73]],'Lemina'],
+['James Tarkowski','CB','ENG',[['2024/25','Everton',77]],'Tarkowski'],
+['Jarrad Branthwaite','CB','ENG',[['2024/25','Everton',77]],'Branthwaite'],
+['Jordan Pickford','GK','ENG',[['2015/16','Sunderland',70],['2024/25','Everton',82]],'Pickford'],
+['Abdoulaye Doucouré','CM','MLI',[['2024/25','Everton',73]],'Doucouré'],
+['Idrissa Gueye','CDM','SEN',[['2024/25','Everton',75]],'I. Gueye'],
+['Dwight McNeil','LM','ENG',[['2024/25','Everton',74]],'McNeil'],
+['Iliman Ndiaye','LW','SEN',[['2024/25','Everton',76]],'Ndiaye'],
+['Dominic Calvert-Lewin','ST','ENG',[['2020/21','Everton',81],['2024/25','Everton',73]],'Calvert-Lewin'],
+['Vitalii Mykolenko','LB','UKR',[['2024/25','Everton',73]],'Mykolenko'],
+['Beto','ST','GNB',[['2024/25','Everton',71]]],
+['Chris Wood','ST','NZL',[['2024/25','Nottingham Forest',78]],'C. Wood'],
+['Murillo','CB','BRA',[['2024/25','Nottingham Forest',78]]],
+['Morgan Gibbs-White','CAM','ENG',[['2024/25','Nottingham Forest',79]],'Gibbs-White'],
+['Anthony Elanga','RW','SWE',[['2021/22','Man United',69],['2024/25','Nottingham Forest',77]],'Elanga'],
+['Callum Hudson-Odoi','LW','ENG',[['2024/25','Nottingham Forest',75]],'Hudson-Odoi'],
+['Elliot Anderson','CM','ENG',[['2024/25','Nottingham Forest',76]],'E. Anderson'],
+['Matz Sels','GK','BEL',[['2024/25','Nottingham Forest',77]],'Sels'],
+['Nikola Milenković','CB','SRB',[['2024/25','Nottingham Forest',78]],'Milenković'],
+['Ola Aina','RB','NGA',[['2024/25','Nottingham Forest',76]],'Aina'],
+['Ryan Yates','CM','ENG',[['2024/25','Nottingham Forest',71]],'Yates'],
+['Mohammed Kudus','RW','GHA',[['2024/25','West Ham',79]],'Kudus'],
+['Lucas Paquetá','CAM','BRA',[['2024/25','West Ham',79]],'Paquetá'],
+['Tomáš Souček','CM','CZE',[['2024/25','West Ham',76]],'Souček'],
+['Aaron Wan-Bissaka','RB','ENG',[['2024/25','West Ham',76]],'Wan-Bissaka'],
+['Alphonse Areola','GK','FRA',[['2024/25','West Ham',76]],'Areola'],
+['Max Kilman','CB','ENG',[['2024/25','West Ham',75]],'Kilman'],
+['Michail Antonio','ST','JAM',[['2024/25','West Ham',72]],'Antonio'],
+['João Pedro','ST','BRA',[['2024/25','Brighton',79]],'João Pedro'],
+['Lewis Dunk','CB','ENG',[['2024/25','Brighton',77]],'Dunk'],
+['Pervis Estupiñán','LB','ECU',[['2024/25','Brighton',77]],'Estupiñán'],
+['Carlos Baleba','CDM','CMR',[['2024/25','Brighton',76]],'Baleba'],
+['Jan Paul van Hecke','CB','NED',[['2024/25','Brighton',76]],'van Hecke'],
+['Bart Verbruggen','GK','NED',[['2024/25','Brighton',77]],'Verbruggen'],
+['Yankuba Minteh','RW','GAM',[['2024/25','Brighton',74]],'Minteh'],
+['Georginio Rutter','CAM','FRA',[['2024/25','Brighton',75]],'Rutter'],
+['Evan Ferguson','ST','IRL',[['2022/23','Brighton',74],['2024/25','Brighton',70]],'E. Ferguson'],
+['Morgan Rogers','CAM','ENG',[['2024/25','Aston Villa',79]],'M. Rogers'],
+['John McGinn','CM','SCO',[['2024/25','Aston Villa',78]],'McGinn'],
+['Ezri Konsa','CB','ENG',[['2024/25','Aston Villa',78]],'Konsa'],
+['Lucas Digne','LB','FRA',[['2024/25','Aston Villa',75]],'Digne'],
+['Leon Bailey','RW','JAM',[['2024/25','Aston Villa',76]],'L. Bailey'],
+['Matty Cash','RB','POL',[['2024/25','Aston Villa',76]],'Cash'],
+['Boubacar Kamara','CDM','FRA',[['2024/25','Aston Villa',79]],'B. Kamara'],
+['Ollie Watkins','ST','ENG',[['2017/18','Brentford',70],['2023/24','Aston Villa',84]],'Watkins'],
+['Youri Tielemans','CM','BEL',[['2020/21','Leicester',83],['2024/25','Aston Villa',80]],'Tielemans'],
+['Wilfred Ndidi','CDM','NGA',[['2024/25','Leicester',74]],'Ndidi'],
+['Stephy Mavididi','LW','ENG',[['2024/25','Leicester',73]],'Mavididi'],
+['Facundo Buonanotte','CAM','ARG',[['2024/25','Leicester',72]],'Buonanotte'],
+['Mads Hermansen','GK','DEN',[['2024/25','Leicester',74]],'Hermansen'],
+['Harry Winks','CM','ENG',[['2024/25','Leicester',71]],'Winks'],
+['Wout Faes','CB','BEL',[['2024/25','Leicester',72]],'Faes'],
+['Liam Delap','ST','ENG',[['2024/25','Ipswich Town',74]],'Delap'],
+['Leif Davis','LB','ENG',[['2024/25','Ipswich Town',73]],'L. Davis'],
+['Sam Morsy','CDM','EGY',[['2024/25','Ipswich Town',71]],'Morsy'],
+['Omari Hutchinson','RW','JAM',[['2024/25','Ipswich Town',73]],'Hutchinson'],
+['Arijanet Muric','GK','KOS',[['2024/25','Ipswich Town',72]],'Muric'],
+['Conor Chaplin','CAM','ENG',[['2024/25','Ipswich Town',69]],'Chaplin'],
+['Kalvin Phillips','CDM','ENG',[['2020/21','Leeds',82],['2024/25','Ipswich Town',70]],'K. Phillips'],
+['Tyler Dibling','RW','ENG',[['2024/25','Southampton',70]],'Dibling'],
+['Jan Bednarek','CB','POL',[['2024/25','Southampton',70]],'Bednarek'],
+['Kyle Walker-Peters','RB','ENG',[['2024/25','Southampton',72]],'Walker-Peters'],
+['Adam Armstrong','ST','ENG',[['2024/25','Southampton',70]],'Armstrong'],
+['Flynn Downes','CM','ENG',[['2024/25','Southampton',69]],'Downes'],
+['Mateus Fernandes','CM','POR',[['2024/25','Southampton',71]],'Mateus F.'],
+['Cameron Archer','ST','ENG',[['2024/25','Southampton',68]],'Archer'],
+['Taylor Harwood-Bellis','CB','ENG',[['2024/25','Southampton',70]],'Harwood-Bellis'],
+/* EFL & lower */
+['Jobe Bellingham','CM','ENG',[['2024/25','Sunderland',69]],'J. Bellingham'],
+['Chris Rigg','CM','ENG',[['2024/25','Sunderland',64]],'Rigg'],
+['Dan Neil','CM','ENG',[['2024/25','Sunderland',66]],'D. Neil'],
+['Anthony Patterson','GK','ENG',[['2024/25','Sunderland',67]],'Patterson'],
+["Luke O'Nien",'CB','ENG',[['2024/25','Sunderland',65]],"O'Nien"],
+['Wilson Isidor','ST','FRA',[['2024/25','Sunderland',68]],'Isidor'],
+['Dennis Cirkin','LB','ENG',[['2024/25','Sunderland',64]],'Cirkin'],
+['Daniel James','RW','WAL',[['2024/25','Leeds',72]],'D. James'],
+['Ethan Ampadu','CDM','WAL',[['2024/25','Leeds',72]],'Ampadu'],
+['Joël Piroe','ST','NED',[['2024/25','Leeds',71]],'Piroe'],
+['Illan Meslier','GK','FRA',[['2024/25','Leeds',71]],'Meslier'],
+['Willy Gnonto','LW','ITA',[['2024/25','Leeds',71]],'Gnonto'],
+['Brenden Aaronson','CAM','USA',[['2024/25','Leeds',70]],'Aaronson'],
+['Joe Rodon','CB','WAL',[['2024/25','Leeds',71]],'Rodon'],
+['Pascal Struijk','CB','NED',[['2024/25','Leeds',69]],'Struijk'],
+['Gustavo Hamer','CAM','NED',[['2024/25','Sheffield United',70]],'G. Hamer'],
+['Kieffer Moore','ST','WAL',[['2024/25','Sheffield United',65]],'K. Moore'],
+['James Trafford','GK','ENG',[['2024/25','Burnley',70]],'Trafford'],
+['Josh Brownhill','CM','ENG',[['2024/25','Burnley',70]],'Brownhill'],
+['Maxime Estève','CB','FRA',[['2024/25','Burnley',69]],'Estève'],
+['Zian Flemming','CAM','NED',[['2024/25','Burnley',67]],'Flemming'],
+['Borja Sainz','LW','ESP',[['2024/25','Norwich',68]],'Sainz'],
+['Josh Sargent','ST','USA',[['2024/25','Norwich',69]],'Sargent'],
+['Angus Gunn','GK','SCO',[['2024/25','Norwich',67]],'A. Gunn'],
+['Hayden Hackney','CM','ENG',[['2024/25','Middlesbrough',67]],'Hackney'],
+['Emmanuel Latte Lath','ST','CIV',[['2024/25','Middlesbrough',68]],'Latte Lath'],
+['Alex Mowatt','CM','ENG',[['2024/25','West Brom',65]],'Mowatt'],
+['Josh Maja','ST','NGA',[['2024/25','West Brom',65]],'Maja'],
+['Tom Fellows','RW','ENG',[['2024/25','West Brom',65]],'Fellows'],
+['Karlan Grant','ST','ENG',[['2024/25','West Brom',65]],'K. Grant'],
+['Jayson Molumby','CM','IRL',[['2024/25','West Brom',65]],'Molumby'],
+['Haji Wright','ST','USA',[['2024/25','Coventry City',68]],'H. Wright'],
+['Ben Sheaf','CM','ENG',[['2024/25','Coventry City',65]],'Sheaf'],
+['Ellis Simms','ST','ENG',[['2024/25','Coventry City',65]],'E. Simms'],
+['Bae Jun-ho','CAM','KOR',[['2024/25','Stoke City',67]],'Bae Jun-ho'],
+['Morgan Whittaker','RW','ENG',[['2024/25','Plymouth Argyle',65]],'Whittaker'],
+['Ryan Hardie','ST','SCO',[['2024/25','Plymouth Argyle',63]],'Hardie'],
+['Jay Stansfield','ST','ENG',[['2024/25','Birmingham City',66]],'Stansfield'],
+['Tomoki Iwata','CDM','JPN',[['2024/25','Birmingham City',64]],'Iwata'],
+['Alfie May','ST','ENG',[['2024/25','Birmingham City',61]],'A. May'],
+['Krystian Bielik','CDM','POL',[['2024/25','Birmingham City',65]],'Bielik'],
+['Carlton Morris','ST','ENG',[['2024/25','Luton Town',65]],'C. Morris'],
+['Thomas Kaminski','GK','BEL',[['2024/25','Luton Town',66]],'Kaminski'],
+['Tahith Chong','RW','NED',[['2024/25','Luton Town',65]],'Chong'],
+['Abu Kamara','RW','ENG',[['2024/25','Hull City',64]],'A. Kamara'],
+['Colby Bishop','ST','ENG',[['2024/25','Portsmouth',63]],'Bishop'],
+['Callum Lang','LW','ENG',[['2024/25','Portsmouth',63]],'C. Lang'],
+['Jerry Yates','ST','ENG',[['2024/25','Derby County',62]],'J. Yates'],
+['Ebou Adams','CM','GAM',[['2024/25','Derby County',62]],'E. Adams'],
+['Mark Harris','ST','WAL',[['2024/25','Oxford United',62]],'M. Harris'],
+['Cameron Brannagan','CM','ENG',[['2024/25','Oxford United',63]],'Brannagan'],
+['Paul Mullin','ST','ENG',[['2022/23','Wrexham',62],['2024/25','Wrexham',59]],'Mullin'],
+['James McClean','LM','IRL',[['2024/25','Wrexham',61]],'McClean'],
+['Elliot Lee','CAM','ENG',[['2024/25','Wrexham',60]],'E. Lee'],
+['Ollie Palmer','ST','ENG',[['2024/25','Wrexham',58]],'O. Palmer'],
+['Arthur Okonkwo','GK','ENG',[['2024/25','Wrexham',61]],'Okonkwo'],
+['Lawrence Shankland','ST','SCO',[['2024/25','Hearts',67]],'Shankland'],
+['Craig Gordon','GK','SCO',[['2008/09','Sunderland',79],['2024/25','Hearts',64]],'C. Gordon'],
+['Martin Boyle','RW','AUS',[['2024/25','Hibernian',65]],'Boyle'],
+['Callum McGregor','CM','SCO',[['2024/25','Celtic',76]],'McGregor'],
+['Reo Hatate','CM','JPN',[['2024/25','Celtic',75]],'Hatate'],
+['Daizen Maeda','LW','JPN',[['2024/25','Celtic',76]],'Maeda'],
+['Kyogo Furuhashi','ST','JPN',[['2022/23','Celtic',77]],'Kyogo'],
+['Cameron Carter-Vickers','CB','USA',[['2024/25','Celtic',75]],'Carter-Vickers'],
+['Arne Engels','CM','BEL',[['2024/25','Celtic',74]],'Engels'],
+['Nicolas Kühn','RW','GER',[['2024/25','Celtic',76]],'Kühn'],
+['James Tavernier','RB','ENG',[['2024/25','Rangers',75]],'J. Tavernier'],
+['Jack Butland','GK','ENG',[['2024/25','Rangers',75]],'Butland'],
+['Cyriel Dessers','ST','NGA',[['2024/25','Rangers',72]],'Dessers'],
+['Mohamed Diomande','CM','CIV',[['2024/25','Rangers',73]],'Diomande'],
+['Václav Černý','RW','CZE',[['2024/25','Rangers',73]],'Černý'],
+/* La Liga */
+['Savinho','RW','BRA',[['2023/24','Girona',79]]],
+['Aleix García','CM','ESP',[['2023/24','Girona',79]],'Aleix García'],
+['Miguel Gutiérrez','LB','ESP',[['2023/24','Girona',77]],'M. Gutiérrez'],
+['Paulo Gazzaniga','GK','ARG',[['2023/24','Girona',75]],'Gazzaniga'],
+['Cristhian Stuani','ST','URU',[['2023/24','Girona',72]],'Stuani'],
+['Viktor Tsygankov','RW','UKR',[['2023/24','Girona',77]],'Tsygankov'],
+['Iván Martín','CM','ESP',[['2023/24','Girona',75]],'Iván Martín'],
+['Daley Blind','CB','NED',[['2014/15','Man United',78],['2023/24','Girona',74]],'Blind'],
+['Artem Dovbyk','ST','UKR',[['2023/24','Girona',81],['2024/25','Roma',79]],'Dovbyk'],
+['David Soria','GK','ESP',[['2024/25','Getafe',75]],'Soria'],
+['Mauro Arambarri','CDM','URU',[['2024/25','Getafe',75]],'Arambarri'],
+['Djené','CB','TOG',[['2024/25','Getafe',74]]],
+['Luis Milla','CM','ESP',[['2024/25','Getafe',75]],'L. Milla'],
+['Borja Mayoral','ST','ESP',[['2024/25','Getafe',73]],'Mayoral'],
+['Isi Palazón','RW','ESP',[['2024/25','Rayo Vallecano',76]],'Isi'],
+['Óscar Trejo','CAM','ARG',[['2024/25','Rayo Vallecano',71]],'Trejo'],
+['Unai López','CM','ESP',[['2024/25','Rayo Vallecano',73]],'Unai López'],
+['Ante Budimir','ST','CRO',[['2024/25','Osasuna',77]],'Budimir'],
+['Aimar Oroz','CAM','ESP',[['2024/25','Osasuna',75]],'Oroz'],
+['Sergio Herrera','GK','ESP',[['2024/25','Osasuna',75]],'S. Herrera'],
+['Rubén García','LM','ESP',[['2024/25','Osasuna',72]],'Rubén García'],
+['Lucas Torró','CDM','ESP',[['2024/25','Osasuna',74]],'Torró'],
+['Iago Aspas','ST','ESP',[['2017/18','Celta Vigo',85],['2024/25','Celta Vigo',76]],'Aspas'],
+['Borja Iglesias','ST','ESP',[['2024/25','Celta Vigo',72]],'B. Iglesias'],
+['Óscar Mingueza','RB','ESP',[['2024/25','Celta Vigo',75]],'Mingueza'],
+['Fran Beltrán','CM','ESP',[['2024/25','Celta Vigo',71]],'F. Beltrán'],
+['Kirian Rodríguez','CM','ESP',[['2024/25','Las Palmas',73]],'Kirian'],
+['Sandro Ramírez','ST','ESP',[['2024/25','Las Palmas',71]],'Sandro'],
+['Fábio Silva','ST','POR',[['2024/25','Las Palmas',71]],'Fábio Silva'],
+['José Gayà','LB','ESP',[['2024/25','Valencia',76]],'Gayà'],
+['Hugo Duro','ST','ESP',[['2024/25','Valencia',74]],'Hugo Duro'],
+['Javi Guerra','CM','ESP',[['2024/25','Valencia',75]],'J. Guerra'],
+['Pepelu','CDM','ESP',[['2024/25','Valencia',74]]],
+['Diego López','LW','ESP',[['2024/25','Valencia',73]],'Diego López'],
+['Giorgi Mamardashvili','GK','GEO',[['2024/25','Valencia',82]],'Mamardashvili'],
+['Javi Puado','ST','ESP',[['2024/25','Espanyol',73]],'Puado'],
+['Joan García','GK','ESP',[['2024/25','Espanyol',78]],'Joan García'],
+['Vedat Muriqi','ST','KOS',[['2024/25','Mallorca',75]],'Muriqi'],
+['Dominik Greif','GK','SVK',[['2024/25','Mallorca',75]],'Greif'],
+['Sergi Darder','CM','ESP',[['2024/25','Mallorca',73]],'Darder'],
+['Cyle Larin','ST','CAN',[['2024/25','Mallorca',70]],'Larin'],
+['Takuma Asano','RW','JPN',[['2023/24','Bochum',72],['2024/25','Mallorca',70]],'Asano'],
+['Juan Cruz','RW','ARG',[['2024/25','Leganés',71]],'Juan Cruz'],
+['Óscar Rodríguez','CAM','ESP',[['2024/25','Leganés',72]],'Óscar R.'],
+/* Serie A */
+['Riccardo Orsolini','RW','ITA',[['2024/25','Bologna',79]],'Orsolini'],
+['Lewis Ferguson','CM','SCO',[['2024/25','Bologna',76]],'L. Ferguson'],
+['Santiago Castro','ST','ARG',[['2024/25','Bologna',75]],'S. Castro'],
+['Łukasz Skorupski','GK','POL',[['2024/25','Bologna',77]],'Skorupski'],
+['Remo Freuler','CM','SUI',[['2024/25','Bologna',77]],'Freuler'],
+['Jhon Lucumí','CB','COL',[['2024/25','Bologna',77]],'Lucumí'],
+['Sam Beukema','CB','NED',[['2024/25','Bologna',77]],'Beukema'],
+['Duván Zapata','ST','COL',[['2018/19','Atalanta',84],['2024/25','Torino',75]],'D. Zapata'],
+['Vanja Milinković-Savić','GK','SRB',[['2024/25','Torino',78]],'V. Milinković-Savić'],
+['Samuele Ricci','CM','ITA',[['2024/25','Torino',76]],'S. Ricci'],
+['Che Adams','ST','SCO',[['2024/25','Torino',73]],'Che Adams'],
+['Lorenzo Lucca','ST','ITA',[['2024/25','Udinese',75]],'Lucca'],
+['Florian Thauvin','RW','FRA',[['2017/18','Marseille',85],['2024/25','Udinese',77]],'Thauvin'],
+['Jaka Bijol','CB','SVN',[['2024/25','Udinese',77]],'Bijol'],
+['Morten Frendrup','CM','DEN',[['2024/25','Genoa',75]],'Frendrup'],
+['Andrea Pinamonti','ST','ITA',[['2024/25','Genoa',73]],'Pinamonti'],
+['Junior Messias','RW','BRA',[['2024/25','Genoa',71]],'Messias'],
+['Mario Balotelli','ST','ITA',[['2011/12','Man City',80],['2012','Italy',82],['2024/25','Genoa',58]],'Balotelli'],
+['Nico Paz','CAM','ARG',[['2024/25','Como',77]],'Nico Paz'],
+['Patrick Cutrone','ST','ITA',[['2017/18','AC Milan',74],['2024/25','Como',73]],'Cutrone'],
+['Sergi Roberto','CM','ESP',[['2016/17','Barcelona',82],['2024/25','Como',72]],'Sergi Roberto'],
+['Pepe Reina','GK','ESP',[['2008/09','Liverpool',88],['2024/25','Como',68]],'Reina'],
+['Nikola Krstović','ST','MNE',[['2024/25','Lecce',74]],'Krstović'],
+['Wladimiro Falcone','GK','ITA',[['2024/25','Lecce',76]],'Falcone'],
+['Daniel Maldini','CAM','ITA',[['2024/25','Monza',72]],'D. Maldini'],
+['Andrea Petagna','ST','ITA',[['2024/25','Monza',66]],'Petagna'],
+['Dany Mota','ST','POR',[['2024/25','Monza',69]],'Dany Mota'],
+['Gianluca Gaetano','CAM','ITA',[['2024/25','Cagliari',71]],'Gaetano'],
+['Leonardo Pavoletti','ST','ITA',[['2024/25','Cagliari',66]],'Pavoletti'],
+['Sebastiano Esposito','ST','ITA',[['2024/25','Empoli',71]],'S. Esposito'],
+['Lorenzo Montipò','GK','ITA',[['2024/25','Hellas Verona',73]],'Montipò'],
+['Suat Serdar','CM','GER',[['2024/25','Hellas Verona',72]],'Serdar'],
+['Zion Suzuki','GK','JPN',[['2024/25','Parma',74]],'Zion Suzuki'],
+['Weston McKennie','CM','USA',[['2024/25','Juventus',77]],'McKennie'],
+['Christian Pulisic','RW','USA',[['2016/17','Dortmund',74],['2020/21','Chelsea',81],['2024/25','AC Milan',84]],'Pulisic'],
+['Romelu Lukaku','ST','BEL',[['2010/11','Anderlecht',70],['2016/17','Everton',85],['2020/21','Inter',89],['2024/25','Napoli',81]],'Lukaku'],
+/* Bundesliga */
+['Frederik Rønnow','GK','DEN',[['2024/25','Union Berlin',76]],'Rønnow'],
+['Rani Khedira','CDM','GER',[['2024/25','Union Berlin',74]],'R. Khedira'],
+['Benedict Hollerbach','LW','GER',[['2024/25','Union Berlin',72]],'Hollerbach'],
+['Danilho Doekhi','CB','NED',[['2024/25','Union Berlin',76]],'Doekhi'],
+['Jan-Niklas Beste','LM','GER',[['2023/24','Heidenheim',75]],'Beste'],
+['Tim Kleindienst','ST','GER',[['2023/24','Heidenheim',75],['2024/25','Gladbach',78]],'Kleindienst'],
+['Kevin Müller','GK','GER',[['2023/24','Heidenheim',72]],'K. Müller'],
+['Patrick Mainka','CB','GER',[['2023/24','Heidenheim',72]],'Mainka'],
+['Jonathan Burkardt','ST','GER',[['2024/25','Mainz 05',78]],'Burkardt'],
+['Robin Zentner','GK','GER',[['2024/25','Mainz 05',74]],'Zentner'],
+['Nadiem Amiri','CAM','GER',[['2024/25','Mainz 05',76]],'Amiri'],
+['Lee Jae-sung','CAM','KOR',[['2024/25','Mainz 05',74]],'Lee Jae-sung'],
+['Kaishu Sano','CDM','JPN',[['2024/25','Mainz 05',74]],'Sano'],
+['Marvin Ducksch','ST','GER',[['2024/25','Werder Bremen',74]],'Ducksch'],
+['Romano Schmid','CAM','AUT',[['2024/25','Werder Bremen',76]],'R. Schmid'],
+['Mitchell Weiser','RB','GER',[['2024/25','Werder Bremen',76]],'Weiser'],
+['Michael Zetterer','GK','GER',[['2024/25','Werder Bremen',73]],'Zetterer'],
+['Jens Stage','CM','DEN',[['2024/25','Werder Bremen',76]],'Stage'],
+['Finn Dahmen','GK','GER',[['2024/25','Augsburg',75]],'Dahmen'],
+['Phillip Tietz','ST','GER',[['2024/25','Augsburg',72]],'Tietz'],
+['Alassane Pléa','ST','FRA',[['2024/25','Gladbach',75]],'Pléa'],
+['Franck Honorat','RW','FRA',[['2024/25','Gladbach',76]],'Honorat'],
+['Moritz Nicolas','GK','GER',[['2024/25','Gladbach',75]],'Nicolas'],
+['Ko Itakura','CB','JPN',[['2024/25','Gladbach',76]],'Itakura'],
+['Julian Weigl','CDM','GER',[['2024/25','Gladbach',75]],'Weigl'],
+['Rocco Reitz','CM','GER',[['2024/25','Gladbach',74]],'Reitz'],
+['Andrej Kramarić','ST','CRO',[['2024/25','Hoffenheim',77]],'Kramarić'],
+['Oliver Baumann','GK','GER',[['2024/25','Hoffenheim',79]],'Baumann'],
+['Jackson Irvine','CM','AUS',[['2024/25','St. Pauli',72]],'Irvine'],
+['Nikola Vasilj','GK','BIH',[['2024/25','St. Pauli',75]],'Vasilj'],
+['Myron Boadu','ST','NED',[['2024/25','Bochum',69]],'Boadu'],
+['Vincenzo Grifo','LM','ITA',[['2024/25','Freiburg',77]],'Grifo'],
+['Christian Günter','LB','GER',[['2024/25','Freiburg',75]],'Günter'],
+['Noah Atubolu','GK','GER',[['2024/25','Freiburg',76]],'Atubolu'],
+['Matthias Ginter','CB','GER',[['2024/25','Freiburg',77]],'Ginter'],
+['Maximilian Eggestein','CM','GER',[['2024/25','Freiburg',75]],'Eggestein'],
+['Hiroki Ito','CB','JPN',[['2023/24','Stuttgart',77]],'H. Ito'],
+['Mesut Özil','CAM','GER',[['2009/10','Werder Bremen',82],['2015/16','Arsenal',89],['2021/22','Fenerbahçe',72]],'Özil'],
+/* Ligue 1 */
+['Romain Del Castillo','RW','FRA',[['2024/25','Brest',75]],'Del Castillo'],
+['Pierre Lees-Melou','CM','FRA',[['2024/25','Brest',76]],'Lees-Melou'],
+['Marco Bizot','GK','NED',[['2024/25','Brest',75]],'Bizot'],
+['Ludovic Ajorque','ST','FRA',[['2024/25','Brest',72]],'Ajorque'],
+['Emanuel Emegha','ST','NED',[['2024/25','Strasbourg',74]],'Emegha'],
+['Diego Moreira','LW','POR',[['2024/25','Strasbourg',72]],'D. Moreira'],
+['Habib Diarra','CM','SEN',[['2024/25','Strasbourg',74]],'H. Diarra'],
+['Dilane Bakwa','RW','FRA',[['2024/25','Strasbourg',74]],'Bakwa'],
+['Brice Samba','GK','FRA',[['2024/25','Lens',80]],'Samba'],
+['Florian Sotoca','RW','FRA',[['2024/25','Lens',74]],'Sotoca'],
+['Neil El Aynaoui','CM','MAR',[['2024/25','Lens',74]],'El Aynaoui'],
+['Adrien Thomasson','CM','FRA',[['2024/25','Lens',74]],'Thomasson'],
+['Zakaria Aboukhlal','RW','MAR',[['2024/25','Toulouse',73]],'Aboukhlal'],
+['Thijs Dallinga','ST','NED',[['2023/24','Toulouse',74]],'Dallinga'],
+['Guillaume Restes','GK','FRA',[['2024/25','Toulouse',74]],'Restes'],
+['Keito Nakamura','LW','JPN',[['2024/25','Reims',74]],'K. Nakamura'],
+['Junya Ito','RW','JPN',[['2024/25','Reims',76]],'J. Ito'],
+['Yehvann Diouf','GK','FRA',[['2024/25','Reims',74]],'Y. Diouf'],
+['Teddy Teuma','CM','MLT',[['2024/25','Reims',72]],'Teuma'],
+['Mostafa Mohamed','ST','EGY',[['2024/25','Nantes',72]],'Mostafa M.'],
+['Matthis Abline','ST','FRA',[['2024/25','Nantes',72]],'Abline'],
+['Alban Lafont','GK','FRA',[['2024/25','Nantes',75]],'Lafont'],
+['Gaëtan Perrin','CAM','FRA',[['2024/25','Auxerre',73]],'G. Perrin'],
+['Lassine Sinayoko','ST','MLI',[['2024/25','Auxerre',71]],'Sinayoko'],
+['Hamed Traorè','CAM','CIV',[['2024/25','Auxerre',72]],'H. Traorè'],
+['Donovan Léon','GK','FRA',[['2024/25','Auxerre',71]],'D. Léon'],
+['Himad Abdelli','CM','ALG',[['2024/25','Angers',71]],'Abdelli'],
+['Esteban Lepaul','ST','FRA',[['2024/25','Angers',68]],'Lepaul'],
+['Téji Savanier','CM','FRA',[['2024/25','Montpellier',73]],'Savanier'],
+['Benjamin Lecomte','GK','FRA',[['2024/25','Montpellier',72]],'Lecomte'],
+['Arnaud Nordin','RW','FRA',[['2024/25','Montpellier',70]],'Nordin'],
+['Zuriko Davitashvili','LW','GEO',[['2024/25','Saint-Étienne',72]],'Davitashvili'],
+['Takumi Minamino','CAM','JPN',[['2020/21','Liverpool',72],['2024/25','Monaco',77]],'Minamino'],
+['Hugo Lloris','GK','FRA',[['2018','France',89],['2024','LAFC',75]],'Lloris'],
+/* Netherlands / Portugal / Turkey */
+['Brian Brobbey','ST','NED',[['2024/25','Ajax',77]],'Brobbey'],
+['Kenneth Taylor','CM','NED',[['2024/25','Ajax',76]],'K. Taylor'],
+['Jorrel Hato','LB','NED',[['2024/25','Ajax',76]],'Hato'],
+['Steven Berghuis','RW','NED',[['2024/25','Ajax',75]],'Berghuis'],
+['Remko Pasveer','GK','NED',[['2024/25','Ajax',72]],'Pasveer'],
+['Bertrand Traoré','RW','BFA',[['2024/25','Ajax',73]],'B. Traoré'],
+['Wout Weghorst','ST','NED',[['2022/23','Man United',73],['2024/25','Ajax',73]],'Weghorst'],
+['Luuk de Jong','ST','NED',[['2024/25','PSV',77]],'L. de Jong'],
+['Ismael Saibari','CAM','MAR',[['2024/25','PSV',77]],'Saibari'],
+['Joey Veerman','CM','NED',[['2024/25','PSV',77]],'Veerman'],
+['Johan Bakayoko','RW','BEL',[['2024/25','PSV',77]],'Bakayoko'],
+['Walter Benítez','GK','ARG',[['2024/25','PSV',78]],'W. Benítez'],
+['Malik Tillman','CAM','USA',[['2024/25','PSV',77]],'Tillman'],
+['Ivan Perišić','LW','CRO',[['2018','Croatia',86],['2024/25','PSV',75]],'Perišić'],
+['Noa Lang','LW','NED',[['2024/25','PSV',78]],'N. Lang'],
+['Santiago Giménez','ST','MEX',[['2023/24','Feyenoord',80],['2024/25','AC Milan',77]],'S. Giménez'],
+['Quinten Timber','CM','NED',[['2024/25','Feyenoord',77]],'Q. Timber'],
+['Ayase Ueda','ST','JPN',[['2024/25','Feyenoord',72]],'Ueda'],
+['Timon Wellenreuther','GK','GER',[['2024/25','Feyenoord',74]],'Wellenreuther'],
+['Igor Paixão','LW','BRA',[['2024/25','Feyenoord',78]],'Igor Paixão'],
+['Hwang In-beom','CM','KOR',[['2024/25','Feyenoord',77]],'Hwang In-beom'],
+['Troy Parrott','ST','IRL',[['2024/25','AZ Alkmaar',73]],'Parrott'],
+['Sven Mijnans','CAM','NED',[['2024/25','AZ Alkmaar',74]],'Mijnans'],
+['Samu Aghehowa','ST','ESP',[['2024/25','Porto',78]],'Samu'],
+['Pepê','RW','BRA',[['2024/25','Porto',76]]],
+['Alan Varela','CDM','ARG',[['2024/25','Porto',77]],'Varela'],
+['Rodrigo Mora','CAM','POR',[['2024/25','Porto',72]],'R. Mora'],
+['Kerem Aktürkoğlu','LW','TUR',[['2024/25','Benfica',77]],'Aktürkoğlu'],
+['Vangelis Pavlidis','ST','GRE',[['2024/25','Benfica',78]],'Pavlidis'],
+['Orkun Kökçü','CM','TUR',[['2024/25','Benfica',79]],'Kökçü'],
+['Anatoliy Trubin','GK','UKR',[['2024/25','Benfica',78]],'Trubin'],
+['Fredrik Aursnes','CM','NOR',[['2024/25','Benfica',77]],'Aursnes'],
+['Nicolás Otamendi','CB','ARG',[['2015/16','Man City',84],['2024/25','Benfica',77]],'Otamendi'],
+['Álvaro Carreras','LB','ESP',[['2024/25','Benfica',77]],'Carreras'],
+['Pedro Gonçalves','CAM','POR',[['2024/25','Sporting CP',79]],'Pote'],
+['Francisco Trincão','RW','POR',[['2024/25','Sporting CP',78]],'Trincão'],
+['Morten Hjulmand','CDM','DEN',[['2024/25','Sporting CP',79]],'Hjulmand'],
+['Gonçalo Inácio','CB','POR',[['2024/25','Sporting CP',79]],'Inácio'],
+['Geny Catamo','RW','MOZ',[['2024/25','Sporting CP',73]],'Catamo'],
+['Hidemasa Morita','CM','JPN',[['2024/25','Sporting CP',76]],'Morita'],
+['Barış Alper Yılmaz','RW','TUR',[['2024/25','Galatasaray',76]],'Barış Alper'],
+['Fernando Muslera','GK','URU',[['2024/25','Galatasaray',75]],'Muslera'],
+['Lucas Torreira','CDM','URU',[['2024/25','Galatasaray',77]],'Torreira'],
+['Dries Mertens','CAM','BEL',[['2016/17','Napoli',88],['2024/25','Galatasaray',75]],'Mertens'],
+['Dušan Tadić','CAM','SRB',[['2018/19','Ajax',86],['2024/25','Fenerbahçe',76]],'Tadić'],
+['Edin Džeko','ST','BIH',[['2011/12','Man City',82],['2024/25','Fenerbahçe',77]],'Džeko'],
+['Sebastian Szymański','CAM','POL',[['2024/25','Fenerbahçe',76]],'Szymański'],
+['Fred','CM','BRA',[['2024/25','Fenerbahçe',76]]],
+['Dominik Livaković','GK','CRO',[['2022','Croatia',82],['2024/25','Fenerbahçe',78]],'Livaković'],
+/* MLS / Saudi / Mexico */
+['Jordi Alba','LB','ESP',[['2014/15','Barcelona',86],['2024','Inter Miami',76]],'Jordi Alba'],
+['Hany Mukhtar','CAM','GER',[['2024','Nashville SC',76]],'Mukhtar'],
+['Denis Bouanga','LW','GAB',[['2024','LAFC',77]],'Bouanga'],
+['Cucho Hernández','ST','COL',[['2024','Columbus Crew',77]],'Cucho'],
+['Riqui Puig','CM','ESP',[['2024','LA Galaxy',75]],'Riqui Puig'],
+['Gabriel Pec','RW','BRA',[['2024','LA Galaxy',73]],'Pec'],
+['Christian Benteke','ST','BEL',[['2014/15','Aston Villa',80],['2024','DC United',73]],'Benteke'],
+['Evander','CAM','BRA',[['2024','Portland Timbers',75]]],
+['Lorenzo Insigne','LW','ITA',[['2018/19','Napoli',87],['2024','Toronto FC',70]],'Insigne'],
+['Federico Bernardeschi','RW','ITA',[['2024','Toronto FC',72]],'Bernardeschi'],
+['Josef Martínez','ST','VEN',[['2018','Atlanta United',81]],'Josef M.'],
+['Carlos Vela','RW','MEX',[['2019','LAFC',84]],'Vela'],
+['Javier Hernández','ST','MEX',[['2010/11','Man United',80],['2024','Guadalajara',62]],'Chicharito'],
+['Landon Donovan','LM','USA',[['2009/10','Everton',77]],'Donovan'],
+['Clint Dempsey','ST','USA',[['2011/12','Fulham',80]],'Dempsey'],
+['Tim Howard','GK','USA',[['2008/09','Everton',82]],'T. Howard'],
+['Tyler Adams','CDM','USA',[['2024/25','Bournemouth',74]],'T. Adams'],
+['Giovanni Reyna','CAM','USA',[['2024/25','Dortmund',70]],'Gio Reyna'],
+['Sadio Mané','LW','SEN',[['2015/16','Southampton',78],['2018/19','Liverpool',90],['2024/25','Al Nassr',78]],'Mané'],
+['Marcelo Brozović','CDM','CRO',[['2024/25','Al Nassr',78]],'Brozović'],
+['Aleksandar Mitrović','ST','SRB',[['2022/23','Fulham',80],['2024/25','Al Hilal',79]],'Mitrović'],
+['Rúben Neves','CM','POR',[['2024/25','Al Hilal',79]],'R. Neves'],
+['Malcom','RW','BRA',[['2024/25','Al Hilal',78]]],
+['Salem Al-Dawsari','LW','KSA',[['2022','Saudi Arabia',76]],'Al-Dawsari'],
+['Fabinho','CDM','BRA',[['2018/19','Liverpool',87],['2024/25','Al Ittihad',76]]],
+['Moussa Diaby','RW','FRA',[['2024/25','Al Ittihad',77]],'Diaby'],
+['Ivan Toney','ST','ENG',[['2020/21','Brentford',75],['2024/25','Al Ahli',79]],'Toney'],
+['Roberto Firmino','ST','BRA',[['2018/19','Liverpool',87],['2024/25','Al Ahli',75]],'Firmino'],
+['Philippe Coutinho','CAM','BRA',[['2016/17','Liverpool',87],['2024/25','Vasco da Gama',71]],'Coutinho'],
+/* Stars: early / late versions */
+['Fernando Torres','ST','ESP',[['2003/04','Atlético Madrid',78],['2008/09','Liverpool',91],['2011/12','Chelsea',77]],'Torres'],
+['David Villa','ST','ESP',[['2010','Spain',90],['2017','New York City FC',75]],'Villa'],
+['Paul Pogba','CM','FRA',[['2012/13','Juventus',76],['2015/16','Juventus',88],['2018','France',87]],'Pogba'],
+['Jack Grealish','LW','ENG',[['2015/16','Aston Villa',66],['2020/21','Aston Villa',85],['2024/25','Man City',78]],'Grealish'],
+['Raheem Sterling','RW','ENG',[['2012/13','Liverpool',70],['2018/19','Man City',89],['2024/25','Arsenal',74]],'Sterling'],
+['Dele Alli','CAM','ENG',[['2016/17','Tottenham',85],['2021/22','Everton',64]],'Alli'],
+['Theo Walcott','RW','ENG',[['2005/06','Southampton',60],['2012/13','Arsenal',82]],'Walcott'],
+['Alexandre Pato','ST','BRA',[['2008/09','AC Milan',82],['2015/16','Chelsea',64]],'Pato'],
+['Adriano','ST','BRA',[['2004/05','Inter',90]]],
+['Antonio Cassano','CAM','ITA',[['2008/09','Sampdoria',80]],'Cassano'],
+['Divock Origi','ST','BEL',[['2018/19','Liverpool',74]],'Origi'],
+['Marouane Fellaini','CM','BEL',[['2013/14','Man United',75]],'Fellaini'],
+['Adnan Januzaj','RW','BEL',[['2013/14','Man United',72]],'Januzaj'],
+['Bebé','RW','POR',[['2010/11','Man United',55]],'Bebé'],
+['Kléberson','CM','BRA',[['2003/04','Man United',67]],'Kléberson'],
+['Eric Djemba-Djemba','CDM','CMR',[['2003/04','Man United',64]],'Djemba-Djemba'],
+['Ali Dia','ST','SEN',[['1996/97','Southampton',50]],'Ali Dia'],
+['Tim Cahill','CAM','AUS',[['2006','Australia',79],['2007/08','Everton',80]],'Cahill'],
+['Harry Kewell','LW','AUS',[['2001/02','Leeds',83]],'Kewell'],
+['Mark Viduka','ST','AUS',[['2002/03','Leeds',82]],'Viduka'],
+['Mile Jedinak','CDM','AUS',[['2014/15','Crystal Palace',72]],'Jedinak'],
+/* Asia */
+['Shunsuke Nakamura','LM','JPN',[['2006/07','Celtic',82]],'S. Nakamura'],
+['Keisuke Honda','CAM','JPN',[['2010','Japan',80],['2014/15','AC Milan',76]],'Honda'],
+['Makoto Hasebe','CDM','JPN',[['2014/15','Eintracht Frankfurt',76]],'Hasebe'],
+['Yuto Nagatomo','LB','JPN',[['2013/14','Inter',77],['2024','FC Tokyo',63]],'Nagatomo'],
+['Kazuyoshi Miura','ST','JPN',[['1994/95','Genoa',68],['2024','Atlético Suzuka',50]],'Kazu'],
+['Daichi Kamada','CAM','JPN',[['2022/23','Eintracht Frankfurt',80],['2024/25','Crystal Palace',73]],'Kamada'],
+['Ao Tanaka','CM','JPN',[['2024/25','Leeds',72]],'Ao Tanaka'],
+['Yukinari Sugawara','RB','JPN',[['2024/25','Southampton',71]],'Sugawara'],
+['Yoshinori Muto','ST','JPN',[['2024','Vissel Kobe',71]],'Muto'],
+['Yuya Osako','ST','JPN',[['2024','Vissel Kobe',69]],'Osako'],
+['Gotoku Sakai','RB','JPN',[['2024','Vissel Kobe',68]],'G. Sakai'],
+['Hotaru Yamaguchi','CDM','JPN',[['2024','Vissel Kobe',66]],'H. Yamaguchi'],
+['Hiroki Sakai','RB','JPN',[['2016/17','Marseille',76],['2024','Urawa Reds',68]],'H. Sakai'],
+['Shusaku Nishikawa','GK','JPN',[['2024','Urawa Reds',66]],'Nishikawa'],
+['Genki Haraguchi','LW','JPN',[['2024','Urawa Reds',67]],'Haraguchi'],
+['Ki Sung-yueng','CM','KOR',[['2014/15','Swansea',76],['2024','FC Seoul',65]],'Ki Sung-yueng'],
+['Lee Chung-yong','RM','KOR',[['2009/10','Bolton',74]],'Lee Chung-yong'],
+['Cho Gue-sung','ST','KOR',[['2022','South Korea',68],['2024/25','Midtjylland',69]],'Cho Gue-sung'],
+['Seol Young-woo','RB','KOR',[['2024/25','Red Star Belgrade',72]],'Seol Young-woo'],
+['Cha Bum-kun','ST','KOR',[['1985/86','Bayer Leverkusen',87]],'Cha Bum-kun'],
+['Ahn Jung-hwan','ST','KOR',[['2002','South Korea',75]],'Ahn Jung-hwan'],
+['Hong Myung-bo','CB','KOR',[['2002','South Korea',80]],'Hong Myung-bo'],
+['Lee Young-pyo','LB','KOR',[['2005/06','Tottenham',76]],'Lee Young-pyo'],
+['Seol Ki-hyeon','RW','KOR',[['2006/07','Reading',69]],'Seol Ki-hyeon'],
+['Hao Junmin','CAM','CHN',[['2009/10','Schalke 04',62]],'Hao Junmin'],
+['Zhang Yuning','ST','CHN',[['2024','Beijing Guoan',65]],'Zhang Yuning'],
+['Yan Junling','GK','CHN',[['2019','Shanghai SIPG',65]],'Yan Junling'],
+['Wang Dalei','GK','CHN',[['2024','Shandong Taishan',62]],'Wang Dalei'],
+['Wei Shihao','LW','CHN',[['2024','Chengdu Rongcheng',63]],'Wei Shihao'],
+['Zhang Linpeng','RB','CHN',[['2015','Guangzhou Evergrande',67]],'Zhang Linpeng'],
+['Li Weifeng','CB','CHN',[['2002','China',63]],'Li Weifeng'],
+['Hao Haidong','ST','CHN',[['2002','China',65]],'Hao Haidong'],
+['Paulinho','CM','BRA',[['2015','Guangzhou Evergrande',80]]],
+['Oscar','CAM','BRA',[['2013/14','Chelsea',82],['2019','Shanghai SIPG',80]]],
+['Hulk','ST','BRA',[['2016','Shanghai SIPG',81]]],
+['Tan Chun Lok','RW','HKG',[['2023','Hong Kong',57]],'Tan Chun Lok'],
+['Sun Ming Him','ST','HKG',[['2024','Hong Kong',56]],'Sun Ming Him'],
+['Chen Po-liang','CAM','TPE',[['2010','Chinese Taipei',56]],'Chen Po-liang'],
+);
+Object.assign(NATN,{COD:'剛果民主共和國',MEX:'墨西哥',USA:'美國',SRB:'塞爾維亞',SCO:'蘇格蘭',SEN:'塞內加爾',GAB:'加蓬',KOS:'科索沃',GNB:'幾內亞比紹',NZL:'新西蘭',GAM:'岡比亞',ECU:'厄瓜多爾',HUN:'匈牙利',MLI:'馬里',AUT:'奧地利',AUS:'澳洲',TOG:'多哥',MNE:'黑山',BFA:'布基納法索',TUR:'土耳其',GRE:'希臘',MOZ:'莫桑比克',KSA:'沙特阿拉伯',VEN:'委內瑞拉',BIH:'波黑',MLT:'馬耳他',TPE:'中華台北',SVK:'斯洛伐克'});
+
 const grade=r=>r>100?'UR':r>=90?'SSR':r>=80?'SR':r>=70?'R':'C';
 const GRADES=['UR','SSR','SR','R','C'];
 const CARDS=[];
@@ -495,6 +1038,50 @@ function oppScorers(name){
   if(!l.length)l=CARDS.filter(c=>c.club===name&&LINE[c.pos]!=='G');
   const names=[...new Set(l.map(c=>c.short))];
   return names.length?names:[name+' 前鋒',name+' 中場'];
+}
+
+/* ================== PLAYER ATTRIBUTES ==================
+   Derived from card rating + position profile + a fixed per-player tilt, so each player keeps his own shape across eras. */
+const ST_OUT=['速度','射門','傳球','盤扭','防守','體能'];
+const ST_GK=['撲救','手型','開球','反應','速度','站位'];
+const PROF={ST:[2,4,-8,-1,-48,0],LW:[5,-3,-4,3,-45,-12],RW:[5,-3,-4,3,-45,-12],CAM:[-3,-2,3,3,-40,-14],CM:[-8,-8,3,-2,-12,-5],CDM:[-12,-16,-4,-8,2,0],LM:[3,-8,0,0,-25,-8],RM:[3,-8,0,0,-25,-8],LB:[-1,-30,-6,-6,-3,-4],RB:[-1,-30,-6,-6,-3,-4],CB:[-14,-38,-14,-16,2,1],GK:[0,-3,-15,2,-40,-1]};
+function hsh(str){let h=2166136261;for(const ch of str){h^=ch.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0}
+const STC={};
+function stats(c){
+  if(STC[c.id])return STC[c.id];
+  const pr=PROF[c.pos],cap=c.r>100?c.r:99;
+  const v=pr.map((o,k)=>{const n=(hsh(c.name+'#'+k)%9)-4;return Math.max(20,Math.min(cap,Math.round(c.r+o+n)))});
+  return STC[c.id]=v;
+}
+const statLabels=c=>c.pos==='GK'?ST_GK:ST_OUT;
+
+/* ================== TACTICS ================== */
+const TAC={
+ balanced:{n:'均衡',d:'攻守平均，唔睇球員特性。'},
+ possession:{n:'控球傳導',d:'靠中場傳球控制節奏，入球少啲但穩陣。睇全隊傳球。'},
+ press:{n:'高位壓迫',d:'前場搶波，節奏快。睇全隊速度同體能。'},
+ counter:{n:'快速反擊',d:'退守再打身後。睇前場球員速度。'},
+ wing:{n:'邊路傳中',d:'翼鋒同閘位推上傳中，前鋒頂頭槌。睇邊路速度同中鋒體能。'},
+ bus:{n:'擺大巴',d:'全隊退守，防守大增但好難入波。'},
+ allout:{n:'全力進攻',d:'壓上搶攻，入球多但後防空虛。'},
+};
+function tacticFx(T,key){
+  const ps=T.sl.filter(s=>s.card&&s.card.pos!=='GK');
+  const av=(arr,k)=>arr.length?arr.reduce((t,s)=>t+stats(s.card)[k],0)/arr.length:60;
+  const cl=x=>Math.max(-4,Math.min(4,x));
+  const fwd=ps.filter(s=>LINE[s.sp]==='A'), wide=ps.filter(s=>['LW','RW','LM','RM','LB','RB'].includes(s.sp)), st=ps.filter(s=>s.sp==='ST');
+  let k=0,r;
+  switch(key){
+    case'possession':k=cl((av(ps,2)-74)/4);r={att:1+k,def:1+k*.6,tempo:.85};break;
+    case'press':k=cl(((av(ps,0)+av(ps,5))/2-72)/4);r={att:1.5+k,def:k*.7,tempo:1.12};break;
+    case'counter':k=cl((av(fwd,0)-80)/3);r={att:k,def:3,tempo:.95};break;
+    case'wing':k=cl(((av(wide,0)+av(st,5))/2-74)/4);r={att:1+k,def:-1,tempo:1.05};break;
+    case'bus':r={att:-6,def:6,tempo:.8};break;
+    case'allout':r={att:6,def:-6,tempo:1.2};break;
+    default:r={att:0,def:0,tempo:1};
+  }
+  r.k=k;r.fit=['bus','allout','balanced'].includes(key)?null:k>=1.5?'好適合':k>=0?'適合':k>=-1.5?'一般':'唔適合';
+  return r;
 }
 
 /* ================== STATE ================== */
@@ -605,6 +1192,12 @@ function rSquad(){
         ${T.warn.map(w=>`<div class="warn">${w}</div>`).join('')}
       </div>
       <div class="panel">
+        <div class="lbl" style="margin-bottom:8px">戰術</div>
+        <div class="forms">${Object.entries(TAC).map(([k,t])=>`<button class="chip" data-t="${k}" aria-pressed="${(S.tactic||'balanced')===k}">${t.n}</button>`).join('')}</div>
+        ${(()=>{const k=S.tactic||'balanced',fx=tacticFx(T,k),sg=v=>(v>0?'+':'')+(Math.round(v*10)/10);return `<p class="hint" style="margin-top:10px">${TAC[k].d}</p>
+        <div class="row" style="margin-top:8px;font-size:13px;gap:14px"><span>進攻 <b style="color:${fx.att>=0?'var(--win)':'var(--loss)'}">${sg(fx.att)}</b></span><span>防守 <b style="color:${fx.def>=0?'var(--win)':'var(--loss)'}">${sg(fx.def)}</b></span><span>節奏 <b>${fx.tempo>1?'快':fx.tempo<1?'慢':'正常'}</b></span>${fx.fit?`<span>適合度 <b style="color:${fx.k>=0?'var(--win)':'var(--loss)'}">${fx.fit}</b></span>`:''}</div>`})()}
+      </div>
+      <div class="panel">
         <div class="lbl" style="margin-bottom:8px">陣式</div>
         <div class="forms">${fb}</div>
         <div class="row" style="margin-top:12px">
@@ -612,11 +1205,12 @@ function rSquad(){
           <button class="btn" id="clear">清空陣容</button>
         </div>
       </div>
-      <p class="hint">撳場上嘅位置揀球員；拖住張卡可以移去任何位置，自創陣式都得。位置會按你擺嘅地方自動判斷（例如擺喺邊路就變翼鋒），球員打非本位會扣分：綠色＝本位，黃色＝相近位置，紅色＝唔啱位。</p>
+      <p class="hint">撳場上嘅位置揀球員（揀人時會見到各項能力）；拖住張卡可以移去任何位置，自創陣式都得。位置會按你擺嘅地方自動判斷（例如擺喺邊路就變翼鋒），球員打非本位會扣分：綠色＝本位，黃色＝相近位置，紅色＝唔啱位。</p>
     </div>
   </div>`;
   $('#tname').oninput=e=>{S.team=e.target.value.trim()||'我的球隊';save()};
-  document.querySelectorAll('.forms .chip').forEach(b=>b.onclick=()=>{applyForm(b.dataset.f)});
+  document.querySelectorAll('.forms .chip[data-f]').forEach(b=>b.onclick=()=>{applyForm(b.dataset.f)});
+  document.querySelectorAll('.chip[data-t]').forEach(b=>b.onclick=()=>{S.tactic=b.dataset.t;save();rSquad()});
   $('#auto').onclick=autoXI;
   $('#clear').onclick=()=>{S.slots.forEach(s=>s.c=null);save();rSquad()};
   bindPitch();
@@ -688,7 +1282,7 @@ function openPicker(i){
     $('#plist').innerHTML=list.length?list.map(({c,e,f})=>{
       const j=inUse.get(c.id);const samePi=S.slots.some((s,k)=>k!==i&&s.c&&BYID[s.c].pi===c.pi&&s.c!==c.id);
       return `<button class="pitem ${j!=null?'inuse':''}" data-id="${c.id}" ${samePi?'disabled title="同一球員另一版本已上陣"':''}>
-      ${cardHTML(c)}<div style="min-width:0"><div class="nm">${esc(c.name)}</div><div class="mt">${c.pos} · ${esc(c.season)} ${esc(c.club)} · ${NATN[c.nat]||c.nat}${j!=null?` · <b style="color:var(--amber)">已上陣（會對調）</b>`:''}${samePi?' · 另一版本已上陣':''}</div></div>
+      ${cardHTML(c)}<div style="min-width:0"><div class="nm">${esc(c.name)}</div><div class="mt">${c.pos} · ${esc(c.season)} ${esc(c.club)} · ${NATN[c.nat]||c.nat}</div><div class="mt sline">${statLabels(c).map((l,k)=>`${l} <b>${stats(c)[k]}</b>`).join(' · ')}${j!=null?` · <b style="color:var(--amber)">已上陣（會對調）</b>`:''}${samePi?' · 另一版本已上陣':''}</div></div>
       <div class="ef" style="color:${f>=1?'var(--win)':f>=.9?'var(--amber)':'var(--loss)'}">${e}<small>${f>=1?'本位':f>=.9?'相近':'非本位'}</small></div></button>`}).join(''):`<p class="hint">未有合適球員。去「抽卡」抽多啲啦。</p>`;
     $('#plist').querySelectorAll('.pitem').forEach(b=>b.onclick=()=>{
       if(b.disabled)return;
@@ -785,7 +1379,7 @@ function rAlbum(){
     let list=(AF.all?CARDS:own).filter(c=>(AF.g==='ALL'||c.g===AF.g)&&(AF.l==='ALL'||LINE[c.pos]===AF.l)&&(!AF.q||(c.name+c.club+c.short).toLowerCase().includes(AF.q)));
     list=list.slice().sort((a,b)=>b.r-a.r);
     $('#agrid').innerHTML=list.length?list.map(c=>cardHTML(c,{dim:!S.owned[c.id],count:S.owned[c.id]})).join(''):`<p class="hint">未有卡。去「抽卡」開始收集。</p>`;
-    $('#agrid').querySelectorAll('.card').forEach(el=>el.onclick=()=>playerSheet(BYID[el.dataset.id].pi));
+    $('#agrid').querySelectorAll('.card').forEach(el=>el.onclick=()=>playerSheet(BYID[el.dataset.id].pi,el.dataset.id));
   };
   draw();
   document.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{AF.g=b.dataset.g;rAlbum()});
@@ -793,19 +1387,28 @@ function rAlbum(){
   $('#aall').onclick=()=>{AF.all=!AF.all;rAlbum()};
   $('#aq').oninput=e=>{AF.q=e.target.value.toLowerCase();draw()};
 }
-function playerSheet(pi){
+function statPanel(c,own){
+  const v=stats(c),L=statLabels(c);
+  return `<div class="detail"><div style="font-size:19px">${cardHTML(c,{dim:!own})}</div>
+  <div class="stgrid">${L.map((l,k)=>{const x=v[k];const col=x>=90?'var(--win)':x>=75?'var(--amber)':x>=60?'#c9d2ea':'var(--loss)';return `<div class="strow"><span>${l}</span><b style="color:${col}">${x}</b><div class="bar"><i style="width:${Math.min(100,x)}%;background:${col}"></i></div></div>`}).join('')}
+  <p class="hint" style="grid-column:1/-1">${esc(c.season)} · ${esc(c.club)} · ${NATN[c.nat]||c.nat} · ${c.pos}${own?` · 擁有 ×${own}`:' · 未擁有'}</p></div></div>`;
+}
+function playerSheet(pi,sel){
   const p=P[pi];const vs=CARDS.filter(c=>c.pi===pi);
+  sel=sel||vs.slice().sort((a,b)=>b.r-a.r)[0].id;
   const ov=$('#ov');ov.hidden=false;
   ov.innerHTML=`<div class="sheet" role="dialog"><div class="sh"><h3>${esc(p[0])}</h3><button class="btn" id="pclose">關閉</button></div>
-  <div class="sb"><p class="sub">${p[1]} · ${NATN[p[2]]||p[2]} · ${vs.length} 個時期版本</p>
-  <div class="vers">${vs.map(c=>`<div style="display:flex;flex-direction:column;gap:6px;align-items:center">${cardHTML(c,{dim:!S.owned[c.id],count:S.owned[c.id]})}<span style="font-size:12px;color:var(--mute)">${c.season}</span></div>`).join('')}</div></div></div>`;
+  <div class="sb">${statPanel(BYID[sel],S.owned[sel])}
+  <div class="lbl" style="margin:16px 0 8px">${vs.length} 個時期版本 · 撳卡睇能力</div>
+  <div class="vers">${vs.map(c=>`<button class="vbtn ${c.id===sel?'on':''}" data-id="${c.id}">${cardHTML(c,{dim:!S.owned[c.id],count:S.owned[c.id]})}<span>${c.season}</span></button>`).join('')}</div></div></div>`;
   $('#pclose').onclick=closeOv;ov.onclick=e=>{if(e.target===ov)closeOv()};
+  ov.querySelectorAll('.vbtn').forEach(b=>b.onclick=()=>playerSheet(pi,b.dataset.id));
 }
 
 /* ---------- MATCH ENGINE ---------- */
 function poisson(l){const L=Math.exp(-l);let k=0,p=1;do{k++;p*=Math.random()}while(p>L);return k-1}
 const xg=(a,d)=>Math.max(.15,Math.min(4.5,1.35*Math.exp((a-d)/10)));
-function userSide(){const T=evalTeam();return{name:S.team,att:T.att,def:T.def,user:true,T}}
+function userSide(){const T=evalTeam();const fx=tacticFx(T,S.tactic||'balanced');return{name:S.team,att:T.att+fx.att,def:T.def+fx.def,tempo:fx.tempo,user:true,T}}
 function aiSide(name,ovr,off){const o=ovr+(off||0);return{name,att:o,def:o}}
 function scorerUser(T){
   const w={ST:5,LW:3.5,RW:3.5,CAM:3,LM:1.6,RM:1.6,CM:1.4,CDM:.7,LB:.5,RB:.5,CB:.45,GK:.02};
@@ -813,7 +1416,7 @@ function scorerUser(T){
   const ws=ps.map(s=>(w[s.sp]||1)*Math.pow(s.eff/80,3));const tot=ws.reduce((a,b)=>a+b,0);
   let r=Math.random()*tot;for(let k=0;k<ps.length;k++){r-=ws[k];if(r<=0)return ps[k].card.short}return ps[0].card.short;
 }
-function simGoals(h,a){return[poisson(xg(h.att+1.5,a.def)),poisson(xg(a.att,h.def+1.5))]}
+function simGoals(h,a){const t=(h.tempo||1)*(a.tempo||1);return[poisson(xg(h.att+1.5,a.def)*t),poisson(xg(a.att,h.def+1.5)*t)]}
 function buildEvents(h,a,gh,ga){
   const ev=[];
   const sc=side=>side.user?scorerUser(side.T):rnd(oppScorers(side.name.replace(/^.*?\|/,'')));
