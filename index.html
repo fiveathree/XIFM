@@ -1,0 +1,978 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>傳奇十一人</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;700;800&family=Noto+Sans+TC:wght@400;500;700;900&display=swap">
+<style>
+/* Layout: floodlit night-match board — sticky tab bar, vertical chalked pitch with free-drag card slots, side panel for tactics */
+:root{
+  --night:#0a1226; --night2:#111d3b; --panel:#16244a; --panel2:#1c2d5a; --line:#2b3d6e;
+  --chalk:#eef2fb; --mute:#95a5cc; --amber:#ffc94a; --turf:#1d6e40; --turf2:#217a47;
+  --win:#3fd17f; --draw:#c9d2ea; --loss:#ff6f6f;
+  --f-disp:"Saira Condensed","Arial Narrow","Noto Sans TC",sans-serif;
+  --f-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{min-height:100%}
+body{background:radial-gradient(120% 70% at 50% -10%,#1b2d5c 0%,var(--night) 60%) fixed,var(--night);color:var(--chalk);font-family:var(--f-body);font-size:14px;line-height:1.5}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--night)}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+.wrap{max-width:1100px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* header */
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:rgba(10,18,38,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.hbar{display:flex;align-items:center;gap:12px;padding-block:10px;flex-wrap:wrap}
+.logo{font-family:var(--f-disp);font-weight:800;font-size:22px;letter-spacing:.04em;line-height:1;display:flex;align-items:baseline;gap:8px}
+.logo b{color:var(--amber)}
+.logo small{font-family:var(--f-body);font-size:11px;color:var(--mute);font-weight:500;letter-spacing:.08em}
+.coins{margin-left:auto;font-family:var(--f-disp);font-weight:700;font-size:18px;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:2px 12px 2px 8px;display:flex;align-items:center;gap:6px;font-variant-numeric:tabular-nums}
+.coin{width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff3c4,var(--amber) 55%,#a87510);box-shadow:0 0 0 1px #7a540a inset}
+nav.tabs{display:flex;gap:4px;padding-bottom:8px;overflow-x:auto}
+nav.tabs button{background:none;border:0;padding:8px 14px;border-radius:8px;color:var(--mute);font-weight:700;white-space:nowrap}
+nav.tabs button[aria-selected="true"]{background:var(--panel2);color:var(--chalk);box-shadow:inset 0 -2px 0 var(--amber)}
+main{padding-block:18px 48px}
+h2{font-family:var(--f-disp);font-size:26px;letter-spacing:.03em;margin:0 0 4px;text-wrap:balance}
+.sub{color:var(--mute);margin:0 0 14px;font-size:13px}
+.lbl{font-size:11px;letter-spacing:.12em;color:var(--mute);text-transform:uppercase;font-weight:700}
+
+.btn{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 14px;font-weight:700}
+.btn:hover{border-color:#4a62a6}
+.btn.pri{background:var(--amber);color:#2a1d00;border-color:var(--amber)}
+.btn.pri:hover{filter:brightness(1.08)}
+.btn.danger{color:var(--loss)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.chip{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:4px 12px;font-weight:700;font-size:12px;color:var(--mute)}
+.chip[aria-pressed="true"]{color:var(--chalk);border-color:var(--amber);background:var(--panel2)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+
+/* ---------- cards ---------- */
+.card{--c1:#5c6577;--c2:#353c4c;--ink:#f3f5fa;--edge:rgba(255,255,255,.25);position:relative;width:7.2em;aspect-ratio:5/7;border-radius:.7em;background:linear-gradient(160deg,var(--c1),var(--c2));color:var(--ink);padding:.55em .55em .5em;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 0 0 1px var(--edge) inset,0 .3em .8em rgba(0,0,0,.35);user-select:none;flex-shrink:0;max-width:100%}
+.card::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(115deg,rgba(255,255,255,.05) 0 2px,transparent 2px 9px);pointer-events:none}
+.c-top{display:flex;justify-content:space-between;align-items:flex-start;position:relative}
+.c-r{font-family:var(--f-disp);font-weight:800;font-size:2.15em;line-height:.9;font-variant-numeric:tabular-nums}
+.c-g{font-family:var(--f-disp);font-weight:800;font-size:.85em;letter-spacing:.04em;padding:.05em .35em;border-radius:.3em;background:rgba(0,0,0,.28)}
+.c-pos{font-family:var(--f-disp);font-weight:700;font-size:1em;letter-spacing:.05em;opacity:.9;position:relative}
+.c-name{margin-top:auto;font-family:var(--f-disp);font-weight:800;font-size:1.12em;line-height:1.05;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:relative}
+.c-meta{font-size:.68em;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;position:relative}
+.c-nat{position:absolute;right:.55em;bottom:2.55em;font-family:var(--f-disp);font-weight:700;font-size:.8em;opacity:.75}
+.g-C{--c1:#68707f;--c2:#3b414e}
+.g-R{--c1:#3a7ae0;--c2:#1b3a85}
+.g-SR{--c1:#9858e6;--c2:#4b2192}
+.g-SSR{--c1:#ffe08a;--c2:#c88b14;--ink:#2b1c00;--edge:rgba(255,246,210,.7)}
+.g-SSR .c-g{background:rgba(255,255,255,.35)}
+.g-UR{--ink:#1a1030;--edge:rgba(255,255,255,.9);background:conic-gradient(from 210deg at 30% 30%,#ffd1f0,#c7f0ff,#d8ffcf,#fff3b8,#ffc6c6,#e1ccff,#ffd1f0);box-shadow:0 0 0 1px #fff inset,0 0 1.2em rgba(255,214,255,.55),0 .3em .8em rgba(0,0,0,.35)}
+.g-UR::after{content:"";position:absolute;inset:-40%;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.75) 50%,transparent 60%);animation:shine 3.2s linear infinite;pointer-events:none}
+.g-UR .c-g{background:#1a1030;color:#fff}
+@keyframes shine{from{transform:translateX(-60%)}to{transform:translateX(60%)}}
+.card.dim{filter:grayscale(1) brightness(.35)}
+.card.dim *{visibility:hidden}
+.card.dim::after{content:"?";position:absolute;inset:0;display:grid;place-items:center;font-family:var(--f-disp);font-size:2.4em;color:#8a95b5;visibility:visible;background:none;animation:none}
+.badge{position:absolute;left:50%;transform:translateX(-50%);bottom:-.2em;font-size:.7em;font-weight:900;padding:.1em .5em;border-radius:.4em;white-space:nowrap;z-index:2}
+.badge.new{background:var(--amber);color:#2a1d00}
+.badge.dup{background:#0b1430;color:var(--mute);border:1px solid var(--line)}
+
+/* ---------- squad ---------- */
+.squad{display:grid;grid-template-columns:minmax(0,560px) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:820px){.squad{grid-template-columns:minmax(0,1fr)}}
+.pitch{position:relative;width:100%;aspect-ratio:68/100;border-radius:12px;overflow:hidden;background:repeating-linear-gradient(180deg,var(--turf) 0 10%,var(--turf2) 10% 20%);box-shadow:0 0 0 2px #0e3c22 inset,0 10px 30px rgba(0,0,0,.4);touch-action:none}
+.pitch svg{position:absolute;inset:0;width:100%;height:100%}
+.slot{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:2px;touch-action:none;cursor:grab;z-index:2}
+.slot.drag{cursor:grabbing;z-index:5}
+.slot.drag .card,.slot.drag .empty{transform:scale(1.08)}
+.slot .card{font-size:clamp(7px,1.75vw,9.5px)}
+.empty{width:clamp(50px,12.6vw,68px);aspect-ratio:5/7;border-radius:6px;border:2px dashed rgba(255,255,255,.55);display:grid;place-items:center;font-family:var(--f-disp);font-weight:800;color:rgba(255,255,255,.8);background:rgba(0,0,0,.15);font-size:18px}
+.stag{font-family:var(--f-disp);font-weight:700;font-size:11px;background:rgba(5,15,10,.75);padding:0 6px;border-radius:4px;white-space:nowrap;line-height:1.5;font-variant-numeric:tabular-nums}
+.stag .e1{color:var(--win)}.stag .e2{color:var(--amber)}.stag .e3{color:var(--loss)}
+.chem{position:absolute;top:-4px;right:-4px;width:16px;height:16px;border-radius:50%;background:var(--amber);color:#2a1d00;font:800 10px/16px var(--f-disp);text-align:center;z-index:3}
+.side{display:flex;flex-direction:column;gap:14px;min-width:0}
+.forms{display:flex;flex-wrap:wrap;gap:6px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.stat{background:var(--night2);border-radius:8px;padding:8px;text-align:center}
+.stat .v{font-family:var(--f-disp);font-weight:800;font-size:28px;line-height:1;font-variant-numeric:tabular-nums}
+.stat .k{font-size:11px;color:var(--mute)}
+.bar{height:6px;border-radius:3px;background:var(--night2);overflow:hidden;margin-top:4px}
+.bar i{display:block;height:100%;background:var(--amber)}
+.warn{color:var(--loss);font-size:13px}
+.tname{background:var(--night2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;color:var(--chalk);font:700 16px var(--f-body);width:100%}
+.hint{font-size:12.5px;color:var(--mute);line-height:1.6;margin:0}
+
+/* ---------- gacha ---------- */
+.banner{position:relative;overflow:hidden;border-radius:14px;padding:22px;background:linear-gradient(120deg,#22155a,#0f2f63 60%,#0b3a4d);border:1px solid var(--line)}
+.banner h3{font-family:var(--f-disp);font-size:clamp(28px,6vw,46px);line-height:.95;margin:0 0 8px;letter-spacing:.02em;max-width:14ch}
+.banner p{margin:0 0 16px;color:#c6d1f0;max-width:46ch}
+.banner .fan{position:absolute;right:18px;top:50%;transform:translateY(-50%);display:flex;font-size:12px;pointer-events:none}
+.banner .fan .card{margin-left:-3.2em;transform:rotate(var(--rot)) translateY(var(--ty))}
+@media (max-width:640px){.banner .fan{display:none}}
+.rates{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:14px}
+.rate{background:var(--night2);border-radius:8px;padding:8px 6px;text-align:center}
+.rate b{font-family:var(--f-disp);font-size:18px;display:block}
+.rate span{font-size:11px;color:var(--mute)}
+.pullbtns{display:flex;gap:10px;flex-wrap:wrap}
+.pullbtns .btn{padding:12px 20px;font-size:16px}
+
+/* overlay */
+.ov{position:fixed;inset:0;z-index:50;background:rgba(4,8,20,.88);backdrop-filter:blur(6px);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:calc(env(safe-area-inset-top,0px) + 16px) max(16px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 16px) max(16px,env(safe-area-inset-left,0px));overflow:auto}
+.ov[hidden]{display:none!important}
+.pullgrid{display:grid;grid-template-columns:repeat(5,auto);gap:14px;justify-content:center;font-size:clamp(9px,2.2vw,14px)}
+@media (max-width:520px){.pullgrid{grid-template-columns:repeat(3,auto)}}
+.pullgrid.one{grid-template-columns:auto;font-size:22px}
+.flip{perspective:800px;position:relative}
+.flip .in{position:relative;transition:transform .55s cubic-bezier(.3,1.4,.5,1);transform-style:preserve-3d}
+.flip.on .in{transform:rotateY(180deg)}
+.flip .back,.flip .card{backface-visibility:hidden}
+.flip .card{transform:rotateY(180deg)}
+.flip .back{position:absolute;inset:0;border-radius:.7em;background:repeating-linear-gradient(45deg,#1a2a55 0 6px,#14214a 6px 12px);border:2px solid #34508f;display:grid;place-items:center;font-family:var(--f-disp);font-weight:800;color:#5571b5;font-size:1.6em}
+.flip.h-SSR .back{box-shadow:0 0 1.4em #ffcf4a;border-color:#ffcf4a}
+.flip.h-UR .back{box-shadow:0 0 1.8em #ff9dfc,0 0 .6em #9be9ff;border-color:#fff}
+.flash{position:fixed;inset:0;pointer-events:none;z-index:60;opacity:0}
+.flash.go{animation:flash 1s ease-out}
+@keyframes flash{0%{opacity:.9}100%{opacity:0}}
+.ovfoot{margin-top:22px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+
+/* ---------- album ---------- */
+.agrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:12px;font-size:12.5px}
+.agrid .card{width:100%;cursor:pointer}
+.cnt{position:absolute;right:.4em;top:2.1em;font-size:.7em;font-weight:900;background:rgba(0,0,0,.4);color:#fff;border-radius:.3em;padding:0 .3em}
+.prog{display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px;font-size:13px;color:var(--mute)}
+.prog b{color:var(--chalk);font-family:var(--f-disp);font-size:17px}
+.search{background:var(--night2);border:1px solid var(--line);border-radius:8px;padding:7px 10px;color:var(--chalk);min-width:0;flex:1 1 160px}
+
+/* modal sheet */
+.sheet{background:var(--panel);border:1px solid var(--line);border-radius:14px;width:min(640px,100%);max-height:86vh;display:flex;flex-direction:column;overflow:hidden}
+.sheet .sh{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:center}
+.sheet .sh h3{margin:0;font-family:var(--f-disp);font-size:22px;flex:1;min-width:0}
+.sheet .sb{padding:14px 16px;overflow:auto}
+.plist{display:flex;flex-direction:column;gap:6px}
+.pitem{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;background:var(--night2);border:1px solid transparent;border-radius:10px;padding:6px 10px 6px 6px;text-align:left;width:100%}
+.pitem:hover{border-color:#4a62a6}
+.pitem .card{font-size:6.6px}
+.pitem .nm{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pitem .mt{font-size:12px;color:var(--mute)}
+.pitem .ef{font-family:var(--f-disp);font-weight:800;font-size:24px;text-align:right;font-variant-numeric:tabular-nums;line-height:1}
+.pitem .ef small{display:block;font-size:11px;font-family:var(--f-body);font-weight:500}
+.pitem.inuse{opacity:.6}
+.vers{display:flex;gap:12px;overflow-x:auto;padding-bottom:6px;font-size:13px}
+
+/* ---------- league ---------- */
+.lgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.lcard{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;text-align:left;display:flex;flex-direction:column;gap:6px}
+.lcard[aria-pressed="true"]{border-color:var(--amber);box-shadow:0 0 0 1px var(--amber) inset}
+.lcard b{font-family:var(--f-disp);font-size:22px}
+.lcard span{font-size:12px;color:var(--mute)}
+.lay{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:820px){.lay{grid-template-columns:minmax(0,1fr)}}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;font-size:13px}
+th,td{padding:6px 6px;text-align:center;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:11px;color:var(--mute);font-weight:700}
+td.tn{text-align:left;font-weight:700}
+tr.me td{background:rgba(255,201,74,.1)}
+tr.me td.tn{color:var(--amber)}
+.nextm{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px;text-align:center;margin:10px 0 14px}
+.nextm .t{font-family:var(--f-disp);font-weight:800;font-size:20px;line-height:1.1}
+.nextm .o{font-size:12px;color:var(--mute)}
+.vs{font-family:var(--f-disp);font-weight:800;color:var(--amber);font-size:18px}
+.res{display:flex;flex-direction:column;gap:4px;font-size:13px}
+.res div{display:flex;gap:8px;align-items:center}
+.wdl{width:20px;height:20px;border-radius:4px;display:grid;place-items:center;font:800 11px var(--f-disp);color:#06121f}
+.wdl.W{background:var(--win)}.wdl.D{background:var(--draw)}.wdl.L{background:var(--loss)}
+select{background:var(--night2);border:1px solid var(--line);color:var(--chalk);border-radius:8px;padding:7px 10px;font:inherit;max-width:100%}
+
+/* ---------- match ---------- */
+.mbox{width:min(560px,100%);background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.score{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;padding:18px 14px;background:linear-gradient(180deg,#0f1c3d,var(--panel))}
+.score .tm{font-family:var(--f-disp);font-weight:800;font-size:clamp(16px,4vw,22px);text-align:center;line-height:1.1;overflow-wrap:anywhere}
+.score .sc{font-family:var(--f-disp);font-weight:800;font-size:52px;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:.04em}
+.clock{display:flex;align-items:center;gap:10px;padding:0 14px 10px}
+.clock b{font-family:var(--f-disp);font-size:18px;min-width:3ch;font-variant-numeric:tabular-nums;color:var(--amber)}
+.clock .bar{flex:1;margin:0}
+.feed{height:230px;overflow:auto;padding:6px 14px;display:flex;flex-direction:column;gap:4px;border-top:1px solid var(--line)}
+.ev{display:grid;grid-template-columns:3ch auto 1fr;gap:8px;font-size:13px;align-items:baseline;animation:pop .3s ease-out}
+.ev .m{font-family:var(--f-disp);font-weight:700;color:var(--mute);text-align:right}
+.ev .k{font-size:11px;font-weight:900;padding:0 6px;border-radius:4px;background:var(--night2)}
+.ev.goal .k{background:var(--amber);color:#2a1d00}
+.ev.away.goal .k{background:var(--loss);color:#2a0606}
+.ev.goal{font-weight:700}
+@keyframes pop{from{opacity:0;transform:translateY(4px)}to{opacity:1}}
+.mfoot{padding:12px 14px;border-top:1px solid var(--line);display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.reward{font-weight:700;color:var(--amber)}
+.toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);transform:translateX(-50%);background:var(--panel2);border:1px solid var(--amber);padding:8px 16px;border-radius:999px;font-weight:700;z-index:80;transition:opacity .3s}
+@media (prefers-reduced-motion:reduce){.g-UR::after,.ev,.flash.go{animation:none}.flip .in{transition:none}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="hbar">
+      <div class="logo">傳奇<b>XI</b><small>FOOTBALL MANAGER</small></div>
+      <div class="coins" title="金幣"><span class="coin"></span><span id="coinv">0</span></div>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button role="tab" data-v="squad" aria-selected="true">排兵佈陣</button>
+      <button role="tab" data-v="gacha" aria-selected="false">抽卡</button>
+      <button role="tab" data-v="album" aria-selected="false">卡冊</button>
+      <button role="tab" data-v="league" aria-selected="false">聯賽 · 比賽</button>
+    </nav>
+  </div>
+</header>
+<main class="wrap" id="view"></main>
+<div class="ov" id="ov" hidden></div>
+<div class="flash" id="flash"></div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+/* ================== PLAYER DATABASE ==================
+   [name, position, nation, [[season, club/team, rating], ...], shortName?]
+   Rating > 100 = UR (all-time prime legend, one card each). */
+const P=[
+['Pelé','ST','BRA',[['1958','Brazil',91],['1962/63','Santos',96],['1970','Brazil',104]]],
+['Diego Maradona','CAM','ARG',[['1981','Boca Juniors',86],['1986','Argentina',104],['1989/90','Napoli',98],['1994','Argentina',84]],'Maradona'],
+['Johan Cruyff','ST','NED',[['1971/72','Ajax',97],['1974','Netherlands',102],['1977/78','Barcelona',92]],'Cruyff'],
+['Alfredo Di Stéfano','ST','ARG',[['1956/57','Real Madrid',101],['1962/63','Real Madrid',90]],'Di Stéfano'],
+['Franz Beckenbauer','CB','GER',[['1966','West Germany',88],['1974','West Germany',101],['1977','New York Cosmos',84]],'Beckenbauer'],
+['Ronaldo Nazário','ST','BRA',[['1994/95','PSV',89],['1996/97','Barcelona',99],['1997/98','Inter',102],['2002','Brazil',97],['2007/08','AC Milan',80]],'Ronaldo'],
+['Zinedine Zidane','CAM','FRA',[['1994/95','Bordeaux',84],['1998','France',98],['2000','France',101],['2002/03','Real Madrid',97],['2006','France',94]],'Zidane'],
+['Ronaldinho','LW','BRA',[['2002','Brazil',90],['2005/06','Barcelona',101],['2008/09','AC Milan',84]],'Ronaldinho'],
+['Paolo Maldini','LB','ITA',[['1988/89','AC Milan',90],['1993/94','AC Milan',101],['2006/07','AC Milan',87]],'Maldini'],
+['Lionel Messi','RW','ARG',[['2004/05','Barcelona',66],['2005/06','Barcelona',76],['2008/09','Barcelona',96],['2011/12','Barcelona',105],['2014/15','Barcelona',98],['2022','Argentina',95],['2024','Inter Miami',86]],'Messi'],
+['Cristiano Ronaldo','ST','POR',[['2002/03','Sporting CP',66],['2003/04','Man United',74],['2007/08','Man United',97],['2013/14','Real Madrid',103],['2016/17','Real Madrid',97],['2018/19','Juventus',93],['2024/25','Al Nassr',84]],'C. Ronaldo'],
+
+['Thierry Henry','ST','FRA',[['1998/99','Juventus',78],['2003/04','Arsenal',98],['2008/09','Barcelona',87]],'Henry'],
+['Zico','CAM','BRA',[['1982','Brazil',97]]],
+['Eusébio','ST','POR',[['1966','Portugal',97]]],
+['Gerd Müller','ST','GER',[['1970','West Germany',97],['1972/73','Bayern Munich',96]],'G. Müller'],
+['Marco van Basten','ST','NED',[['1988','Netherlands',98],['1991/92','AC Milan',98]],'van Basten'],
+['Ruud Gullit','CAM','NED',[['1988/89','AC Milan',95]],'Gullit'],
+['Franco Baresi','CB','ITA',[['1989/90','AC Milan',96]],'Baresi'],
+['Lev Yashin','GK','URS',[['1963','Dynamo Moscow',97]],'Yashin'],
+['Gianluigi Buffon','GK','ITA',[['1999/00','Parma',90],['2006','Italy',97],['2016/17','Juventus',91]],'Buffon'],
+['Iker Casillas','GK','ESP',[['2003/04','Real Madrid',88],['2010','Spain',95]],'Casillas'],
+['Manuel Neuer','GK','GER',[['2014','Germany',96],['2019/20','Bayern Munich',93],['2024/25','Bayern Munich',86]],'Neuer'],
+['Roberto Baggio','CAM','ITA',[['1993/94','Juventus',97],['2000/01','Brescia',85]],'R. Baggio'],
+['Andrea Pirlo','CM','ITA',[['2006','Italy',93],['2011/12','Juventus',91]],'Pirlo'],
+['Xavi','CM','ESP',[['2008/09','Barcelona',96],['2010','Spain',95]]],
+['Andrés Iniesta','CM','ESP',[['2004/05','Barcelona',75],['2010','Spain',96],['2011/12','Barcelona',96]],'Iniesta'],
+['Kaká','CAM','BRA',[['2003/04','AC Milan',86],['2006/07','AC Milan',98]],'Kaká'],
+['Rivaldo','LW','BRA',[['1998/99','Barcelona',96]]],
+['Romário','ST','BRA',[['1994','Brazil',96]]],
+['Roberto Carlos','LB','BRA',[['1997/98','Real Madrid',91],['2002','Brazil',93]],'R. Carlos'],
+['Cafu','RB','BRA',[['2002','Brazil',93]]],
+['Bobby Charlton','CAM','ENG',[['1966','England',96]],'B. Charlton'],
+['Bobby Moore','CB','ENG',[['1966','England',95]],'Moore'],
+['George Best','RW','NIR',[['1967/68','Man United',96]],'Best'],
+['Michel Platini','CAM','FRA',[['1984','France',98],['1985/86','Juventus',97]],'Platini'],
+['Lothar Matthäus','CM','GER',[['1990','West Germany',96]],'Matthäus'],
+['Fabio Cannavaro','CB','ITA',[['2006','Italy',95]],'Cannavaro'],
+['Alessandro Nesta','CB','ITA',[['2002/03','AC Milan',93]],'Nesta'],
+['Sergio Ramos','CB','ESP',[['2005/06','Real Madrid',78],['2016/17','Real Madrid',93]],'Ramos'],
+['Carles Puyol','CB','ESP',[['2009/10','Barcelona',91]],'Puyol'],
+['Virgil van Dijk','CB','NED',[['2013/14','Celtic',70],['2015/16','Southampton',79],['2018/19','Liverpool',94],['2024/25','Liverpool',90]],'van Dijk'],
+['Philipp Lahm','RB','GER',[['2013/14','Bayern Munich',92]],'Lahm'],
+['Dani Alves','RB','BRA',[['2010/11','Barcelona',91]],'D. Alves'],
+['Steven Gerrard','CM','ENG',[['2004/05','Liverpool',92],['2008/09','Liverpool',91]],'Gerrard'],
+['Frank Lampard','CM','ENG',[['2004/05','Chelsea',92]],'Lampard'],
+['Paul Scholes','CM','ENG',[['2002/03','Man United',89]],'Scholes'],
+['Wayne Rooney','ST','ENG',[['2004','England',82],['2009/10','Man United',91]],'Rooney'],
+['Didier Drogba','ST','CIV',[['2009/10','Chelsea',91],['2011/12','Chelsea',89]],'Drogba'],
+["Samuel Eto'o",'ST','CMR',[['2005/06','Barcelona',91],['2009/10','Inter',89]],"Eto'o"],
+['George Weah','ST','LBR',[['1995/96','AC Milan',93]],'Weah'],
+['Andriy Shevchenko','ST','UKR',[['2003/04','AC Milan',94]],'Shevchenko'],
+['Raúl','ST','ESP',[['2000/01','Real Madrid',91]]],
+['Luís Figo','RW','POR',[['2000/01','Real Madrid',94]],'Figo'],
+['Patrick Vieira','CDM','FRA',[['2003/04','Arsenal',92]],'Vieira'],
+['Claude Makélélé','CDM','FRA',[['2004/05','Chelsea',88]],'Makélélé'],
+['Dennis Bergkamp','ST','NED',[['1997/98','Arsenal',93]],'Bergkamp'],
+['Zlatan Ibrahimović','ST','SWE',[['2001/02','Ajax',73],['2009/10','Barcelona',89],['2012/13','PSG',92]],'Ibrahimović'],
+['Luka Modrić','CM','CRO',[['2004/05','Dinamo Zagreb',66],['2008/09','Tottenham',80],['2018','Croatia',94],['2024/25','Real Madrid',84]],'Modrić'],
+['Karim Benzema','ST','FRA',[['2008/09','Lyon',83],['2021/22','Real Madrid',95],['2024/25','Al Ittihad',85]],'Benzema'],
+['Robert Lewandowski','ST','POL',[['2012/13','Dortmund',87],['2020/21','Bayern Munich',95],['2024/25','Barcelona',89]],'Lewandowski'],
+['Neymar','LW','BRA',[['2009','Santos',70],['2011','Santos',84],['2014/15','Barcelona',93],['2017/18','PSG',94]]],
+['Luis Suárez','ST','URU',[['2013/14','Liverpool',93],['2015/16','Barcelona',94]],'Suárez'],
+['Arjen Robben','RW','NED',[['2013/14','Bayern Munich',92]],'Robben'],
+['Franck Ribéry','LW','FRA',[['2012/13','Bayern Munich',92]],'Ribéry'],
+['Toni Kroos','CM','GER',[['2014','Germany',91],['2016/17','Real Madrid',92]],'Kroos'],
+['Sergio Busquets','CDM','ESP',[['2011/12','Barcelona',90]],'Busquets'],
+['Thomas Müller','CAM','GER',[['2012/13','Bayern Munich',89],['2024/25','Bayern Munich',80]],'T. Müller'],
+['Gareth Bale','RW','WAL',[['2012/13','Tottenham',90],['2016','Wales',88]],'Bale'],
+['Eden Hazard','LW','BEL',[['2014/15','Chelsea',92],['2018','Belgium',91]],'Hazard'],
+['Mohamed Salah','RW','EGY',[['2012/13','Basel',68],['2014/15','Chelsea',72],['2017/18','Liverpool',93],['2024/25','Liverpool',93]],'Salah'],
+['Kevin De Bruyne','CAM','BEL',[['2010/11','Genk',65],['2013/14','Chelsea',72],['2019/20','Man City',94],['2024/25','Man City',87]],'De Bruyne'],
+['Kylian Mbappé','ST','FRA',[['2016/17','Monaco',83],['2018','France',91],['2022/23','PSG',95],['2024/25','Real Madrid',94]],'Mbappé'],
+['Erling Haaland','ST','NOR',[['2018','Molde',62],['2019/20','RB Salzburg',80],['2020/21','Dortmund',90],['2022/23','Man City',95],['2024/25','Man City',92]],'Haaland'],
+['Harry Kane','ST','ENG',[['2012/13','Leicester',60],['2017/18','Tottenham',91],['2024/25','Bayern Munich',93]],'Kane'],
+['Jude Bellingham','CAM','ENG',[['2019/20','Birmingham City',64],['2020/21','Dortmund',78],['2023/24','Real Madrid',92],['2024/25','Real Madrid',90]],'Bellingham'],
+['Vinícius Júnior','LW','BRA',[['2017','Flamengo',66],['2018/19','Real Madrid',75],['2023/24','Real Madrid',93],['2024/25','Real Madrid',92]],'Vinícius'],
+['Rodri','CDM','ESP',[['2015/16','Villarreal',68],['2018/19','Atlético Madrid',82],['2023/24','Man City',93]]],
+['Lamine Yamal','RW','ESP',[['2023/24','Barcelona',80],['2024/25','Barcelona',91]],'Yamal'],
+['Pedri','CM','ESP',[['2020/21','Barcelona',82],['2024/25','Barcelona',90]]],
+['Florian Wirtz','CAM','GER',[['2023/24','Leverkusen',89]],'Wirtz'],
+['Jamal Musiala','CAM','GER',[['2024/25','Bayern Munich',89]],'Musiala'],
+['Bukayo Saka','RW','ENG',[['2018/19','Arsenal',62],['2024/25','Arsenal',88]],'Saka'],
+['Martin Ødegaard','CAM','NOR',[['2023/24','Arsenal',88]],'Ødegaard'],
+['Declan Rice','CDM','ENG',[['2017/18','West Ham',66],['2024/25','Arsenal',87]],'Rice'],
+['William Saliba','CB','FRA',[['2024/25','Arsenal',88]],'Saliba'],
+['Phil Foden','CAM','ENG',[['2023/24','Man City',89]],'Foden'],
+['Bernardo Silva','CM','POR',[['2022/23','Man City',88]],'B. Silva'],
+['Rúben Dias','CB','POR',[['2020/21','Man City',89]],'R. Dias'],
+['Ederson','GK','BRA',[['2022/23','Man City',88]]],
+['Alisson','GK','BRA',[['2018/19','Liverpool',91],['2024/25','Liverpool',89]]],
+['Thibaut Courtois','GK','BEL',[['2021/22','Real Madrid',92]],'Courtois'],
+['Jan Oblak','GK','SVN',[['2017/18','Atlético Madrid',91]],'Oblak'],
+['Gianluigi Donnarumma','GK','ITA',[['2024/25','PSG',89]],'Donnarumma'],
+['Achraf Hakimi','RB','MAR',[['2024/25','PSG',88]],'Hakimi'],
+['Trent Alexander-Arnold','RB','ENG',[['2019/20','Liverpool',89],['2024/25','Liverpool',86]],'Alexander-Arnold'],
+['Ousmane Dembélé','RW','FRA',[['2024/25','PSG',91]],'Dembélé'],
+['Vitinha','CM','POR',[['2024/25','PSG',88]]],
+['Federico Valverde','CM','URU',[['2024/25','Real Madrid',89]],'Valverde'],
+['Antoine Griezmann','ST','FRA',[['2010/11','Real Sociedad',65],['2015/16','Atlético Madrid',90],['2018','France',90]],'Griezmann'],
+['Lautaro Martínez','ST','ARG',[['2023/24','Inter',89]],'Lautaro'],
+['Victor Osimhen','ST','NGA',[['2022/23','Napoli',89]],'Osimhen'],
+['Khvicha Kvaratskhelia','LW','GEO',[['2022/23','Napoli',87],['2024/25','PSG',87]],'Kvaratskhelia'],
+['Nicolò Barella','CM','ITA',[['2023/24','Inter',87]],'Barella'],
+['Alessandro Bastoni','CB','ITA',[['2023/24','Inter',87]],'Bastoni'],
+['Joško Gvardiol','LB','CRO',[['2024/25','Man City',85]],'Gvardiol'],
+['Alphonso Davies','LB','CAN',[['2019/20','Bayern Munich',84]],'Davies'],
+['Joshua Kimmich','CM','GER',[['2024/25','Bayern Munich',88]],'Kimmich'],
+["N'Golo Kanté",'CDM','FRA',[['2014/15','Caen',72],['2016/17','Chelsea',90]],'Kanté'],
+['Son Heung-min','LW','KOR',[['2010/11','Hamburg',64],['2021/22','Tottenham',89],['2024/25','Tottenham',84]],'Son'],
+['Cole Palmer','CAM','ENG',[['2023/24','Chelsea',87]],'Palmer'],
+['Alexander Isak','ST','SWE',[['2024/25','Newcastle',87]],'Isak'],
+['Bruno Fernandes','CAM','POR',[['2020/21','Man United',89]],'B. Fernandes'],
+['Marcus Rashford','LW','ENG',[['2022/23','Man United',84]],'Rashford'],
+['Jamie Vardy','ST','ENG',[['2011/12','Fleetwood Town',58],['2015/16','Leicester',86]],'Vardy'],
+['Riyad Mahrez','RW','ALG',[['2015/16','Leicester',87]],'Mahrez'],
+['Kaoru Mitoma','LW','JPN',[['2020','Kawasaki Frontale',68],['2023/24','Brighton',80]],'Mitoma'],
+['Takefusa Kubo','RW','JPN',[['2023/24','Real Sociedad',81]],'Kubo'],
+['Hidetoshi Nakata','CAM','JPN',[['2000/01','Roma',82]],'Nakata'],
+['Park Ji-sung','CM','KOR',[['2008/09','Man United',81]],'Park Ji-sung'],
+['Kim Min-jae','CB','KOR',[['2022/23','Napoli',87]],'Kim Min-jae'],
+['Shinji Kagawa','CAM','JPN',[['2011/12','Dortmund',84]],'Kagawa'],
+['Lee Kang-in','CAM','KOR',[['2024/25','PSG',79]],'Lee Kang-in'],
+['Ritsu Doan','RW','JPN',[['2024/25','Freiburg',77]],'Doan'],
+['Wataru Endo','CDM','JPN',[['2018','Urawa Reds',64],['2024/25','Liverpool',76]],'Endo'],
+['Takehiro Tomiyasu','RB','JPN',[['2023/24','Arsenal',77]],'Tomiyasu'],
+['Wu Lei','ST','CHN',[['2015','Shanghai SIPG',64],['2018/19','Espanyol',70]],'Wu Lei'],
+['Sun Jihai','RB','CHN',[['2002/03','Man City',66]],'Sun Jihai'],
+['Dong Fangzhuo','ST','CHN',[['2006/07','Man United',55]],'Dong Fangzhuo'],
+['Li Tie','CM','CHN',[['2002/03','Everton',64]],'Li Tie'],
+['Zheng Zhi','CM','CHN',[['2007/08','Charlton',68]],'Zheng Zhi'],
+['Fan Zhiyi','CB','CHN',[['1998/99','Crystal Palace',63]],'Fan Zhiyi'],
+['Chan Siu Ki','ST','HKG',[['2009','Hong Kong',60]],'Chan Siu Ki'],
+['Yapp Hung Fai','GK','HKG',[['2015','Hong Kong',60]],'Yapp Hung Fai'],
+['Park Chu-young','ST','KOR',[['2011/12','Arsenal',62]],'Park Chu-young'],
+['Danny Welbeck','ST','ENG',[['2024/25','Brighton',75]],'Welbeck'],
+['Jordan Henderson','CM','ENG',[['2024/25','Ajax',74]],'Henderson'],
+['Ashley Young','LB','ENG',[['2024/25','Everton',68]],'A. Young'],
+['James Milner','CM','ENG',[['2024/25','Brighton',70]],'Milner'],
+['Olivier Giroud','ST','FRA',[['2018','France',84],['2025','LAFC',72]],'Giroud'],
+['Jesse Lingard','CAM','ENG',[['2024','FC Seoul',68]],'Lingard'],
+['Andy Carroll','ST','ENG',[['2011/12','Liverpool',72]],'Carroll'],
+['Emile Heskey','ST','ENG',[['2008/09','Wigan',68]],'Heskey'],
+['Peter Crouch','ST','ENG',[['2006/07','Liverpool',74]],'Crouch'],
+['Kieran Trippier','RB','ENG',[['2024/25','Newcastle',78]],'Trippier'],
+['Aaron Ramsdale','GK','ENG',[['2024/25','Southampton',74]],'Ramsdale'],
+['Callum Wilson','ST','ENG',[['2024/25','Newcastle',73]],'C. Wilson'],
+['Tom Cleverley','CM','ENG',[['2012/13','Man United',70]],'Cleverley'],
+['Asamoah Gyan','ST','GHA',[['2010','Ghana',76]],'Gyan'],
+['Danny Drinkwater','CM','ENG',[['2015/16','Leicester',77]],'Drinkwater'],
+['Wes Morgan','CB','JAM',[['2015/16','Leicester',76]],'W. Morgan'],
+['Kasper Schmeichel','GK','DEN',[['2015/16','Leicester',80]],'K. Schmeichel'],
+['Shinji Okazaki','ST','JPN',[['2015/16','Leicester',74]],'Okazaki'],
+['Rickie Lambert','ST','ENG',[['2012/13','Southampton',74]],'Lambert'],
+['Grant Holt','ST','ENG',[['2011/12','Norwich',70]],'Holt'],
+['Kevin Phillips','ST','ENG',[['1999/00','Sunderland',80]],'K. Phillips'],
+['Matt Le Tissier','CAM','ENG',[['1994/95','Southampton',84]],'Le Tissier'],
+['Bryan Ruiz','CAM','CRC',[['2014','Costa Rica',76]],'B. Ruiz'],
+['Keylor Navas','GK','CRC',[['2014','Costa Rica',84],['2017/18','Real Madrid',87]],'Navas'],
+['Rafael van der Vaart','CAM','NED',[['2010/11','Tottenham',83]],'van der Vaart'],
+['Dirk Kuyt','RW','NED',[['2009/10','Liverpool',79]],'Kuyt'],
+['Ryan Babel','LW','NED',[['2008/09','Liverpool',70]],'Babel'],
+['Nicklas Bendtner','ST','DEN',[['2008/09','Arsenal',68]],'Bendtner'],
+['Denílson','CM','BRA',[['2008/09','Arsenal',65]]],
+['Philippe Senderos','CB','SUI',[['2006/07','Arsenal',68]],'Senderos'],
+['Djibril Cissé','ST','FRA',[['2005/06','Liverpool',76]],'Cissé'],
+['Ricardo Quaresma','RW','POR',[['2007/08','Porto',80]],'Quaresma'],
+['Ivan Rakitić','CM','CRO',[['2014/15','Barcelona',85]],'Rakitić'],
+['Mario Mandžukić','ST','CRO',[['2018','Croatia',83]],'Mandžukić'],
+['Diego Forlán','ST','URU',[['2003/04','Man United',68],['2010','Uruguay',87]],'Forlán'],
+['Edinson Cavani','ST','URU',[['2016/17','PSG',88]],'Cavani'],
+['Radamel Falcao','ST','COL',[['2011/12','Atlético Madrid',90]],'Falcao'],
+['James Rodríguez','CAM','COL',[['2014','Colombia',88]],'James'],
+['Carlos Valderrama','CAM','COL',[['1990','Colombia',87]],'Valderrama'],
+['René Higuita','GK','COL',[['1990','Colombia',80]],'Higuita'],
+['Hristo Stoichkov','ST','BUL',[['1993/94','Barcelona',93]],'Stoichkov'],
+['Gheorghe Hagi','CAM','ROU',[['1994','Romania',91]],'Hagi'],
+['Davor Šuker','ST','CRO',[['1998','Croatia',89]],'Šuker'],
+['Pavel Nedvěd','LM','CZE',[['2002/03','Juventus',93]],'Nedvěd'],
+['Michael Owen','ST','ENG',[['1998','England',84],['2000/01','Liverpool',91]],'Owen'],
+['David Beckham','RM','ENG',[['1998/99','Man United',90],['2007','LA Galaxy',78]],'Beckham'],
+['Alan Shearer','ST','ENG',[['1994/95','Blackburn',92]],'Shearer'],
+['Ryan Giggs','LM','WAL',[['1998/99','Man United',89]],'Giggs'],
+['Eric Cantona','ST','FRA',[['1995/96','Man United',91]],'Cantona'],
+['Peter Schmeichel','GK','DEN',[['1998/99','Man United',93]],'P. Schmeichel'],
+['Roy Keane','CDM','IRL',[['1999/00','Man United',90]],'Keane'],
+['Gianfranco Zola','ST','ITA',[['1996/97','Chelsea',88]],'Zola'],
+['Francesco Totti','CAM','ITA',[['2000/01','Roma',93],['2006','Italy',90]],'Totti'],
+['Alessandro Del Piero','ST','ITA',[['1997/98','Juventus',93]],'Del Piero'],
+['Christian Vieri','ST','ITA',[['1998/99','Lazio',89]],'Vieri'],
+['Gabriel Batistuta','ST','ARG',[['1998/99','Fiorentina',94],['2000/01','Roma',91]],'Batistuta'],
+['Hernán Crespo','ST','ARG',[['2002/03','Inter',86]],'Crespo'],
+['Javier Zanetti','RB','ARG',[['2009/10','Inter',89]],'Zanetti'],
+['Juan Román Riquelme','CAM','ARG',[['2000','Boca Juniors',90]],'Riquelme'],
+['Ángel Di María','RW','ARG',[['2013/14','Real Madrid',90],['2022','Argentina',87]],'Di María'],
+['Sergio Agüero','ST','ARG',[['2011/12','Man City',91]],'Agüero'],
+['Julián Álvarez','ST','ARG',[['2024/25','Atlético Madrid',87]],'J. Álvarez'],
+['Emiliano Martínez','GK','ARG',[['2022','Argentina',89]],'E. Martínez'],
+['Enzo Fernández','CM','ARG',[['2022','Argentina',84]],'Enzo'],
+];
+const NATN={BRA:'巴西',ARG:'阿根廷',FRA:'法國',GER:'德國',ITA:'意大利',ESP:'西班牙',ENG:'英格蘭',NED:'荷蘭',POR:'葡萄牙',URS:'蘇聯',NIR:'北愛爾蘭',CIV:'科特迪瓦',CMR:'喀麥隆',LBR:'利比里亞',UKR:'烏克蘭',SWE:'瑞典',CRO:'克羅地亞',POL:'波蘭',URU:'烏拉圭',WAL:'威爾斯',BEL:'比利時',EGY:'埃及',NOR:'挪威',SVN:'斯洛文尼亞',MAR:'摩洛哥',NGA:'尼日利亞',GEO:'格魯吉亞',CAN:'加拿大',KOR:'南韓',ALG:'阿爾及利亞',JPN:'日本',CHN:'中國',HKG:'香港',GHA:'加納',JAM:'牙買加',DEN:'丹麥',CRC:'哥斯達黎加',SUI:'瑞士',COL:'哥倫比亞',BUL:'保加利亞',ROU:'羅馬尼亞',CZE:'捷克',IRL:'愛爾蘭'};
+
+const grade=r=>r>100?'UR':r>=90?'SSR':r>=80?'SR':r>=70?'R':'C';
+const GRADES=['UR','SSR','SR','R','C'];
+const CARDS=[];
+P.forEach((p,pi)=>p[3].forEach((v,vi)=>CARDS.push({id:pi+'-'+vi,pi,name:p[0],short:p[4]||p[0],pos:p[1],nat:p[2],season:v[0],club:v[1],r:v[2],g:grade(v[2])})));
+const BYID=Object.fromEntries(CARDS.map(c=>[c.id,c]));
+const POOL={};GRADES.forEach(g=>POOL[g]=CARDS.filter(c=>c.g===g));
+const DUPV={C:10,R:30,SR:120,SSR:500,UR:3000};
+
+/* ================== POSITIONS ================== */
+const LINE={GK:'G',CB:'D',LB:'D',RB:'D',CDM:'M',CM:'M',CAM:'M',LM:'M',RM:'M',LW:'A',RW:'A',ST:'A'};
+const NEAR={GK:[],CB:['CDM','LB','RB'],LB:['LM','CB','LW'],RB:['RM','CB','RW'],CDM:['CM','CB'],CM:['CDM','CAM','LM','RM'],CAM:['CM','ST','LW','RW'],LM:['LW','LB','CM'],RM:['RW','RB','CM'],LW:['LM','RW','ST','CAM'],RW:['RM','LW','ST','CAM'],ST:['CAM','LW','RW']};
+const ADJ={D:['M'],M:['D','A'],A:['M'],G:[]};
+function fit(cp,sp){
+  if(cp===sp)return 1;
+  if(cp==='GK'||sp==='GK')return .35;
+  if(NEAR[cp].includes(sp))return .93;
+  if(LINE[cp]===LINE[sp])return .84;
+  if(ADJ[LINE[cp]].includes(LINE[sp]))return .72;
+  return .58;
+}
+function slotPos(x,y){
+  if(y>=86)return'GK';
+  if(y>=66)return x<24?'LB':x>76?'RB':'CB';
+  if(y>=54)return x<20?'LM':x>80?'RM':'CDM';
+  if(y>=40)return x<20?'LM':x>80?'RM':'CM';
+  if(y>=28)return x<22?'LW':x>78?'RW':'CAM';
+  return x<28?'LW':x>72?'RW':'ST';
+}
+const B4=[[50,92],[14,72],[37,77],[63,77],[86,72]];
+const FORMS={
+ '4-3-3':[...B4,[28,47],[50,58],[72,47],[16,20],[50,13],[84,20]],
+ '4-4-2':[...B4,[12,48],[37,50],[63,50],[88,48],[38,15],[62,15]],
+ '4-2-3-1':[...B4,[36,60],[64,60],[16,34],[50,35],[84,34],[50,13]],
+ '4-1-2-1-2':[...B4,[50,62],[30,46],[70,46],[50,32],[38,14],[62,14]],
+ '3-5-2':[[50,92],[28,77],[50,79],[72,77],[10,50],[32,47],[50,59],[68,47],[90,50],[38,15],[62,15]],
+ '3-4-3':[[50,92],[28,77],[50,79],[72,77],[12,51],[38,51],[62,51],[88,51],[18,20],[50,13],[82,20]],
+ '5-3-2':[[50,92],[10,68],[30,78],[50,80],[70,78],[90,68],[28,46],[50,58],[72,46],[38,15],[62,15]],
+ '4-5-1':[...B4,[12,47],[34,50],[50,59],[66,50],[88,47],[50,15]],
+};
+
+/* ================== TEAMS ================== */
+const LEAGUES={
+ epl:{n:'英超',e:'Premier League',teams:[['Man City',87],['Liverpool',87],['Arsenal',86],['Chelsea',83],['Newcastle',81],['Aston Villa',80],['Tottenham',80],['Man United',79]]},
+ laliga:{n:'西甲',e:'La Liga',teams:[['Real Madrid',88],['Barcelona',87],['Atlético Madrid',84],['Athletic Club',80],['Villarreal',79],['Real Sociedad',78],['Real Betis',78],['Sevilla',76]]},
+ seriea:{n:'意甲',e:'Serie A',teams:[['Inter',85],['Napoli',84],['Juventus',82],['AC Milan',82],['Atalanta',82],['Roma',79],['Lazio',79],['Fiorentina',77]]},
+ bundes:{n:'德甲',e:'Bundesliga',teams:[['Bayern Munich',87],['Leverkusen',83],['Dortmund',82],['RB Leipzig',80],['Stuttgart',78],['Eintracht Frankfurt',78],['Freiburg',76],['Wolfsburg',75]]},
+ ligue1:{n:'法甲',e:'Ligue 1',teams:[['PSG',87],['Marseille',80],['Monaco',80],['Lille',79],['Lyon',78],['Nice',77],['Lens',76],['Rennes',75]]},
+ intl:{n:'國家隊大賽',e:'Nations',teams:[['France',88],['Spain',88],['Argentina',87],['England',86],['Brazil',86],['Portugal',85],['Germany',84],['Netherlands',84]]},
+ legend:{n:'傳奇盃',e:'All-Time Legends',teams:[['Barcelona 2011',93],['Brazil 1970',92],['AC Milan 1989',91],['Spain 2010',91],['Real Madrid 1960',90],['Netherlands 1974',89],['Man United 1999',88],['Ajax 1995',88]]},
+};
+const NATCODE={France:'FRA',Spain:'ESP',Argentina:'ARG',England:'ENG',Brazil:'BRA',Portugal:'POR',Germany:'GER',Netherlands:'NED'};
+const LEGSC={'Barcelona 2011':['Messi','Villa','Pedro','Xavi','Iniesta'],'Brazil 1970':['Pelé','Jairzinho','Tostão','Rivelino'],'AC Milan 1989':['van Basten','Gullit','Rijkaard','Donadoni'],'Spain 2010':['Villa','Iniesta','Torres','Xavi'],'Real Madrid 1960':['Di Stéfano','Puskás','Gento','Del Sol'],'Netherlands 1974':['Cruyff','Neeskens','Rep','Rensenbrink'],'Man United 1999':['Yorke','Cole','Solskjær','Sheringham'],'Ajax 1995':['Kluivert','Litmanen','Overmars','Finidi']};
+const DIFF={easy:{n:'新手',o:-18},pro:{n:'職業',o:-9},world:{n:'世界級',o:0}};
+function oppScorers(name){
+  if(LEGSC[name])return LEGSC[name];
+  const nc=NATCODE[name];
+  let l=CARDS.filter(c=>nc?(c.nat===nc&&/^20(1[8-9]|2)/.test(c.season)):(c.club===name&&/^202/.test(c.season))).filter(c=>LINE[c.pos]!=='G');
+  if(!l.length)l=CARDS.filter(c=>c.club===name&&LINE[c.pos]!=='G');
+  const names=[...new Set(l.map(c=>c.short))];
+  return names.length?names:[name+' 前鋒',name+' 中場'];
+}
+
+/* ================== STATE ================== */
+const KEY='legendxi-v1';
+let S;
+function fresh(){return{coins:3000,owned:{},team:'我的球隊',form:'4-3-3',slots:FORMS['4-3-3'].map(([x,y])=>({x,y,c:null})),league:null,stats:{pulls:0,w:0,d:0,l:0},starter:false,diff:'pro'};}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&s.slots)return s}catch(e){}return null}
+
+/* ================== HELPERS ================== */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+const rnd=a=>a[Math.floor(Math.random()*a.length)];
+const ss=s=>s.length===7?s.slice(2):s;
+function cardHTML(c,o={}){
+  if(!c)return'';
+  const cls=['card','g-'+c.g,o.dim?'dim':'',o.cls||''].join(' ');
+  return `<div class="${cls}" data-id="${c.id}" title="${esc(c.name)} · ${esc(c.season)} ${esc(c.club)}">
+  <div class="c-top"><span class="c-r">${c.r}</span><span class="c-g">${c.g}</span></div>
+  <div class="c-pos">${c.pos}</div>
+  <div class="c-nat">${c.nat}</div>
+  <div class="c-name">${esc(c.short)}</div>
+  <div class="c-meta">${ss(c.season)} · ${esc(c.club)}</div>
+  ${o.count>1?`<span class="cnt">×${o.count}</span>`:''}
+  ${o.badge||''}</div>`;
+}
+function toast(t){const el=$('#toast');el.textContent=t;el.hidden=false;el.style.opacity=1;clearTimeout(toast.t);toast.t=setTimeout(()=>{el.style.opacity=0;setTimeout(()=>el.hidden=true,300)},1800)}
+function setCoins(){$('#coinv').textContent=S.coins.toLocaleString()}
+function owned(){return Object.keys(S.owned).filter(k=>S.owned[k]>0&&BYID[k]).map(k=>BYID[k])}
+
+/* ================== TEAM EVAL ================== */
+function evalTeam(){
+  const sl=S.slots.map(s=>({...s,sp:slotPos(s.x,s.y),card:s.c?BYID[s.c]:null}));
+  sl.forEach(s=>{
+    s.chem=0;
+    if(!s.card)return;
+    let links=0;
+    sl.forEach(o=>{if(o!==s&&o.card){if(o.card.club===s.card.club)links++;if(o.card.nat===s.card.nat)links++;}});
+    s.links=links;s.chem=links>=6?3:links>=4?2:links>=2?1:0;
+    s.f=fit(s.card.pos,s.sp);
+    s.eff=Math.round(s.card.r*s.f)+s.chem;
+  });
+  const val=s=>s.card?s.eff:25;
+  const by=l=>sl.filter(s=>LINE[s.sp]===l);
+  const avg=a=>a.length?a.reduce((t,s)=>t+val(s),0)/a.length:null;
+  const A=by('A'),M=by('M'),D=by('D'),G=by('G');
+  const a=avg(A),m=avg(M),d=avg(D);
+  const gk=G.length?Math.max(...G.map(val)):30;
+  const mm=m??((a??60)+(d??60))/2;
+  const att=(a??mm*.85)*.6+mm*.4+1.2*(A.length-3)+.4*(M.length-3);
+  const def=(d??mm*.8)*.5+gk*.25+mm*.25+1.2*(D.length-4)+.4*(M.length-3);
+  const ovr=Math.round(sl.reduce((t,s)=>t+val(s),0)/11);
+  const warn=[];
+  if(!G.length)warn.push('冇龍門！防守會大打折扣');
+  if(G.length>1)warn.push('排咗多過一個龍門位');
+  if(sl.some(s=>!s.card))warn.push('仲有空位未排人');
+  return{sl,att:Math.round(att),def:Math.round(def),mid:Math.round(mm),ovr,gk:Math.round(gk),warn,chem:sl.reduce((t,s)=>t+(s.chem||0),0)};
+}
+
+/* ================== VIEWS ================== */
+let VIEW='squad';
+function go(v){VIEW=v;document.querySelectorAll('nav.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.v===v));render();window.scrollTo({top:0})}
+document.querySelectorAll('nav.tabs button').forEach(b=>b.onclick=()=>go(b.dataset.v));
+function render(){setCoins();({squad:rSquad,gacha:rGacha,album:rAlbum,league:rLeague})[VIEW]();}
+
+/* ---------- SQUAD ---------- */
+const PITCH_SVG=`<svg viewBox="0 0 68 100" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="rgba(255,255,255,.55)" stroke-width=".35">
+<rect x="2" y="2" width="64" height="96"/><line x1="2" y1="50" x2="66" y2="50"/><circle cx="34" cy="50" r="9.15"/>
+<rect x="13.8" y="2" width="40.4" height="16.5"/><rect x="24.8" y="2" width="18.4" height="5.5"/>
+<rect x="13.8" y="81.5" width="40.4" height="16.5"/><rect x="24.8" y="92.5" width="18.4" height="5.5"/>
+<path d="M26.7 18.5 A9.15 9.15 0 0 0 41.3 18.5"/><path d="M26.7 81.5 A9.15 9.15 0 0 1 41.3 81.5"/></g>
+<g fill="rgba(255,255,255,.6)"><circle cx="34" cy="50" r=".5"/><circle cx="34" cy="13" r=".5"/><circle cx="34" cy="87" r=".5"/></g></svg>`;
+function rSquad(){
+  const T=evalTeam();
+  const fb=Object.keys(FORMS).map(f=>`<button class="chip" aria-pressed="${S.form===f}" data-f="${f}">${f}</button>`).join('');
+  $('#view').innerHTML=`
+  <div class="squad">
+    <div>
+      <div class="pitch" id="pitch">${PITCH_SVG}${T.sl.map((s,i)=>slotHTML(s,i)).join('')}</div>
+    </div>
+    <div class="side">
+      <div class="panel">
+        <label class="lbl" for="tname">球隊名稱</label>
+        <input id="tname" class="tname" maxlength="20" value="${esc(S.team)}">
+      </div>
+      <div class="panel">
+        <div class="lbl" style="margin-bottom:8px">球隊實力</div>
+        <div class="stats">
+          ${[['總評',T.ovr],['進攻',T.att],['中場',T.mid],['防守',T.def]].map(([k,v])=>`<div class="stat"><div class="v">${v}</div><div class="k">${k}</div><div class="bar"><i style="width:${Math.max(0,Math.min(100,(v-40)/70*100))}%"></i></div></div>`).join('')}
+        </div>
+        <p class="hint" style="margin-top:10px">默契加成 <b style="color:var(--amber)">+${T.chem}</b> · 同球會或同國籍嘅球員越多，個別球員評分加 1–3 分</p>
+        ${T.warn.map(w=>`<div class="warn">${w}</div>`).join('')}
+      </div>
+      <div class="panel">
+        <div class="lbl" style="margin-bottom:8px">陣式</div>
+        <div class="forms">${fb}</div>
+        <div class="row" style="margin-top:12px">
+          <button class="btn pri" id="auto">自動排最強</button>
+          <button class="btn" id="clear">清空陣容</button>
+        </div>
+      </div>
+      <p class="hint">撳場上嘅位置揀球員；拖住張卡可以移去任何位置，自創陣式都得。位置會按你擺嘅地方自動判斷（例如擺喺邊路就變翼鋒），球員打非本位會扣分：綠色＝本位，黃色＝相近位置，紅色＝唔啱位。</p>
+    </div>
+  </div>`;
+  $('#tname').oninput=e=>{S.team=e.target.value.trim()||'我的球隊';save()};
+  document.querySelectorAll('.forms .chip').forEach(b=>b.onclick=()=>{applyForm(b.dataset.f)});
+  $('#auto').onclick=autoXI;
+  $('#clear').onclick=()=>{S.slots.forEach(s=>s.c=null);save();rSquad()};
+  bindPitch();
+}
+function slotHTML(s,i){
+  const e=s.card?(s.f>=1?'e1':s.f>=.9?'e2':'e3'):'';
+  return `<div class="slot" data-i="${i}" style="left:${s.x}%;top:${s.y}%">
+    ${s.card?`<div style="position:relative">${cardHTML(s.card)}${s.chem?`<span class="chem">+${s.chem}</span>`:''}</div>`:`<div class="empty">+</div>`}
+    <span class="stag">${s.sp}${s.card?` <span class="${e}">${s.eff}</span>`:''}</span></div>`;
+}
+function applyForm(f){
+  const pts=FORMS[f];
+  // keep players; re-seat by best fit to new positions
+  const cards=S.slots.map(s=>s.c).filter(Boolean);
+  S.form=f;S.slots=pts.map(([x,y])=>({x,y,c:null}));
+  const sps=S.slots.map(s=>slotPos(s.x,s.y));
+  const pairs=[];cards.forEach(c=>sps.forEach((sp,i)=>pairs.push([BYID[c].r*fit(BYID[c].pos,sp),c,i])));
+  pairs.sort((a,b)=>b[0]-a[0]);const used=new Set();
+  pairs.forEach(([,c,i])=>{if(!used.has(c)&&!S.slots[i].c){S.slots[i].c=c;used.add(c)}});
+  save();rSquad();
+}
+function autoXI(){
+  const own=owned();
+  if(!own.length){toast('卡冊仲係空嘅，去抽卡先');return}
+  const sps=S.slots.map(s=>slotPos(s.x,s.y));
+  const pairs=[];own.forEach(c=>sps.forEach((sp,i)=>pairs.push([c.r*fit(c.pos,sp),c,i])));
+  pairs.sort((a,b)=>b[0]-a[0]);
+  S.slots.forEach(s=>s.c=null);
+  const usedP=new Set();
+  pairs.forEach(([,c,i])=>{if(!S.slots[i].c&&!usedP.has(c.pi)){S.slots[i].c=c.id;usedP.add(c.pi)}});
+  save();rSquad();toast('已自動排好最強陣容');
+}
+function bindPitch(){
+  const pitch=$('#pitch');
+  pitch.querySelectorAll('.slot').forEach(el=>{
+    el.addEventListener('pointerdown',ev=>{
+      ev.preventDefault();
+      const i=+el.dataset.i,r=pitch.getBoundingClientRect();
+      const sx=ev.clientX,sy=ev.clientY;let moved=false;
+      el.setPointerCapture(ev.pointerId);
+      const mv=e=>{
+        if(!moved&&Math.hypot(e.clientX-sx,e.clientY-sy)<6)return;
+        moved=true;el.classList.add('drag');
+        const x=Math.max(5,Math.min(95,(e.clientX-r.left)/r.width*100));
+        const y=Math.max(5,Math.min(96,(e.clientY-r.top)/r.height*100));
+        S.slots[i].x=Math.round(x);S.slots[i].y=Math.round(y);
+        el.style.left=x+'%';el.style.top=y+'%';
+        el.querySelector('.stag').firstChild.textContent=slotPos(x,y)+' ';
+      };
+      const up=()=>{
+        el.removeEventListener('pointermove',mv);el.removeEventListener('pointerup',up);el.removeEventListener('pointercancel',up);
+        if(moved){S.form='自訂';save();rSquad()}else openPicker(i);
+      };
+      el.addEventListener('pointermove',mv);el.addEventListener('pointerup',up);el.addEventListener('pointercancel',up);
+    });
+  });
+}
+function openPicker(i){
+  const sp=slotPos(S.slots[i].x,S.slots[i].y);
+  const cur=S.slots[i].c;
+  const inUse=new Map(S.slots.map((s,j)=>[s.c,j]).filter(([c])=>c));
+  let q='';
+  const ov=$('#ov');ov.hidden=false;
+  ov.innerHTML=`<div class="sheet" role="dialog" aria-label="揀球員">
+    <div class="sh"><h3>揀 ${sp} 位球員</h3><button class="btn" id="pclose">關閉</button></div>
+    <div class="sb"><div class="row" style="margin-bottom:10px"><input class="search" id="pq" placeholder="搜尋球員或球會"><button class="btn" id="pnone">留空</button></div><div class="plist" id="plist"></div></div></div>`;
+  const draw=()=>{
+    const list=owned().filter(c=>!q||(c.name+c.club+c.short).toLowerCase().includes(q)).map(c=>({c,e:Math.round(c.r*fit(c.pos,sp)),f:fit(c.pos,sp)})).sort((a,b)=>b.e-a.e||b.c.r-a.c.r).slice(0,120);
+    $('#plist').innerHTML=list.length?list.map(({c,e,f})=>{
+      const j=inUse.get(c.id);const samePi=S.slots.some((s,k)=>k!==i&&s.c&&BYID[s.c].pi===c.pi&&s.c!==c.id);
+      return `<button class="pitem ${j!=null?'inuse':''}" data-id="${c.id}" ${samePi?'disabled title="同一球員另一版本已上陣"':''}>
+      ${cardHTML(c)}<div style="min-width:0"><div class="nm">${esc(c.name)}</div><div class="mt">${c.pos} · ${esc(c.season)} ${esc(c.club)} · ${NATN[c.nat]||c.nat}${j!=null?` · <b style="color:var(--amber)">已上陣（會對調）</b>`:''}${samePi?' · 另一版本已上陣':''}</div></div>
+      <div class="ef" style="color:${f>=1?'var(--win)':f>=.9?'var(--amber)':'var(--loss)'}">${e}<small>${f>=1?'本位':f>=.9?'相近':'非本位'}</small></div></button>`}).join(''):`<p class="hint">未有合適球員。去「抽卡」抽多啲啦。</p>`;
+    $('#plist').querySelectorAll('.pitem').forEach(b=>b.onclick=()=>{
+      if(b.disabled)return;
+      const id=b.dataset.id,j=inUse.get(id);
+      if(j!=null&&j!==i){S.slots[j].c=cur}
+      S.slots[i].c=id;save();closeOv();rSquad();
+    });
+  };
+  draw();
+  $('#pq').oninput=e=>{q=e.target.value.toLowerCase();draw()};
+  $('#pclose').onclick=closeOv;
+  $('#pnone').onclick=()=>{S.slots[i].c=null;save();closeOv();rSquad()};
+  ov.onclick=e=>{if(e.target===ov)closeOv()};
+}
+function closeOv(){const ov=$('#ov');ov.hidden=true;ov.innerHTML='';ov.onclick=null}
+
+/* ---------- GACHA ---------- */
+const RATES=[['UR',0.6],['SSR',4],['SR',14],['R',33],['C',48.4]];
+function rollGrade(guar){
+  const r=Math.random()*100;
+  if(guar)return r<3?'UR':r<23?'SSR':'SR';
+  let acc=0;for(const[g,p]of RATES){acc+=p;if(r<acc)return g}return'C';
+}
+function pull(n,free){
+  const cost=n===1?100:900;
+  if(!free){if(S.coins<cost){toast('金幣唔夠，去踢比賽賺錢');return}S.coins-=cost;}
+  const res=[];
+  for(let k=0;k<n;k++){
+    let g=rollGrade(false);
+    if(n===10&&k===9&&!res.some(r=>['SR','SSR','UR'].includes(r.c.g)))g=rollGrade(true);
+    const c=rnd(POOL[g]);
+    const dup=(S.owned[c.id]||0)>0;
+    S.owned[c.id]=(S.owned[c.id]||0)+1;
+    if(dup)S.coins+=DUPV[g];
+    res.push({c,dup});
+  }
+  S.stats.pulls+=n;save();setCoins();showPull(res);
+}
+function showPull(res){
+  const ov=$('#ov');ov.hidden=false;
+  const top=res.reduce((m,r)=>Math.min(m,GRADES.indexOf(r.c.g)),9);
+  ov.innerHTML=`<div class="pullgrid ${res.length===1?'one':''}">${res.map((r,k)=>`<div class="flip h-${r.c.g}" data-k="${k}"><div class="in"><div class="back">XI</div>${cardHTML(r.c,{badge:r.dup?`<span class="badge dup">重複 +${DUPV[r.c.g]}</span>`:`<span class="badge new">NEW</span>`})}</div></div>`).join('')}</div>
+  <div class="ovfoot"><button class="btn" id="revall">全部翻開</button><button class="btn pri" id="pagain1">再抽一次</button><button class="btn" id="pdone">完成</button></div>`;
+  const flips=[...ov.querySelectorAll('.flip')];
+  let t=[];
+  flips.forEach((f,k)=>{t.push(setTimeout(()=>reveal(f),450+k*170));f.onclick=()=>reveal(f)});
+  function reveal(f){if(f.classList.contains('on'))return;f.classList.add('on');const g=res[+f.dataset.k].c.g;if(g==='UR'||g==='SSR')flash(g)}
+  $('#revall').onclick=()=>{t.forEach(clearTimeout);flips.forEach(reveal)};
+  $('#pdone').onclick=()=>{t.forEach(clearTimeout);closeOv();render()};
+  $('#pagain1').onclick=()=>{t.forEach(clearTimeout);closeOv();pull(res.length)};
+}
+function flash(g){const f=$('#flash');f.style.background=g==='UR'?'radial-gradient(circle,#fff,#ffc6f7 40%,transparent 75%)':'radial-gradient(circle,#fff6d5,#ffc94a55 45%,transparent 75%)';f.classList.remove('go');void f.offsetWidth;f.classList.add('go')}
+function rGacha(){
+  const ur=POOL.UR;
+  const fan=[ur.find(c=>c.short==='Maradona'),ur.find(c=>c.short==='Messi'),ur.find(c=>c.short==='Pelé')].filter(Boolean);
+  $('#view').innerHTML=`
+  <section class="banner">
+    <div class="fan">${fan.map((c,k)=>cardHTML(c).replace('class="card','style="--rot:'+(-10+k*10)+'deg;--ty:'+(k===1?-10:6)+'px" class="card')).join('')}</div>
+    <div class="lbl" style="color:#ffd9f7">全明星卡池 · ${CARDS.length} 張卡</div>
+    <h3>歷代球星<br>全部抽得到</h3>
+    <p>同一球員唔同時期係唔同卡：新秀年、巔峰年、晚年各有評分。UR 係歷史級巔峰傳奇，評分突破 100，每位傳奇只得一張 UR。</p>
+    <div class="pullbtns">
+      <button class="btn pri" id="p10">十連抽 · 900</button>
+      <button class="btn" id="p1">單抽 · 100</button>
+    </div>
+  </section>
+  <div class="rates">${RATES.map(([g,p])=>`<div class="rate"><b style="color:${{UR:'#ffb8f5',SSR:'#ffd666',SR:'#b98aff',R:'#73a6ff',C:'#aab3c5'}[g]}">${g}</b><span>${p}% · ${g==='UR'?'101+':g==='SSR'?'90–100':g==='SR'?'80–89':g==='R'?'70–79':'50–69'}</span></div>`).join('')}</div>
+  <p class="hint" style="margin-top:12px">十連抽保底一張 SR 或以上。抽到重複卡會自動換金幣（C 10 · R 30 · SR 120 · SSR 500 · UR 3000）。踢比賽贏波就有金幣。</p>
+  <div class="panel" style="margin-top:16px">
+    <div class="lbl" style="margin-bottom:10px">UR 傳奇名單（${ur.length}）</div>
+    <div class="row" style="font-size:11px;gap:10px">${ur.map(c=>cardHTML(c,{dim:!S.owned[c.id]})).join('')}</div>
+  </div>`;
+  $('#p10').onclick=()=>pull(10);$('#p1').onclick=()=>pull(1);
+}
+
+/* ---------- ALBUM ---------- */
+let AF={g:'ALL',l:'ALL',q:'',all:false};
+function rAlbum(){
+  const own=owned();
+  const byG=GRADES.map(g=>[g,POOL[g].filter(c=>S.owned[c.id]).length,POOL[g].length]);
+  $('#view').innerHTML=`
+  <h2>卡冊</h2>
+  <div class="prog"><span>已收集 <b>${own.length}</b> / ${CARDS.length}</span>${byG.map(([g,a,b])=>`<span>${g} <b>${a}</b>/${b}</span>`).join('')}</div>
+  <div class="row" style="margin-bottom:10px">
+    ${['ALL',...GRADES].map(g=>`<button class="chip" data-g="${g}" aria-pressed="${AF.g===g}">${g==='ALL'?'全部':g}</button>`).join('')}
+  </div>
+  <div class="row" style="margin-bottom:14px">
+    ${[['ALL','全部位置'],['G','門將'],['D','後衛'],['M','中場'],['A','前鋒']].map(([l,n])=>`<button class="chip" data-l="${l}" aria-pressed="${AF.l===l}">${n}</button>`).join('')}
+    <input class="search" id="aq" placeholder="搜尋球員、球會" value="${esc(AF.q)}">
+    <button class="chip" id="aall" aria-pressed="${AF.all}">顯示未擁有</button>
+  </div>
+  <div class="agrid" id="agrid"></div>`;
+  const draw=()=>{
+    let list=(AF.all?CARDS:own).filter(c=>(AF.g==='ALL'||c.g===AF.g)&&(AF.l==='ALL'||LINE[c.pos]===AF.l)&&(!AF.q||(c.name+c.club+c.short).toLowerCase().includes(AF.q)));
+    list=list.slice().sort((a,b)=>b.r-a.r);
+    $('#agrid').innerHTML=list.length?list.map(c=>cardHTML(c,{dim:!S.owned[c.id],count:S.owned[c.id]})).join(''):`<p class="hint">未有卡。去「抽卡」開始收集。</p>`;
+    $('#agrid').querySelectorAll('.card').forEach(el=>el.onclick=()=>playerSheet(BYID[el.dataset.id].pi));
+  };
+  draw();
+  document.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{AF.g=b.dataset.g;rAlbum()});
+  document.querySelectorAll('[data-l]').forEach(b=>b.onclick=()=>{AF.l=b.dataset.l;rAlbum()});
+  $('#aall').onclick=()=>{AF.all=!AF.all;rAlbum()};
+  $('#aq').oninput=e=>{AF.q=e.target.value.toLowerCase();draw()};
+}
+function playerSheet(pi){
+  const p=P[pi];const vs=CARDS.filter(c=>c.pi===pi);
+  const ov=$('#ov');ov.hidden=false;
+  ov.innerHTML=`<div class="sheet" role="dialog"><div class="sh"><h3>${esc(p[0])}</h3><button class="btn" id="pclose">關閉</button></div>
+  <div class="sb"><p class="sub">${p[1]} · ${NATN[p[2]]||p[2]} · ${vs.length} 個時期版本</p>
+  <div class="vers">${vs.map(c=>`<div style="display:flex;flex-direction:column;gap:6px;align-items:center">${cardHTML(c,{dim:!S.owned[c.id],count:S.owned[c.id]})}<span style="font-size:12px;color:var(--mute)">${c.season}</span></div>`).join('')}</div></div></div>`;
+  $('#pclose').onclick=closeOv;ov.onclick=e=>{if(e.target===ov)closeOv()};
+}
+
+/* ---------- MATCH ENGINE ---------- */
+function poisson(l){const L=Math.exp(-l);let k=0,p=1;do{k++;p*=Math.random()}while(p>L);return k-1}
+const xg=(a,d)=>Math.max(.15,Math.min(4.5,1.35*Math.exp((a-d)/10)));
+function userSide(){const T=evalTeam();return{name:S.team,att:T.att,def:T.def,user:true,T}}
+function aiSide(name,ovr,off){const o=ovr+(off||0);return{name,att:o,def:o}}
+function scorerUser(T){
+  const w={ST:5,LW:3.5,RW:3.5,CAM:3,LM:1.6,RM:1.6,CM:1.4,CDM:.7,LB:.5,RB:.5,CB:.45,GK:.02};
+  const ps=T.sl.filter(s=>s.card);if(!ps.length)return'某球員';
+  const ws=ps.map(s=>(w[s.sp]||1)*Math.pow(s.eff/80,3));const tot=ws.reduce((a,b)=>a+b,0);
+  let r=Math.random()*tot;for(let k=0;k<ps.length;k++){r-=ws[k];if(r<=0)return ps[k].card.short}return ps[0].card.short;
+}
+function simGoals(h,a){return[poisson(xg(h.att+1.5,a.def)),poisson(xg(a.att,h.def+1.5))]}
+function buildEvents(h,a,gh,ga){
+  const ev=[];
+  const sc=side=>side.user?scorerUser(side.T):rnd(oppScorers(side.name.replace(/^.*?\|/,'')));
+  for(let k=0;k<gh;k++)ev.push({m:1+Math.floor(Math.random()*93),side:'h',goal:true,who:sc(h)});
+  for(let k=0;k<ga;k++)ev.push({m:1+Math.floor(Math.random()*93),side:'a',goal:true,who:sc(a)});
+  const flav=[['黃牌','被罰黃牌'],['中柱','一腳勁射中柱'],['撲救','門將神級撲救'],['越位','入球因越位無效'],['射偏','單刀射偏']];
+  const nf=2+Math.floor(Math.random()*4);
+  for(let k=0;k<nf;k++){const f=rnd(flav),side=Math.random()<.5?'h':'a';ev.push({m:1+Math.floor(Math.random()*90),side,k:f[0],t:f[1],who:sc(side==='h'?h:a)})}
+  return ev.map(e=>({...e,m:Math.min(e.m,90)})).sort((x,y)=>x.m-y.m);
+}
+let MATCH=null;
+function playMatch(h,a,opts,done){
+  const[gh,ga]=simGoals(h,a);
+  const ev=buildEvents(h,a,gh,ga);
+  const ov=$('#ov');ov.hidden=false;
+  ov.innerHTML=`<div class="mbox" role="dialog" aria-label="比賽">
+    <div style="padding:10px 14px 0" class="lbl">${esc(opts.title||'友誼賽')}</div>
+    <div class="score"><div class="tm">${esc(h.name)}</div><div class="sc" id="msc">0 : 0</div><div class="tm">${esc(a.name)}</div></div>
+    <div class="clock"><b id="mmin">0'</b><div class="bar"><i id="mbar" style="width:0%"></i></div></div>
+    <div class="feed" id="mfeed"></div>
+    <div class="mfoot"><span id="mres" class="reward"></span><span class="row"><button class="btn" id="mskip">跳到完場</button><button class="btn pri" id="mdone" hidden>繼續</button></span></div></div>`;
+  let min=0,sh=0,sa=0,idx=0;
+  const tick=()=>{
+    min++;
+    while(idx<ev.length&&ev[idx].m<=min){push(ev[idx]);idx++}
+    $('#mmin').textContent=min+"'";$('#mbar').style.width=(min/90*100)+'%';
+    if(min>=90)end();
+  };
+  function push(e){
+    if(e.goal){e.side==='h'?sh++:sa++;$('#msc').textContent=sh+' : '+sa}
+    const team=e.side==='h'?h.name:a.name;
+    const d=document.createElement('div');d.className='ev '+(e.side==='a'?'away ':'')+(e.goal?'goal':'');
+    d.innerHTML=`<span class="m">${e.m}'</span><span class="k">${e.goal?'入球':e.k}</span><span>${e.goal?`<b>${esc(e.who)}</b>（${esc(team)}）`:`${esc(e.who)}（${esc(team)}）${e.t}`}</span>`;
+    const f=$('#mfeed');f.appendChild(d);f.scrollTop=f.scrollHeight;
+  }
+  const iv=setInterval(tick,55);
+  MATCH={iv};
+  function end(){
+    clearInterval(iv);while(idx<ev.length){push(ev[idx]);idx++}
+    $('#mmin').textContent="FT";$('#mbar').style.width='100%';
+    const r=done(gh,ga);
+    $('#mres').textContent=r||'';
+    $('#mskip').hidden=true;$('#mdone').hidden=false;$('#mdone').focus();
+  }
+  $('#mskip').onclick=()=>{min=89;tick()};
+  $('#mdone').onclick=()=>{closeOv();render()};
+}
+function reward(us,them,mult){
+  const res=us>them?'W':us===them?'D':'L';
+  const c=Math.round(({W:300,D:120,L:60}[res]+us*20)*mult);
+  S.coins+=c;S.stats[res.toLowerCase()]++;save();setCoins();
+  return{res,c,txt:`${res==='W'?'贏波':res==='D'?'和波':'輸波'} · +${c} 金幣`};
+}
+
+/* ---------- LEAGUE ---------- */
+function roundRobin(n){
+  const arr=[...Array(n).keys()];if(n%2)arr.push(-1);const m=arr.length,rounds=[];
+  for(let r=0;r<m-1;r++){const prs=[];for(let i=0;i<m/2;i++){const a=arr[i],b=arr[m-1-i];if(a>=0&&b>=0)prs.push(r%2?[b,a]:[a,b])}rounds.push(prs);arr.splice(1,0,arr.pop())}
+  return rounds.concat(rounds.map(rd=>rd.map(([a,b])=>[b,a])));
+}
+let LSEL={k:'epl'};
+function startLeague(k,diff){
+  const L=LEAGUES[k];
+  const teams=[{n:S.team,o:0,u:true},...L.teams.map(([n,o])=>({n,o}))];
+  S.league={k,diff,teams,rounds:roundRobin(teams.length),round:0,table:teams.map(()=>({p:0,w:0,d:0,l:0,gf:0,ga:0})),log:[]};
+  save();rLeague();
+}
+function rec(L,h,a,gh,ga){
+  const th=L.table[h],ta=L.table[a];th.p++;ta.p++;th.gf+=gh;th.ga+=ga;ta.gf+=ga;ta.ga+=gh;
+  if(gh>ga){th.w++;ta.l++}else if(gh<ga){ta.w++;th.l++}else{th.d++;ta.d++}
+}
+const pts=t=>t.w*3+t.d;
+function standings(L){return L.teams.map((t,i)=>({...t,i,...L.table[i]})).sort((x,y)=>pts(y)-pts(x)||(y.gf-y.ga)-(x.gf-x.ga)||y.gf-x.gf)}
+function simAI(L,rd){
+  const off=0;
+  rd.forEach(([h,a])=>{if(h===0||a===0)return;const H=aiSide(L.teams[h].n,L.teams[h].o),A=aiSide(L.teams[a].n,L.teams[a].o);const[gh,ga]=simGoals(H,A);rec(L,h,a,gh,ga)});
+}
+function nextRound(){
+  const L=S.league;const rd=L.rounds[L.round];
+  const fx=rd.find(p=>p.includes(0));
+  if(!fx){simAI(L,rd);L.round++;save();toast('今輪你輪空，其他球隊已完成比賽');rLeague();return}
+  const T=evalTeam();
+  if(T.sl.filter(s=>s.card).length<7){toast('最少要排 7 個球員先可以開波');go('squad');return}
+  const off=DIFF[L.diff].o;
+  const us=userSide();
+  const oi=fx[0]===0?fx[1]:fx[0];const opp=aiSide(L.teams[oi].n,L.teams[oi].o,off);
+  const home=fx[0]===0;
+  const h=home?us:opp,a=home?opp:us;
+  playMatch(h,a,{title:`${LEAGUES[L.k].n} · 第 ${L.round+1} 輪 · ${DIFF[L.diff].n}`},(gh,ga)=>{
+    rec(L,fx[0],fx[1],gh,ga);simAI(L,rd);
+    const usg=home?gh:ga,them=home?ga:gh;
+    const r=reward(usg,them,1);
+    L.log.unshift({r:L.round+1,opp:L.teams[oi].n,home,us:usg,them,res:r.res});
+    L.round++;
+    let extra='';
+    if(L.round>=L.rounds.length){const pos=standings(L).findIndex(t=>t.u)+1;const b=[0,3000,1800,1200,800,500,300,200,100,50][pos]||50;const mult={easy:.5,pro:1,world:2}[L.diff];const bonus=Math.round(b*mult);S.coins+=bonus;L.done={pos,bonus};extra=` · 季尾第 ${pos} 名 +${bonus}`}
+    save();setCoins();
+    return r.txt+extra;
+  });
+}
+function rLeague(){
+  const L=S.league;
+  const all=Object.entries(LEAGUES).flatMap(([k,l])=>l.teams.map(([n,o])=>({k,n,o,lg:l.n})));
+  const friendly=`<div class="panel">
+    <div class="lbl" style="margin-bottom:8px">友誼賽 · 任揀對手</div>
+    <div class="row"><select id="fopp" aria-label="對手">${Object.entries(LEAGUES).map(([k,l])=>`<optgroup label="${l.n}">${l.teams.map(([n,o])=>`<option value="${esc(n)}|${o}">${esc(n)}（${o}）</option>`).join('')}</optgroup>`).join('')}</select>
+    <select id="fdiff" aria-label="難度">${Object.entries(DIFF).map(([k,d])=>`<option value="${k}" ${S.diff===k?'selected':''}>${d.n}</option>`).join('')}</select>
+    <button class="btn pri" id="fgo">開波</button></div>
+    <p class="hint" style="margin-top:8px">友誼賽獎勵係聯賽一半。</p></div>`;
+  if(!L){
+    $('#view').innerHTML=`<h2>揀聯賽</h2><p class="sub">你嘅球隊會加入所揀聯賽，主客場雙循環，季尾按名次派金幣。</p>
+    <div class="lgrid">${Object.entries(LEAGUES).map(([k,l])=>`<button class="lcard" data-k="${k}" aria-pressed="${LSEL.k===k}"><span>${l.e}</span><b>${l.n}</b><span>${l.teams.slice(0,3).map(t=>esc(t[0])).join('、')}…</span><span>平均評分 ${Math.round(l.teams.reduce((a,t)=>a+t[1],0)/l.teams.length)}</span></button>`).join('')}</div>
+    <div class="row" style="margin:16px 0 22px"><span class="lbl">難度</span>${Object.entries(DIFF).map(([k,d])=>`<button class="chip" data-d="${k}" aria-pressed="${S.diff===k}">${d.n}${d.o?`（對手 ${d.o}）`:'（原始評分）'}</button>`).join('')}
+    <button class="btn pri" id="lgo">開始賽季</button></div>${friendly}`;
+    document.querySelectorAll('.lcard').forEach(b=>b.onclick=()=>{LSEL.k=b.dataset.k;rLeague()});
+    document.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{S.diff=b.dataset.d;save();rLeague()});
+    $('#lgo').onclick=()=>startLeague(LSEL.k,S.diff);
+  }else{
+    L.teams[0].n=S.team;
+    const st=standings(L);const fin=L.round>=L.rounds.length;
+    let next='';
+    if(!fin){
+      const fx=L.rounds[L.round].find(p=>p.includes(0));
+      if(fx){const oi=fx[0]===0?fx[1]:fx[0];const home=fx[0]===0;const T=evalTeam();const oo=L.teams[oi].o+DIFF[L.diff].o;
+        next=`<div class="nextm"><div><div class="t">${esc(home?S.team:L.teams[oi].n)}</div><div class="o">${home?'主場 · 總評 '+T.ovr:'評分 '+oo}</div></div><div class="vs">VS</div><div><div class="t">${esc(home?L.teams[oi].n:S.team)}</div><div class="o">${home?'評分 '+oo:'作客 · 總評 '+T.ovr}</div></div></div>
+        <div class="row"><button class="btn pri" id="lnext">開波 · 第 ${L.round+1} 輪</button><button class="btn" onclick="go('squad')">調整陣容</button></div>`}
+      else next=`<p class="hint">第 ${L.round+1} 輪你輪空。</p><button class="btn pri" id="lnext">模擬本輪</button>`;
+    }else{
+      next=`<div style="font-family:var(--f-disp);font-size:30px;font-weight:800;color:var(--amber)">賽季完結 · 第 ${L.done?.pos||st.findIndex(t=>t.u)+1} 名</div><p class="hint">季尾獎金 +${L.done?.bonus||0} 金幣</p>`;
+    }
+    $('#view').innerHTML=`<div class="row" style="justify-content:space-between;margin-bottom:12px"><div><h2>${LEAGUES[L.k].n}</h2><p class="sub" style="margin:0">${DIFF[L.diff].n}難度 · 第 ${Math.min(L.round+1,L.rounds.length)} / ${L.rounds.length} 輪</p></div>
+    <span class="row"><button class="btn ${fin?'pri':''}" id="lnew">${fin?'新賽季':'放棄聯賽'}</button></span></div>
+    <div class="lay">
+      <div class="panel tbl"><table><thead><tr><th>#</th><th style="text-align:left">球隊</th><th>賽</th><th>勝</th><th>和</th><th>負</th><th>入</th><th>失</th><th>球差</th><th>積分</th></tr></thead><tbody>
+      ${st.map((t,k)=>`<tr class="${t.u?'me':''}"><td>${k+1}</td><td class="tn">${esc(t.n)}</td><td>${t.p}</td><td>${t.w}</td><td>${t.d}</td><td>${t.l}</td><td>${t.gf}</td><td>${t.ga}</td><td>${t.gf-t.ga>0?'+':''}${t.gf-t.ga}</td><td><b>${pts(t)}</b></td></tr>`).join('')}</tbody></table></div>
+      <div class="side">
+        <div class="panel"><div class="lbl">${fin?'結果':'下一場'}</div>${next}</div>
+        <div class="panel"><div class="lbl" style="margin-bottom:8px">你嘅賽果</div><div class="res">${L.log.length?L.log.slice(0,10).map(g=>`<div><span class="wdl ${g.res}">${g.res}</span><span style="color:var(--mute)">R${g.r}</span><span>${g.home?'主':'客'} vs ${esc(g.opp)}</span><b style="margin-left:auto;font-family:var(--f-disp)">${g.us} - ${g.them}</b></div>`).join(''):'<span class="hint">未開波</span>'}</div></div>
+        ${friendly}
+      </div></div>`;
+    const ln=$('#lnext');if(ln)ln.onclick=nextRound;
+    let armed=false;
+    $('#lnew').onclick=e=>{if(fin||armed){S.league=null;save();rLeague()}else{armed=true;e.target.textContent='再撳一次確認放棄';e.target.classList.add('danger')}};
+  }
+  $('#fgo').onclick=()=>{
+    const T=evalTeam();if(T.sl.filter(s=>s.card).length<7){toast('最少要排 7 個球員先可以開波');go('squad');return}
+    const[n,o]=$('#fopp').value.split('|');const d=$('#fdiff').value;S.diff=d;save();
+    playMatch(userSide(),aiSide(n,+o,DIFF[d].o),{title:`友誼賽 · ${DIFF[d].n}`},(gh,ga)=>reward(gh,ga,.5).txt);
+  };
+}
+
+/* ================== BOOT ================== */
+function boot(d){
+  S=(d&&d.slots)?d:(load()||fresh());
+  window.claude?.hot?.snapshot?.(()=>S);
+  if(!S.starter){
+    // starter pack: one SR + a playable squad of R/C
+    const need=['GK','CB','CB','LB','RB','CM','CM','CDM','LW','RW','ST','ST','CAM','CB','GK','RM','LM'];
+    need.forEach((pos,k)=>{
+      const pool=CARDS.filter(c=>(k===0?true:c.g==='C'||c.g==='R')&&(LINE[c.pos]===LINE[pos]));
+      const c=k===10?rnd(POOL.SR.filter(c=>LINE[c.pos]==='A')):rnd(pool.filter(c=>c.g!=='SR'&&c.g!=='SSR'&&c.g!=='UR'));
+      S.owned[c.id]=(S.owned[c.id]||0)+1;
+    });
+    S.starter=true;
+    // auto XI
+    const own=owned();const sps=S.slots.map(s=>slotPos(s.x,s.y));const pairs=[];
+    own.forEach(c=>sps.forEach((sp,i)=>pairs.push([c.r*fit(c.pos,sp),c,i])));pairs.sort((a,b)=>b[0]-a[0]);const usedP=new Set();
+    pairs.forEach(([,c,i])=>{if(!S.slots[i].c&&!usedP.has(c.pi)){S.slots[i].c=c.id;usedP.add(c.pi)}});
+    save();
+    setTimeout(()=>toast('送你新手禮包 17 張卡 + 3000 金幣'),400);
+  }
+  render();
+}
+window.claude?.hot?.ready?window.claude.hot.ready(boot):boot(window.claude?.hot?.data??{});
+</script>
+
+</body>
+</html>
