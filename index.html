@@ -522,7 +522,7 @@ function cardHTML(c,o={}){
   ${o.badge||''}</div>`;
 }
 function toast(t){const el=$('#toast');el.textContent=t;el.hidden=false;el.style.opacity=1;clearTimeout(toast.t);toast.t=setTimeout(()=>{el.style.opacity=0;setTimeout(()=>el.hidden=true,300)},1800)}
-function setCoins(){$('#coinv').textContent=S.coins.toLocaleString()}
+function setCoins(){$('#coinv').textContent=S.inf?'∞':S.coins.toLocaleString()}
 function owned(){return Object.keys(S.owned).filter(k=>S.owned[k]>0&&BYID[k]).map(k=>BYID[k])}
 
 /* ================== TEAM EVAL ================== */
@@ -558,6 +558,22 @@ function evalTeam(){
 let VIEW='squad';
 function go(v){VIEW=v;document.querySelectorAll('nav.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.v===v));render();window.scrollTo({top:0})}
 document.querySelectorAll('nav.tabs button').forEach(b=>b.onclick=()=>go(b.dataset.v));
+/* secret codes: tap the logo 5 times quickly */
+let tapN=0,tapT=0;
+document.querySelector('.logo').addEventListener('click',()=>{const now=Date.now();tapN=now-tapT<700?tapN+1:1;tapT=now;if(tapN>=5){tapN=0;cheat()}});
+function cheat(){
+  const ov=$('#ov');ov.hidden=false;
+  ov.innerHTML=`<div class="sheet" role="dialog" aria-label="秘技" style="width:min(380px,100%)"><div class="sh"><h3>輸入秘技</h3><button class="btn" id="cclose">關閉</button></div>
+  <div class="sb"><form id="cform" class="row"><input class="search" id="ccode" autocomplete="off" autocapitalize="characters" placeholder="秘技代碼"><button class="btn pri">確定</button></form><p class="hint" id="cmsg" style="margin-top:10px"></p></div></div>`;
+  $('#ccode').focus();
+  $('#cclose').onclick=closeOv;ov.onclick=e=>{if(e.target===ov)closeOv()};
+  $('#cform').onsubmit=e=>{e.preventDefault();
+    const c=$('#ccode').value.trim().toUpperCase();let m='代碼無效';
+    if(c==='GOAT'){S.inf=!S.inf;m=S.inf?'無限金幣已開啟':'無限金幣已關閉'}
+    else if(c==='SIUUU'){S.coins+=100000;m='+100,000 金幣'}
+    save();setCoins();$('#cmsg').textContent=m;if(m!=='代碼無效'){toast(m);if(VIEW!=='squad')render()}
+  };
+}
 function render(){setCoins();({squad:rSquad,gacha:rGacha,album:rAlbum,league:rLeague})[VIEW]();}
 
 /* ---------- SQUAD ---------- */
@@ -698,7 +714,7 @@ function rollGrade(guar){
 }
 function pull(n,free){
   const cost=n===1?100:900;
-  if(!free){if(S.coins<cost){toast('金幣唔夠，去踢比賽賺錢');return}S.coins-=cost;}
+  if(!free&&!S.inf){if(S.coins<cost){toast('金幣唔夠，去踢比賽賺錢');return}S.coins-=cost;}
   const res=[];
   for(let k=0;k<n;k++){
     let g=rollGrade(false);
