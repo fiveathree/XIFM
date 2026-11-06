@@ -6,6 +6,7 @@
 const INJN = ['腿筋拉傷', '腳踝扭傷', '膝傷', '腹股溝拉傷', '小腿拉傷', '大腿撞傷', '背傷', '腳趾骨裂', '肩膊脫臼', '十字韌帶撕裂'];
 const SEG = [{ b: 0, len: 45 }, { b: 45, len: 45 }, { b: 90, len: 15 }, { b: 105, len: 15 }];
 
+const MAXSUBS = 5;   // substitutions per side per match
 function buildSide(cid, key) {
   const c = G.clubs[cid];
   if (!isUser(cid) || lineupProblems(cid).length) { if (!isUser(cid)) autoPick(cid); else patchLineup(cid); }
@@ -179,7 +180,7 @@ function injure(M, S, o, worse) {
   d.inj = Math.max(4, Math.round((INJN.indexOf(n) + 1) * ri(3, 7) * (1.2 - ph * .08)) + (d.lin || 0)); d.injn = n; d.lin = 0;
   ev(M, 'inj', S.key, pid, null, `${n}（重傷，休息 ${d.inj} 日）`);
   const sub = bestSub(S, o.slot);
-  if (sub && S.subs < 3) doSub(M, S, o, sub);
+  if (sub && S.subs < MAXSUBS) doSub(M, S, o, sub);
   else o.pid = null;
 }
 function bestSub(S, slot) { return S.bench.filter(p => avail(p)).sort((a, b) => effOf(b, slot) - effOf(a, slot))[0]; }
@@ -192,7 +193,7 @@ function doSub(M, S, o, inPid) {
 }
 function aiSubs(M, S) {
   const tm = SEG[M.seg].b + M.k;
-  if ((M.u === S.key && !M.auto) || S.subs >= 3 || tm < 58) return;
+  if ((M.u === S.key && !M.auto) || S.subs >= MAXSUBS || tm < 58) return;
   const tired = S.on.filter(o => o.pid && o.slot !== 'GK' && (pd(o.pid).cond < 62 || M.rt[o.pid] < -.6)).sort((a, b) => pd(a.pid).cond - pd(b.pid).cond)[0];
   if (!tired) return;
   const sub = bestSub(S, tired.slot);
@@ -263,7 +264,7 @@ function simFx(f) { const M = newMatch(f, false); M.auto = true; runToEnd(M); re
 // user substitution during a live match
 function userSub(M, outPid, inPid) {
   const S = M[M.u]; const o = S.on.find(x => x.pid === outPid);
-  if (!o || S.subs >= 3 || !S.bench.includes(inPid)) return false;
+  if (!o || S.subs >= MAXSUBS || !S.bench.includes(inPid)) return false;
   doSub(M, S, o, inPid); return true;
 }
 function userSwap(M, a, b) { const S = M[M.u]; const oa = S.on.find(x => x.pid === a), ob = S.on.find(x => x.pid === b); if (oa && ob) { oa.pid = b; ob.pid = a; } }

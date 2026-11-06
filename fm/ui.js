@@ -727,7 +727,7 @@ function subPanel() {
   // all changes go into a draft (MT.dr) until 確認; closing the popup throws the draft away
   if (!MT.dr) MT.dr = { on: S.on.map(o => ({ ...o })), form: S.form, orig: S.on.map(o => o.pid).filter(Boolean) };
   const D = MT.dr, onSet = new Set(D.on.map(o => o.pid).filter(Boolean)), orig = new Set(D.orig);
-  const ins = [...onSet].filter(p => !orig.has(p)), left = 3 - S.subs - ins.length;
+  const ins = [...onSet].filter(p => !orig.has(p)), left = MAXSUBS - S.subs - ins.length;
   const bench = [...S.bench, ...D.orig].filter(p => !onSet.has(p));
   const cc = c => c >= 75 ? 'cg' : c >= 55 ? 'cw' : 'cb';
   const changed = ins.length || D.form !== S.form || D.on.some((o, i) => o.pid !== S.on[i]?.pid || o.slot !== S.on[i]?.slot || o.x !== S.on[i]?.x || o.y !== S.on[i]?.y);
@@ -748,7 +748,7 @@ function mConfirm() {
   const M = MT.M, S = M[M.u], D = MT.dr; if (!D) return;
   const onSet = new Set(D.on.map(o => o.pid).filter(Boolean)), orig = new Set(D.orig);
   const ins = [...onSet].filter(p => !orig.has(p)), outs = D.orig.filter(p => !onSet.has(p));
-  if (S.subs + ins.length > 3) return toast('最多只可以換 3 個');
+  if (S.subs + ins.length > MAXSUBS) return toast(`最多只可以換 ${MAXSUBS} 個`);
   ins.forEach((p, k) => { const o = S.on.find(x => x.pid === outs[k]); if (o) doSub(M, S, o, p); });
   S.form = D.form; S.on = D.on.map(o => ({ ...o }));
   MT.dr = null; MT.sel = null; MT.pos = {};
@@ -769,7 +769,7 @@ function mbSub(i, inPid) {
   const S = MT.M[MT.M.u], D = MT.dr, o = D.on[i];
   if (!o.pid) return toast('嗰個位冇人，揀另一個');
   const orig = new Set(D.orig), willIns = D.on.filter((x, k) => k !== i && x.pid && !orig.has(x.pid)).length + (orig.has(inPid) ? 0 : 1);
-  if (S.subs + willIns > 3) return toast(S.subs >= 3 ? '已經換晒 3 個' : `最多仲可以換 ${3 - S.subs} 個`);
+  if (S.subs + willIns > MAXSUBS) return toast(S.subs >= MAXSUBS ? `已經換晒 ${MAXSUBS} 個` : `最多仲可以換 ${MAXSUBS - S.subs} 個`);
   o.pid = inPid; MT.sel = null; return true;
 }
 function mbDone() { subPanel(); }
@@ -917,7 +917,7 @@ const ACT = {
   mconf: () => mConfirm(),
   mundo: () => { MT.dr = null; MT.sel = null; subPanel(); },
   msel: el => { MT.sel = el.dataset.a; subPanel(); },
-  msubin: el => { if (!MT.sel) return toast('先揀要換走嘅球員'); if (!userSub(MT.M, MT.sel, el.dataset.a)) return toast(MT.M[MT.M.u].subs >= 3 ? '已經換晒 3 個' : '換唔到'); MT.sel = null; subPanel(); updLive(); },
+  msubin: el => { if (!MT.sel) return toast('先揀要換走嘅球員'); if (!userSub(MT.M, MT.sel, el.dataset.a)) return toast(MT.M[MT.M.u].subs >= MAXSUBS ? `已經換晒 ${MAXSUBS} 個` : '換唔到'); MT.sel = null; subPanel(); updLive(); },
   msty: el => { const [k, v] = el.dataset.a.split(':'); MT.M[MT.M.u].sty[k] = +v; subPanel(); },
   mcont: () => { MT.M.pause = null; closeModal(); runLive(); },
   mskip: () => { pauseLive(); runToEnd(MT.M); MT.phase = 'ft'; closeModal(); save(); render(); },

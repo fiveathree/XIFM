@@ -100,7 +100,7 @@ Screens (Cantonese labels; nav groups 球隊 / 轉會 / 球會 / 賽事 / 系統
 22. **存檔 Save**: 3 slots (save / load / delete with in-page confirm), export (copy JSON) / import (paste).
 23. **Match screen**:
     - Pre-match: both line-ups with skill/condition, competition/round/venue, quick formation + tactic change, buttons 調整陣容 / 開波 / 快速結果 (`runToEnd`).
-    - Live: score bar (`.mtop`), canvas pitch (horizontal; 22 dots placed from formation `x,y`, both teams shifted toward `M.ball`, eased with requestAnimationFrame), commentary feed from `M.ev` (Cantonese lines per event type), stats (控球 `S.pos`, 射門 `sh`, 射中 `sot`, 角球 `co`, 犯規 `fo`, 黃/紅牌), speed 1× (350 ms/min) · 2× · 4×, 換人 · 戰術 (pause → modal: on-pitch list with condition and live rating, bench, max 3 subs; formation; style), 跳到完場.
+    - Live: score bar (`.mtop`), canvas pitch (horizontal; 22 dots placed from formation `x,y`, both teams shifted toward `M.ball`, eased with requestAnimationFrame), commentary feed from `M.ev` (Cantonese lines per event type), stats (控球 `S.pos`, 射門 `sh`, 射中 `sot`, 角球 `co`, 犯規 `fo`, 黃/紅牌), speed 1× (350 ms/min) · 2× · 4×, 換人 · 戰術 (pause → tactics-board modal: drag to swap/move/substitute as a draft, 確認 applies; max `MAXSUBS` = 5 subs; formation; style), 跳到完場.
     - Half time / extra time: `M.pause` set → show panel, 繼續 clears it.
     - Full time: summary, MOM, 繼續 → `playToday()` → home.
 24. **Phone** (≤760 px): CSS already switches to a drawer nav (`#nav[data-open]`, `#menuBtn`) and one column; hide low-priority table columns with class `hm`.
