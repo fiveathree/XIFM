@@ -64,6 +64,7 @@ FM.addLeague({
        [0,"Daniel Carvalho","AM","BRA",1983,80],
        [0,"Vágner Love","ST","BRA",1984,82,"Vágner Love"],
        [0,"Ivica Olić","ST","CRO",1979,78],
+       [0,"Chidi Odiah","RB","NGA",1983,72],
      ]},
     {id:"lok", name:"Lokomotiv Moscow", short:"LOK", country:"RUS", stadium:"Lokomotiv Stadium", cap:24000,
      col:["#E2001A","#00843D"], rep:74, bank:6,

@@ -12,6 +12,9 @@ FM.addLeague({
        [0,"Gert Verheyen","AM","BEL",1970,72],
        [0,"Boško Balaban","ST","CRO",1978,76],
        [0,"Rune Lange","ST","NOR",1977,72],
+       [0,"Peter Van der Heyden","LB","BEL",1976,70],
+       [0,"Stijn Stijnen","GK","BEL",1981,72],
+       [0,"Birger Maertens","CD","BEL",1980,70],
      ]},
     {id:"and", name:"Anderlecht", short:"AND", country:"BEL", stadium:"Constant Vanden Stock Stadium", cap:28063,
      col:["#4B2D7F","#FFFFFF"], rep:76, bank:6,
@@ -39,6 +42,7 @@ FM.addLeague({
      col:["#0060A9","#FFFFFF"], rep:66, bank:2,
      p:[
        [0,"Steven Defour","CM","BEL",1988,62],
+       [0,"Kevin Vandenbergh","ST","BEL",1983,70],
      ]},
     {id:"ger", name:"Germinal Beerschot", short:"GBA", country:"BEL", stadium:"Olympisch Stadion", cap:12771,
      col:["#6A0DAD","#FFFFFF"], rep:56, bank:1,
