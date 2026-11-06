@@ -18,6 +18,11 @@ FM.ERAS = {
       ['Bayern Munich', 'Roma', 'Basel', 'CFR Cluj'], ['Chelsea', 'Marseille', 'Spartak Moscow', 'Žilina'], ['Real Madrid', 'AC Milan', 'Ajax', 'Auxerre'], ['Shakhtar Donetsk', 'Arsenal', 'Braga', 'Partizan']],
     ueEng: ['Liverpool', 'Aston Villa', 'Manchester City'],
   },
+  1998: {
+    n: '1998/99', d: '曼聯三冠王；拉素同祖記爭霸意甲；巴塞有菲高、李華度；施丹、朗拿度、巴治奧當打。（當年歐聯只有 24 隊，遊戲用 32 隊抽籤。）',
+    dir: 'fm/data/1998/', files: ERA_FILES,
+    ueEng: ['Aston Villa', 'Leeds United', 'Liverpool', 'Blackburn Rovers'],
+  },
   2001: {
     n: '2001/02', d: '朗拿度、施丹、碧咸年代：曼聯三連霸之後，阿仙奴雙冠王；皇馬銀河艦隊初成。',
     dir: 'fm/data/', files: ['eng1', 'eng2', 'eng3', 'eng4', 'sco1', 'esp1', 'ita1', 'ger1', 'fra1', 'eur', 'ned1', 'por1', 'tur1', 'bel1'],
