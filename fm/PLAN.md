@@ -4,9 +4,9 @@ Goal: a new mode inside XIFM that plays like **EA Sports' *The F.A. Premier Leag
 
 Decisions already made by the user:
 - Lives **inside XIFM as a separate page** `fm.html` (own save, own economy). XIFM's `index.html` gets an entry button.
-- Leagues in v1: **England Premier League + Divisions One/Two/Three, Scottish Premier League, La Liga, Serie A, Bundesliga, French Division 1**, plus 18 European guest clubs for European cups.
+- Leagues: **England Premier League + Divisions One/Two/Three, Scottish Premier League, La Liga, Serie A, Bundesliga, French Division 1, Eredivisie, Portuguese, Turkish and Belgian top flights**, plus 18 European guest clubs for European cups. (The last four were added in Nov 2026; saves made before keep their nine leagues.)
 - **Transfers stay**; gacha is an **extra channel**: a pulled player joins your club straight away (takes a squad place, draws a wage), paid for with club money.
-- **Start with 2001/02 only**; add real new players one season at a time later.
+- **Start seasons (eras): 1994/95, 1998/99, 2001/02, 2004/05, 2010/11**, each with its own real squads (`fm/eras.js`, `fm/data/<year>/`). 2001/02 has the deepest data (~3,700 players); the other eras cover the big clubs well and lower divisions thinly (see DATA_SPEC.md).
 - Follow the user's coding principles: least code, browser-native features first, no framework, no build step. Every page needs a favicon and an og:image. Aim for one screen without page scrolling (panels may scroll inside).
 
 Legal: do **not** use EA / Premier League names, logos or crests, or real club crests. Club badges are generic shields in club colours with the 3-letter short name. Real player and club names are fine. Screen layout may follow the 2001 game's structure, but the art is our own.
@@ -42,6 +42,8 @@ Data quality notes (tell the user, don't hide): Division Three and some small Bu
 
 ## 2. Architecture (keep it)
 
+**Eras** — `fm.html` loads `fm/eras.js`, `core.js`, `match.js`, `ui.js`; `ui.js` then loads one era's data files and calls `indexEra(year)` (core) which fills `LG CL PS CLUBS PLAY_LG` and `ERA` (real CL groups `ERA.cl`, English UEFA entrants `ERA.ueEng`). Switching era reloads with `?era=YYYY` (`&new=1` opens the wizard, `&slot=k` loads a save). A save stores `G.era` and its league list `G.plg`; game-state loops use `PLG()` / `GCL()` (not `PLAY_LG` / `CLUBS`) so old saves without the new leagues keep working. The calendar is the 2001/02 one shifted by 364 days per season, earlier or later. Europe: first season uses `ERA.cl` when given, otherwise qualifiers by reputation (`QSPOTS` per league); later seasons use last season's table.
+
 Plain `<script>` tags, globals, no modules: `FM` registry → `fm/data/*.js` → `fm/core.js` → `fm/match.js` → `fm/ui.js`.
 
 **IDs**
@@ -60,7 +62,7 @@ Plain `<script>` tags, globals, no modules: `FM` registry → `fm/data/*.js` →
 
 **Competitions** (`G.comp`): `t:'L'` league (`tab`), `t:'K'` knockout (`rd` rounds, `ties`, `alive`), `t:'G'` Champions League (8 groups of 4 → two-legged knockout; group thirds drop into UEFA Cup round 3). 2001/02 CL groups are the real ones (`CL01`). Cups: FA Cup, League Cup, Scottish Cup, Copa del Rey, Coppa Italia, DFB-Pokal, Coupe de France, CL, UEFA Cup, English play-offs (po2/po3/po4). Single-leg cup draws go to extra time + penalties (no replays). Clashes are moved by `resolveClashes()`.
 
-**Promotion**: England only (3 down/2 up + play-off winner; Div 2↔3 4 down/3 up + play-off). No relegation out of Division Three, and none in the other countries (no lower divisions in the data).
+**Promotion**: England only (3 down/2 up + play-off winner; Div 2↔3 4 down/3 up + play-off). No relegation out of Division Three, and none in the other countries (no lower divisions in the data). League sizes therefore stay as they start (e.g. the 1994/95 Premier League stays at 22).
 
 **Match engine** (`match.js`): `newMatch(fx, live)` → `step(M)` per minute → `M.pause` = `'ht'` / `'et'` stops a live game until the UI clears it → `finish()` writes results, stats, form, cards/suspensions, injuries, then `recordResult()` in core. Live helpers for the UI: `userSub(M,out,in)`, `userSwap(M,a,b)`, `userForm(M,form)`, and `M[M.u].sty` / `.ord` can be edited mid-match. `runToEnd(M)` = "skip to full time" (AI makes the user's subs). `M.ev` events: `goal miss save tackle yc rc rc2 inj sub ht et pens pmiss ft` with `m` (minute label), `s` ('h'/'a'), `p`, `p2`, `x`. `M.ball` = [x%, y%] for the pitch drawing. `M.mom` = man of the match.
 

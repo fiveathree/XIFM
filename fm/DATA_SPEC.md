@@ -60,3 +60,26 @@ Use the player's level IN 2001/02 (age-appropriate: a 17-year-old future star is
 - No player may appear at two clubs in your file.
 - Target squad sizes: top flights 22–28; Division One 18–25; Divisions Two/Three as many as you genuinely recall (aim 14+). Include at least 2 GK per club where you can.
 - Players on loan elsewhere for the whole season belong at the club they played for.
+
+## Eras (start seasons) and the extra leagues
+
+- Each start season has its own folder and entry in `fm/eras.js`: 2001/02 lives in `fm/data/*.js` (the original files), the others in `fm/data/<year>/` (1994, 1998, 2004, 2010). A page loads one era's files; switching era reloads `fm.html?era=YYYY`.
+- League ids are the same in every era: `eng1 eng2 eng3 eng4 sco1 esp1 ita1 ger1 fra1 ned1 por1 tur1 bel1` plus `eur` (18 guest clubs from countries without a league in the game). League size may differ by era (1994/95 Premier League 22, Scottish top flight 10, Portugal/Belgium 16 in 2010/11); the calendar adapts.
+- Money uses the same scale in every era (no inflation adjustment).
+- `{ref:"eur.aja"}` inside a league's `clubs` moves an already-defined club (and its player ids) into that league. Used in 2001/02, where Ajax, PSV, Feyenoord, Porto, Benfica, Sporting, Boavista, Galatasaray, Fenerbahçe, Anderlecht and Club Brugge were first written as guest clubs.
+- Same accuracy rule as above: a club or player we are not reasonably sure of is left out. Thin clubs are padded at game start with `XXX 青年軍 n` players at a level based on the club's reputation (`fillYouth()`).
+
+### Building an era from a compact source
+
+`node tools/fm-build-era.js <source.txt> <year>` writes `fm/data/<year>/*.js`. Source format (one item per line):
+
+```
+@eng1|英超|Premier League|1                  league: id|Chinese|English|tier
+=Manchester United|94|30                      club: name|rep|bank (£m); stadium, capacity, colours, short and id come from the 2001/02 club of the same name
+=Blackpool|56|2|BLA|Bloomfield Road|16220|#F68712,#FFFFFF     …or in full: |short|stadium|cap|col1,col2
+=Basel|70|8|BAS|St. Jakob-Park|38512|#C8102E,#0060A9|SUI      guest club: add its country code
+GK Edwin van der Sar NED 1970 84             player: pos name nation birthYear skill
+ST Ronaldo BRA 1976 92 /Ronaldo               optional short name after " /"
+```
+
+The tool refuses to write if a player name appears twice in the era (two real players with one name need distinct full names, e.g. `Paul P. Robinson`), if a club is unknown without full details, or if a row is malformed. Once an era is published, only append to its files (saves store player ids).
