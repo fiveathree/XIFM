@@ -15,8 +15,11 @@ const myCid = () => G.mgr.cid;
 const myClub = () => G.clubs[G.mgr.cid];
 const seasonTxt = s => `${s}/${String(s + 1).slice(2)}`;
 // fee typed by the player: accepts 26150000, 26,150,000, £26.15m, 26.15 (millions), 750k; NaN when unreadable
+const halfW = v => String(v || '').replace(/[０-９．，]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0));   // full-width digits from Chinese input methods
+const parseNum = v => { const n = +halfW(v).replace(/[£,\s]/g, ''); return isFinite(n) ? Math.round(n) : NaN; };
+const nfi = n => (+n || 0).toLocaleString('en-US');
 function parseFee(v) {
-  let s = String(v || '').replace(/[£,s]/g, '').toLowerCase(); if (!s) return NaN;
+  let s = halfW(v).replace(/[£,\s]/g, '').toLowerCase(); if (!s) return NaN;
   let k = 1; if (s.endsWith('m')) { k = 1e6; s = s.slice(0, -1); } else if (s.endsWith('k')) { k = 1e3; s = s.slice(0, -1); }
   let n = +s; if (!isFinite(n) || n < 0) return NaN;
   if (k === 1 && n > 0 && n < 1000) k = 1e6;   // a bare small number means millions
@@ -342,14 +345,14 @@ function drawPlayer() {
   if (!myCid()) act = '<p class="note">你而家待業，唔可以買賣球員。</p>';
   else if (d.c === 'ret') act = '<p class="note">已退休。</p>';
   else if (mine) {
-    if (P.step === 'renew') { const dem = Math.max(d.w, roundMoney(wageFor(d.sk, myClub().lg) * 1.05 / 10) * 10); act = `<div class="row">週薪 £<input class="inp num" id="pw" value="${P.wage ?? dem}" style="width:100px" inputmode="numeric"> 年期 <select class="inp" id="py">${[1, 2, 3, 4, 5].map(y => opt(y, y + ' 年', P.yrs)).join('')}</select><button class="btn y" data-act="renew">提出續約</button><button class="btn" data-act="pstep" data-a="">取消</button></div>`; }
+    if (P.step === 'renew') { const dem = Math.max(d.w, roundMoney(wageFor(d.sk, myClub().lg) * 1.05 / 10) * 10); act = `<div class="row">週薪 £<input class="inp num mny" id="pw" value="${nfi(P.wage ?? dem)}" style="width:100px" inputmode="numeric"> 年期 <select class="inp" id="py">${[1, 2, 3, 4, 5].map(y => opt(y, y + ' 年', P.yrs)).join('')}</select><button class="btn y" data-act="renew">提出續約</button><button class="btn" data-act="pstep" data-a="">取消</button></div>`; }
     else if (P.step === 'rel') act = `<div class="row"><span class="bad">確定同 ${esc(p.sn)} 解約？要賠 ${money(Math.round(d.w * 52 * Math.max(0, d.ct - G.season) * .5))}。</span><button class="btn r" data-act="release">確定解約</button><button class="btn" data-act="pstep" data-a="">取消</button></div>`;
     else act = `<div class="row"><button class="btn" data-act="list">${d.list ? '取消放售' : '放售'}</button><button class="btn" data-act="pstep" data-a="renew">續約</button><button class="btn r" data-act="pstep" data-a="rel">解約</button></div>`;
   } else {
-    if (P.step === 'ct') act = `<div class="row">週薪 £<input class="inp num" id="pw" value="${P.wage ?? wageDemand(pid, myCid())}" style="width:100px" inputmode="numeric"> 年期 <select class="inp" id="py">${[1, 2, 3, 4, 5].map(y => opt(y, y + ' 年', P.yrs)).join('')}</select><button class="btn y" data-act="offerct">提出合約</button><button class="btn" data-act="pstep" data-a="">取消</button></div>`;
+    if (P.step === 'ct') act = `<div class="row">週薪 £<input class="inp num mny" id="pw" value="${nfi(P.wage ?? wageDemand(pid, myCid()))}" style="width:100px" inputmode="numeric"> 年期 <select class="inp" id="py">${[1, 2, 3, 4, 5].map(y => opt(y, y + ' 年', P.yrs)).join('')}</select><button class="btn y" data-act="offerct">提出合約</button><button class="btn" data-act="pstep" data-a="">取消</button></div>`;
     else { const wl = myCid() ? willing(pid, myCid()) : 2, mine2 = roster(myCid()).filter(x => x !== pid).sort((a, b) => pd(b).sk - pd(a).sk);
       act = `<div class="row"><span class="mute">球員意願</span><span class="tag wl${wl}">${WILLN[wl]}</span>${info('睇球會大細、會唔會有正選、合約剩幾耐、有冇放售、年紀等等。「唔會去」出幾多都冇用；「唔太想」會要求高啲人工；「好想去」人工可以少少。')}${d.c !== 'free' ? `<span class="mute">賣方心目中約 ${money(askingPrice(pid))}</span>${info('後生、正選主力、合約仲長嘅球員，球會會要溢價先肯放。')}` : ''}</div>
-      <div class="row">轉會費 £<input class="inp num" id="pf" value="${P.fee ?? (d.c === 'free' ? 0 : valueOf(pid))}" style="width:120px" inputmode="numeric" ${d.c === 'free' ? 'disabled' : ''}>${d.c !== 'free' ? `<select class="inp" id="pn" aria-label="付款">${[[1, '一次過'], [2, '分 2 年'], [3, '分 3 年']].map(([v, t]) => opt(v, t, P.n || 1)).join('')}</select><select class="inp" id="psw" aria-label="加球員交換" style="max-width:200px"><option value="">唔加球員</option>${mine2.map(x => `<option value="${x}" ${x === P.swap ? 'selected' : ''}>+ ${esc(ps(x).sn)} · ${ps(x).pos} · ${pd(x).sk} · ${money(valueOf(x))}</option>`).join('')}</select>${info('分期：今日只付第一期，其餘喺之後每季開季時自動付；賣方會當遲收嘅錢少少折扣，所以總數要多啲。加球員：將你一個球員一齊交換，賣方需要嗰個位置會計足身價，唔需要就打折；嗰個球員自己都要肯去。')}` : ''}<button class="btn y" data-act="bid">${d.c === 'free' ? '傾合約' : '出價'}</button>${P.counter ? `<button class="btn" data-act="bidc">出 ${money(P.counter)}</button>` : ''}</div>`; }
+      <div class="row">轉會費 £<input class="inp num mny" id="pf" value="${nfi(P.fee ?? (d.c === 'free' ? 0 : valueOf(pid)))}" style="width:120px" inputmode="numeric" ${d.c === 'free' ? 'disabled' : ''}>${d.c !== 'free' ? `<select class="inp" id="pn" aria-label="付款">${[[1, '一次過'], [2, '分 2 年'], [3, '分 3 年']].map(([v, t]) => opt(v, t, P.n || 1)).join('')}</select><select class="inp" id="psw" aria-label="加球員交換" style="max-width:200px"><option value="">唔加球員</option>${mine2.map(x => `<option value="${x}" ${x === P.swap ? 'selected' : ''}>+ ${esc(ps(x).sn)} · ${ps(x).pos} · ${pd(x).sk} · ${money(valueOf(x))}</option>`).join('')}</select>${info('分期：今日只付第一期，其餘喺之後每季開季時自動付；賣方會當遲收嘅錢少少折扣，所以總數要多啲。加球員：將你一個球員一齊交換，賣方需要嗰個位置會計足身價，唔需要就打折；嗰個球員自己都要肯去。')}` : ''}<button class="btn y" data-act="bid">${d.c === 'free' ? '傾合約' : '出價'}</button>${P.counter ? `<button class="btn" data-act="bidc">出 ${money(P.counter)}</button>` : ''}</div>`; }
   }
   modal(`${esc(p.name)}`, `<div class="pf">${d.c !== 'free' && d.c !== 'ret' ? badgeSVG(d.c, 64) : ''}<div><div class="D" style="font-size:20px">${esc(clubName(d.c))}</div><div class="mute">${POSN[p.pos]}（${p.pos}）${pos2Of(p).length ? `，次位置 ${pos2Of(p).map(q => `${POSN[q]}（${q}）`).join('、')}` : ''} · ${ageOf(pid)} 歲 · ${esc(natName(p.nat))} · #${d.no || '—'}</div><div>${pTags(pid)}</div></div><div class="gcard g-${GRADE(d.sk)} pfc"><span class="r">${d.sk}</span><span class="g">${GRADE(d.sk)}</span></div></div>
     <dl class="kv kv2"><dt>身價</dt><dd>${money(valueOf(pid))}</dd><dt>週薪</dt><dd>${money(d.w)}</dd><dt>合約至</dt><dd>${d.c === 'free' ? '—' : d.ct + ' 年 6 月'}</dd><dt>體能</dt><dd>${Math.round(d.cond)}${cbar(d.cond)}</dd><dt>表現</dt><dd>${form(pid) ? form(pid).toFixed(1) : '–'}</dd><dt>傷病</dt><dd>${d.inj ? `${esc(d.injn)}（${d.inj} 日）` : '冇'}</dd></dl>
@@ -715,7 +718,7 @@ function cofPanel(id, msg) {
   const ask = o.ok ? o.fee : roundMoney(o.fee * 1.2);
   modal(`還價 · ${esc(ps(o.pid).sn)}`, `<div class="row"><span class="mute">買家</span><b>${esc(clubName(o.from))}</b></div>
     <div class="row"><span class="mute">而家報價</span><b class="num">${money(o.fee)}</b><span class="mute">身價 ${money(valueOf(o.pid))}</span>${o.last ? '<span class="tag t-ex">最後報價</span>' : ''}</div>
-    <div class="row">你想要 £<input class="inp num" id="cofv" value="${ask}" style="width:140px" inputmode="numeric" ${o.ok ? 'disabled' : ''}><button class="btn" data-act="cof" data-a="${id}" ${o.ok ? 'disabled' : ''}>還價</button>${info('買家心入面有個最高價，你唔會知。叫價喺嗰個價以內佢會即刻答應；高過就會加少少價再還畀你，最多傾三轉。叫得太離譜，對方可能直接退出。')}</div>
+    <div class="row">你想要 £<input class="inp num mny" id="cofv" value="${nfi(ask)}" style="width:140px" inputmode="numeric" ${o.ok ? 'disabled' : ''}><button class="btn" data-act="cof" data-a="${id}" ${o.ok ? 'disabled' : ''}>還價</button>${info('買家心入面有個最高價，你唔會知。叫價喺嗰個價以內佢會即刻答應；高過就會加少少價再還畀你，最多傾三轉。叫得太離譜，對方可能直接退出。')}</div>
     <p class="msg" style="min-height:1.4em">${msg ? esc(msg) : ''}</p>
     <div class="row"><button class="btn y" data-act="cofacc" data-a="${id}">以 ${money(o.fee)} 接受</button><button class="btn" data-act="mclose">遲啲先決定</button></div>`, 'sm');
 }
@@ -901,10 +904,10 @@ const ACT = {
   pstep: el => { UI.pm.step = el.dataset.a || null; UI.pm.msg = ''; drawPlayer(); },
   list: () => { const d = pd(UI.pm.pid); d.list = d.list ? 0 : 1; save(); drawPlayer(); render(); },
   release: () => { const m = releasePlayer(UI.pm.pid); save(); closeModal(); render(); toast(m); },
-  renew: () => { const P = UI.pm, w = +$('#pw').value, y = +$('#py').value; P.wage = w; P.yrs = y; const r = renewContract(P.pid, w, y); P.msg = r.msg; if (r.ok) { P.step = null; save(); render(); } drawPlayer(); },
+  renew: () => { const P = UI.pm, w = parseNum($('#pw').value), y = +$('#py').value; P.wage = w; P.yrs = y; const r = renewContract(P.pid, w, y); P.msg = r.msg; if (r.ok) { P.step = null; save(); render(); } drawPlayer(); },
   bid: () => { const P = UI.pm, fee = $('#pf').disabled ? 0 : parseFee($('#pf').value); if (isNaN(fee)) { UI.pm.msg = '睇唔明個價錢，請打數字，例如 26150000 或者 26.15m'; return drawPlayer(); } P.fee = fee; P.n = +($('#pn')?.value || 1); P.swap = $('#psw')?.value || null; const r = userBid(P.pid, fee, P.n, P.swap); P.msg = r.msg; P.counter = r.counter; if (r.ok) { P.fee = r.fee; P.step = 'ct'; } drawPlayer(); },
-  bidc: () => { const P = UI.pm, v = P.counter; $('#pf').value = v; ACT.bid(); },
-  offerct: () => { const P = UI.pm, w = +$('#pw').value, y = +$('#py').value; P.wage = w; P.yrs = y; if (!G.inf && myClub().cash < Math.round(P.fee / (P.n || 1))) { P.msg = '資金唔夠'; return drawPlayer(); } if (P.swap && pd(P.swap).c !== myCid()) P.swap = null; const r = contractTalk(P.pid, w, y); P.msg = r.msg; if (r.ok) { completeSigning(P.pid, P.fee, w, y, P.n || 1, P.swap); save(); closeModal(); render(); toast(`簽入 ${ps(P.pid).sn}！`); return; } drawPlayer(); },
+  bidc: () => { const P = UI.pm, v = P.counter; $('#pf').value = nfi(v); ACT.bid(); },
+  offerct: () => { const P = UI.pm, w = parseNum($('#pw').value), y = +$('#py').value; P.wage = w; P.yrs = y; if (!G.inf && myClub().cash < Math.round(P.fee / (P.n || 1))) { P.msg = '資金唔夠'; return drawPlayer(); } if (P.swap && pd(P.swap).c !== myCid()) P.swap = null; const r = contractTalk(P.pid, w, y); P.msg = r.msg; if (r.ok) { completeSigning(P.pid, P.fee, w, y, P.n || 1, P.swap); save(); closeModal(); render(); toast(`簽入 ${ps(P.pid).sn}！`); return; } drawPlayer(); },
   // match
   mstart: startLive,
   mquick: () => { MT.M = newMatch(MT.f, false); runToEnd(MT.M); MT.phase = 'ft'; save(); render(); },
@@ -943,6 +946,12 @@ document.addEventListener('click', e => {
   if (el.dataset.pl) return openPlayer(el.dataset.pl);
   if (el.dataset.go) { if (!$('#modal').hidden) closeModal(); return go(el.dataset.go, el.dataset.a); }
   const f = ACT[el.dataset.act] || SACT[el.dataset.act]; if (f) f(el, e);
+});
+document.addEventListener('input', e => {
+  const el = e.target; if (!el.classList || !el.classList.contains('mny')) return;
+  const raw = halfW(el.value); if (!/^[0-9,]*$/.test(raw)) return;   // leave 26.15m etc. alone
+  const d = raw.replace(/,/g, ''), f = d ? nfi(+d) : '';
+  if (f !== el.value) { const fromEnd = el.value.length - (el.selectionStart ?? el.value.length); el.value = f; const p = Math.max(0, f.length - fromEnd); try { el.setSelectionRange(p, p); } catch (x) { } }
 });
 document.addEventListener('change', e => { const el = e.target.closest('[data-ch]'); if (el && CH[el.dataset.ch]) CH[el.dataset.ch](el); });
 document.addEventListener('input', e => {
