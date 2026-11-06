@@ -293,7 +293,7 @@ SCREENS.search = () => {
   main(`${hdr('球員搜尋', `<span class="mute" id="srn">${n} 人${n > 200 ? '（顯示頭 200）' : ''}</span>`)}
   <div class="row"><input class="inp" data-in="sr" data-a="q" placeholder="姓名或球會" value="${esc(f.q)}" style="flex:1 1 160px">
     <select class="inp" data-ch="sr" data-a="pos" aria-label="位置">${opt('', '全部位置', f.pos)}${[['G', '門將'], ['D', '後衛'], ['M', '中場'], ['A', '前鋒']].map(([v, t]) => opt(v, t, f.pos)).join('')}${Object.entries(POSN).map(([v, t]) => opt(v, v + ' ' + t, f.pos)).join('')}</select>
-    <select class="inp" data-ch="sr" data-a="lg" aria-label="聯賽">${opt('', '全部聯賽', f.lg)}${PLAY_LG.map(l => opt(l, LG[l].name, f.lg)).join('')}${opt('eur', '歐洲球會', f.lg)}${opt('free', '自由球員', f.lg)}</select>
+    <select class="inp" data-ch="sr" data-a="lg" aria-label="聯賽">${opt('', '全部聯賽', f.lg)}${PLG().map(l => opt(l, LG[l].name, f.lg)).join('')}${opt('eur', '歐洲球會', f.lg)}${opt('free', '自由球員', f.lg)}</select>
     <input class="inp num" data-in="sr" data-a="age" placeholder="最大年齡" value="${esc(f.age)}" inputmode="numeric" style="width:90px">
     <input class="inp num" data-in="sr" data-a="val" placeholder="身價上限 £m" value="${esc(f.val)}" inputmode="decimal" style="width:110px">
     <select class="inp" data-ch="sr" data-a="sort" aria-label="排序">${[['sk', '按能力'], ['val', '按身價'], ['age', '按年齡'], ['name', '按名']].map(([v, t]) => opt(v, t, f.sort)).join('')}</select></div>
@@ -403,26 +403,28 @@ SCREENS.board = () => {
 /* ---------- 賽程 ---------- */
 SCREENS.fixtures = () => {
   const cid = UI.fxc || myCid() || G.lgm.eng1[0], list = clubFx(cid);
-  main(`${hdr('賽程', `<select class="inp" data-ch="fxc" aria-label="球會">${PLAY_LG.concat('eur').map(l => `<optgroup label="${esc(LG[l].name)}">${byRep(G.lgm[l]).map(c => opt(c, clubName(c), cid)).join('')}</optgroup>`).join('')}</select>`)}
+  main(`${hdr('賽程', `<select class="inp" data-ch="fxc" aria-label="球會">${PLG().concat('eur').filter(l => G.lgm[l]).map(l => `<optgroup label="${esc(LG[l].name)}">${byRep(G.lgm[l]).map(c => opt(c, clubName(c), cid)).join('')}</optgroup>`).join('')}</select>`)}
   ${pan(`${esc(clubName(cid))} · ${list.length} 場`, `<table><thead><tr><th class="n">日期</th><th>賽事</th><th class="hm">圈數</th><th class="n">主客</th><th>對手</th><th class="n">比數</th><th class="hm">入球</th></tr></thead><tbody>${list.map(f => { const h = f.h === cid, r = resOf(f, cid); return `<tr class="${f.d === G.day && f.hg == null ? 'sel' : ''}"><td class="n">${fdate(f.d, 's')}</td><td>${esc(compName(f.c))}</td><td class="hm">${roundName(f)}</td><td class="n">${f.n ? '中' : h ? '主' : '客'}</td><td class="nm">${esc(clubName(h ? f.a : f.h))}</td><td class="n">${scoreTxt(f)} ${wdl(r)}</td><td class="hm sc">${f.sc ? f.sc.filter(x => x[1] === (h ? 'h' : 'a')).map(x => `${esc(x[2])} ${x[0]}'`).join('、') : ''}</td></tr>`; }).join('')}</tbody></table>`, { st: 'flex:1' })}`);
   const s = $('#main tr.sel') || [...$$('#main tbody tr')].find(tr => tr.querySelector('td:nth-child(6)').textContent === '–');
   if (s) s.scrollIntoView({ block: 'center' });
 };
 
 /* ---------- 積分榜 ---------- */
-const CTRY = [['ENG', '英格蘭', ENG], ['SCO', '蘇格蘭', ['sco1']], ['ESP', '西班牙', ['esp1']], ['ITA', '意大利', ['ita1']], ['GER', '德國', ['ger1']], ['FRA', '法國', ['fra1']]];
+const CTRY = [['ENG', '英格蘭', ENG], ['SCO', '蘇格蘭', ['sco1']], ['ESP', '西班牙', ['esp1']], ['ITA', '意大利', ['ita1']], ['GER', '德國', ['ger1']], ['FRA', '法國', ['fra1']], ['NED', '荷蘭', ['ned1']], ['POR', '葡萄牙', ['por1']], ['TUR', '土耳其', ['tur1']], ['BEL', '比利時', ['bel1']]];
+// countries with leagues in this game (or, before a game exists, in the loaded era)
+const ctrs = (have = G ? PLG() : PLAY_LG) => { return CTRY.map(([c, n, l]) => [c, n, l.filter(x => have.includes(x))]).filter(x => x[2].length); };
 function zoneOf(l, i, n) {
-  const Z = { eng1: [[4, 'cl'], [6, 'ue'], [n - 3, ''], [n, 'dn']], eng2: [[2, 'up'], [6, 'po'], [n - 3, ''], [n, 'dn']], eng3: [[2, 'up'], [6, 'po'], [n - 4, ''], [n, 'dn']], eng4: [[3, 'up'], [7, 'po']], sco1: [[2, 'cl'], [4, 'ue']], esp1: [[4, 'cl'], [7, 'ue']], ita1: [[4, 'cl'], [7, 'ue']], ger1: [[4, 'cl'], [7, 'ue']], fra1: [[3, 'cl'], [6, 'ue']] }[l] || [];
+  const Z = { eng1: [[4, 'cl'], [6, 'ue'], [n - 3, ''], [n, 'dn']], eng2: [[2, 'up'], [6, 'po'], [n - 3, ''], [n, 'dn']], eng3: [[2, 'up'], [6, 'po'], [n - 4, ''], [n, 'dn']], eng4: [[3, 'up'], [7, 'po']], sco1: [[2, 'cl'], [4, 'ue']], esp1: [[4, 'cl'], [7, 'ue']], ita1: [[4, 'cl'], [7, 'ue']], ger1: [[4, 'cl'], [7, 'ue']], fra1: [[3, 'cl'], [6, 'ue']], ned1: [[2, 'cl'], [4, 'ue']], por1: [[2, 'cl'], [4, 'ue']], tur1: [[2, 'cl'], [4, 'ue']], bel1: [[1, 'cl'], [3, 'ue']] }[l] || [];
   for (const [lim, z] of Z) if (i < lim) return z ? 'zone-' + z : '';
   return '';
 }
 SCREENS.tables = () => {
-  const T = UI.tb, cty = CTRY.find(x => x[0] === T.c), lid = cty[2].includes(T.l) ? T.l : cty[2][0], comp = G.comp[lid], st = standings(comp.tab), me = myCid();
+  const T = UI.tb, cty = ctrs().find(x => x[0] === T.c), lid = cty[2].includes(T.l) ? T.l : cty[2][0], comp = G.comp[lid], st = standings(comp.tab), me = myCid();
   const played = G.fx.filter(f => f.c === lid && f.hg != null).map(f => f.r), maxR = Math.max(...G.fx.filter(f => f.c === lid).map(f => f.r));
   const r = T.r != null && T.lid === lid ? T.r : played.length ? Math.max(...played) : 0;
   const rfx = G.fx.filter(f => f.c === lid && f.r === r);
   main(`${hdr('積分榜', info('左邊色條：綠＝歐聯／升班，藍＝歐洲足協盃，黃＝升級附加賽，紅＝降班。'))}
-  <div class="tabs">${chips(CTRY.map(x => [x[0], x[1]]), T.c, 'tbc')}</div>
+  <div class="tabs">${chips(ctrs().map(x => [x[0], x[1]]), T.c, 'tbc')}</div>
   ${cty[2].length > 1 ? `<div class="tabs">${chips(cty[2].map(l => [l, LG[l].name]), lid, 'tbl')}</div>` : ''}
   <div class="cols c2 m-stack">
     ${pan(esc(comp.nm), `<table><thead><tr><th class="n">#</th><th>球會</th><th class="n">賽</th><th class="n">勝</th><th class="n">和</th><th class="n">負</th><th class="n hm">入</th><th class="n hm">失</th><th class="n">得失</th><th class="n">分</th></tr></thead><tbody>${st.map((x, i) => `<tr class="${zoneOf(lid, i, st.length)} ${x.c === me ? 'me' : ''}"><td class="n">${i + 1}</td><td class="nm"><a data-go="fixtures" data-a="${x.c}">${esc(clubName(x.c))}</a></td><td class="n">${x.p}</td><td class="n">${x.w}</td><td class="n">${x.d}</td><td class="n">${x.l}</td><td class="n hm">${x.f}</td><td class="n hm">${x.a}</td><td class="n">${x.f - x.a > 0 ? '+' : ''}${x.f - x.a}</td><td class="n">${x.pts}</td></tr>`).join('')}</tbody></table>`)}
@@ -462,7 +464,7 @@ function rankPlayers(lids, k) {
   return out.sort((a, b) => b[1] - a[1]).slice(0, 60);
 }
 SCREENS.ratings = () => {
-  const K = UI.rk, cty = CTRY.find(x => x[0] === K.c), lids = K.l ? [K.l] : cty ? cty[2] : PLAY_LG;
+  const K = UI.rk, cty = ctrs().find(x => x[0] === K.c), lids = K.l ? [K.l] : cty ? cty[2] : PLG();
   let right;
   if (K.t === 'pl') {
     const top = rankPlayers(lids, K.k), fmt = v => K.k === 'bp' || K.k === 'fm' ? v.toFixed(2) : v;
@@ -478,7 +480,7 @@ SCREENS.ratings = () => {
   main(`${hdr('數據排名')}
   <div class="tabs">${chips([['pl', '球員'], ['cl', '球會'], ['aw', '獎項']], K.t, 'rkt')}</div>
   <div class="cols m-stack" style="grid-template-columns:200px minmax(0,1fr)">
-    ${pan('準則', `<div class="lbl">國家</div><div class="vlist">${[['', '全部'], ...CTRY.map(x => [x[0], x[1]])].map(([v, t]) => `<button class="nb" data-act="rkc" data-a="${v}" aria-current="${(K.c || '') === v && !K.l}">${t}</button>`).join('')}</div>
+    ${pan('準則', `<div class="lbl">國家</div><div class="vlist">${[['', '全部'], ...ctrs().map(x => [x[0], x[1]])].map(([v, t]) => `<button class="nb" data-act="rkc" data-a="${v}" aria-current="${(K.c || '') === v && !K.l}">${t}</button>`).join('')}</div>
       ${cty && cty[2].length > 1 ? `<div class="lbl">級別</div><div class="vlist">${cty[2].map(l => `<button class="nb" data-act="rkl" data-a="${l}" aria-current="${K.l === l}">${LG[l].name}</button>`).join('')}</div>` : ''}
       <div class="lbl">準則</div><div class="vlist">${RKK.map(([v, t]) => `<button class="nb" data-act="rkk" data-a="${v}" aria-current="${K.k === v}">${t}</button>`).join('')}</div>`, { t: 1 })}
     ${pan(`${K.t === 'aw' ? '獎項' : RKK.find(x => x[0] === K.k)[1]} · ${K.l ? LG[K.l].name : cty ? cty[1] : '全部'}`, right)}
@@ -490,7 +492,7 @@ SCREENS.history = () => {
   const mine = G.trophies.filter(t => G.hist.some(h => h.me && h.me.cid === t.w && h.s === t.s) || isUser(t.w));
   main(`${hdr('歷史')}
   <div class="cols c2 m-stack">
-    ${pan('歷屆冠軍', G.hist.length ? `<table><thead><tr><th>球季</th>${PLAY_LG.map(l => `<th class="${['eng3', 'eng4'].includes(l) ? 'hm' : ''}">${LG[l].name}</th>`).join('')}</tr></thead><tbody>${G.hist.map(h => `<tr><td class="n">${seasonTxt(h.s)}</td>${PLAY_LG.map(l => `<td class="nm ${['eng3', 'eng4'].includes(l) ? 'hm' : ''}">${esc(clubShort(h.champs[l]))}</td>`).join('')}</tr>`).join('')}</tbody></table>` : '<p class="note">第一季仲未完。</p>')}
+    ${pan('歷屆冠軍', G.hist.length ? `<table><thead><tr><th>球季</th>${PLG().map(l => `<th class="${['eng3', 'eng4'].includes(l) ? 'hm' : ''}">${LG[l].name}</th>`).join('')}</tr></thead><tbody>${G.hist.map(h => `<tr><td class="n">${seasonTxt(h.s)}</td>${PLG().map(l => `<td class="nm ${['eng3', 'eng4'].includes(l) ? 'hm' : ''}">${esc(clubShort(h.champs[l]))}</td>`).join('')}</tr>`).join('')}</tbody></table>` : '<p class="note">第一季仲未完。</p>')}
     <div class="cols" style="grid-template-rows:auto minmax(0,1fr)">
       ${pan('你嘅領隊生涯', G.hist.filter(h => h.me).length ? `<table><tbody>${G.hist.filter(h => h.me).map(h => `<tr><td class="n">${seasonTxt(h.s)}</td><td class="nm">${esc(clubName(h.me.cid))}</td><td>${esc(LG[h.me.lg].name)}</td><td class="n">第 ${h.me.pos} 名</td></tr>`).join('')}</tbody></table>` : `<p class="note">${seasonTxt(G.season)} 係你第一季。</p>`, { t: 1 })}
       ${pan('錦標', G.trophies.length ? `<table><tbody>${G.trophies.slice().reverse().map(t => `<tr class="${mine.includes(t) ? 'me' : ''}"><td class="n">${seasonTxt(t.s)}</td><td>${esc(t.nm)}</td><td class="nm">${esc(clubName(t.w))}</td></tr>`).join('')}</tbody></table>` : '<p class="note">今季未有錦標頒發。</p>', { t: 1 })}
@@ -516,7 +518,7 @@ SCREENS.save = () => {
   const meta = loadMeta();
   main(`${hdr('存檔', info('每次推進日子同重要操作都會自動儲存到而家用緊嘅存檔位。匯出可以將存檔複製去第二部機。'))}
   <div class="cols c2 m-stack">
-    ${pan('存檔位', `<table><tbody>${[1, 2, 3].map(s => { const m = meta[s], conf = UI.del === s; return `<tr class="${G.slot === s ? 'me' : ''}"><td class="n">${s}</td><td class="nm">${m ? `${esc(m.mgr)} · ${esc(m.cid ? clubName(m.cid) : '待業')}<br><small class="mute">${seasonTxt(m.season)} · ${fdate(m.day, 's')}</small>` : '<span class="mute">空</span>'}</td><td>${conf ? `<button class="btn sm r" data-act="sdel" data-a="${s}">確定刪除</button> <button class="btn sm" data-act="sdelc" data-a="">取消</button>` : `<button class="btn sm" data-act="ssave" data-a="${s}">存到呢度</button> ${m && G.slot !== s ? `<button class="btn sm" data-act="sload" data-a="${s}">讀取</button>` : ''} ${m ? `<button class="btn sm" data-act="sdelc" data-a="${s}">刪除</button>` : ''}`}</td></tr>`; }).join('')}</tbody></table>`)}
+    ${pan('存檔位', `<table><tbody>${[1, 2, 3].map(s => { const m = meta[s], conf = UI.del === s; return `<tr class="${G.slot === s ? 'me' : ''}"><td class="n">${s}</td><td class="nm">${m ? metaLine(m) : '<span class="mute">空</span>'}</td><td>${conf ? `<button class="btn sm r" data-act="sdel" data-a="${s}">確定刪除</button> <button class="btn sm" data-act="sdelc" data-a="">取消</button>` : `<button class="btn sm" data-act="ssave" data-a="${s}">存到呢度</button> ${m && G.slot !== s ? `<button class="btn sm" data-act="sload" data-a="${s}">讀取</button>` : ''} ${m ? `<button class="btn sm" data-act="sdelc" data-a="${s}">刪除</button>` : ''}`}</td></tr>`; }).join('')}</tbody></table>`)}
     ${pan('匯出／匯入', `<textarea class="inp" id="sx" spellcheck="false" style="width:100%;flex:1;min-height:140px;font:12px monospace" placeholder="撳「匯出」或者喺度貼上存檔"></textarea><div class="row" style="margin-top:8px"><button class="btn" data-act="sexp">匯出而家嘅遊戲</button><button class="btn y" data-act="simp">匯入到存檔位 ${G.slot}</button></div>`, { t: 1 })}
   </div>`);
 };
@@ -702,19 +704,19 @@ const ACT = {
   renewopen: el => openPlayer(el.dataset.a, 'renew'),
   build: el => { const [s, cost, days] = el.dataset.a.split(':').map(Number), c = myClub(); if (!G.inf && c.cash < cost) return toast('資金唔夠'); fin(myCid(), 'build', -cost); c.build = { seats: s, done: G.day + days }; save(); render(); toast('工程開始'); },
   job: el => { takeJob(el.dataset.a); save(); go('home'); },
-  tbc: el => { UI.tb.c = el.dataset.a; UI.tb.l = CTRY.find(x => x[0] === el.dataset.a)[2][0]; UI.tb.r = null; render(); },
+  tbc: el => { UI.tb.c = el.dataset.a; UI.tb.l = ctrs().find(x => x[0] === el.dataset.a)[2][0]; UI.tb.r = null; render(); },
   tbl: el => { UI.tb.l = el.dataset.a; UI.tb.r = null; render(); },
-  tbr: el => { UI.tb.r = +el.dataset.a; UI.tb.lid = (CTRY.find(x => x[0] === UI.tb.c)[2].includes(UI.tb.l) ? UI.tb.l : CTRY.find(x => x[0] === UI.tb.c)[2][0]); render(); },
+  tbr: el => { UI.tb.r = +el.dataset.a; UI.tb.lid = (ctrs().find(x => x[0] === UI.tb.c)[2].includes(UI.tb.l) ? UI.tb.l : ctrs().find(x => x[0] === UI.tb.c)[2][0]); render(); },
   rkt: el => { UI.rk.t = el.dataset.a; render(); },
   rkc: el => { UI.rk.c = el.dataset.a; UI.rk.l = ''; render(); },
   rkl: el => { UI.rk.l = el.dataset.a; render(); },
   rkk: el => { UI.rk.k = el.dataset.a; render(); },
   ssave: el => { G.slot = +el.dataset.a; save(); render(); toast(`已存到存檔位 ${G.slot}`); },
-  sload: el => { if (loadGame(+el.dataset.a)) { MT = null; save(); go('home'); toast('已讀取'); } else toast('讀取失敗'); },
+  sload: el => openSlot(+el.dataset.a),
   sdelc: el => { UI.del = el.dataset.a ? +el.dataset.a : null; render(); },
   sdel: el => { deleteSave(+el.dataset.a); UI.del = null; render(); toast('已刪除'); },
   sexp: () => { const t = $('#sx'); t.value = pack(); t.select(); const manual = () => toast('已匯出，請手動複製'); try { navigator.clipboard.writeText(t.value).then(() => toast('已複製'), manual); } catch (e) { manual(); } },
-  simp: () => { const v = $('#sx').value.trim(); try { JSON.parse(v); localStorage.setItem(SKEY(G.slot), v); if (!loadGame(G.slot)) throw 0; MT = null; save(); go('home'); toast('匯入成功'); } catch (e) { toast('存檔格式唔啱'); } },
+  simp: () => { const v = $('#sx').value.trim(), k = G.slot; try { const g = JSON.parse(v), y = g.era || 2001; localStorage.setItem(SKEY(k), v); if (y !== ERA.y) { const m = loadMeta(); m[k] = { mgr: g.mgr.name, cid: g.mgr.cid, cn: '', era: y, day: g.day, season: g.season }; localStorage.setItem('xifm-fm-meta', JSON.stringify(m)); return toEra(y, 'slot=' + k); } if (!loadGame(k)) throw 0; MT = null; save(); go('home'); toast('匯入成功'); } catch (e) { toast('存檔格式唔啱'); } },
   // profile
   pstep: el => { UI.pm.step = el.dataset.a || null; UI.pm.msg = ''; drawPlayer(); },
   list: () => { const d = pd(UI.pm.pid); d.list = d.list ? 0 : 1; save(); drawPlayer(); render(); },
@@ -780,8 +782,17 @@ function cheatBox() {
    START SCREEN & NEW-GAME WIZARD
    ===================================================================== */
 const W = { step: 0, name: '', slot: 1, cty: 'ENG', lg: 'eng1', cid: null };
-function boardGoal(lid, cid) { const rank = byRepStatic(lid).indexOf(cid) + 1, n = LG[lid].clubs.length; return rank <= 1 ? '爭奪聯賽冠軍' : rank <= 4 ? '打入前四' : rank <= n / 2 ? '前半部完成' : rank <= n - 4 ? '安全護級' : '避免降班'; }
-const byRepStatic = lid => LG[lid].clubs.map(c => c.cid).sort((a, b) => CL[b].rep - CL[a].rep);
+const byRepStatic = lid => [...LG[lid].cids].sort((a, b) => CL[b].rep - CL[a].rep);
+function boardGoal(lid, cid) { const rank = byRepStatic(lid).indexOf(cid) + 1, n = LG[lid].cids.length; return rank <= 1 ? '爭奪聯賽冠軍' : rank <= 4 ? '打入前四' : rank <= n / 2 ? '前半部完成' : rank <= n - 4 ? '安全護級' : '避免降班'; }
+const eraOf = m => m.era || 2001;
+const metaLine = m => `<span class="tag t-ls">${esc(FM.ERAS[eraOf(m)]?.n || eraOf(m))}</span> ${esc(m.mgr)} · ${esc(m.cn || (m.cid && eraOf(m) === ERA.y ? clubName(m.cid) : m.cid ? m.cid : '待業'))} · ${seasonTxt(m.season)} ${fdate(m.day, 's')}`;
+// a page holds one era's data: going to another era's save or new game reloads with ?era=
+const toEra = (y, q) => { location.href = `fm.html?era=${y}&${q}`; };
+function openSlot(k) {
+  const m = loadMeta()[k]; if (!m) return toast('讀取失敗');
+  if (eraOf(m) !== ERA.y) return toEra(eraOf(m), 'slot=' + k);
+  if (loadGame(k)) { MT = null; save(); enterGame(); } else toast('讀取失敗');
+}
 function showStart() {
   cancelAnimationFrame(MT?.raf); if (MT) pauseLive();
   $('#app').hidden = true; $('#modal').hidden = true; const s = $('#start'); s.hidden = false;
@@ -790,13 +801,14 @@ function showStart() {
     s.innerHTML = `<div class="emb"><div class="xi">XI</div><div class="mg">經理</div><div class="yr">2002</div><div class="sub">傳奇十一人 · 經理生涯</div></div>
     <div class="smenu"><button class="btn y" data-act="snew">開新遊戲</button><button class="btn" data-act="scont" data-a="${cont || ''}" ${cont ? '' : 'disabled'}>繼續</button><button class="btn" data-act="sloadl">讀取存檔</button><a class="btn full" href="index.html" style="text-align:center;text-decoration:none">返回傳奇十一人</a></div>`;
   } else if (W.step === 9) {
-    s.innerHTML = `<div class="swiz">${pan('讀取存檔', `<table><tbody>${[1, 2, 3].map(k => `<tr><td class="n">${k}</td><td class="nm">${meta[k] ? `${esc(meta[k].mgr)} · ${esc(meta[k].cid ? clubName(meta[k].cid) : '待業')} · ${seasonTxt(meta[k].season)} ${fdate(meta[k].day, 's')}` : '<span class="mute">空</span>'}</td><td>${meta[k] ? `<button class="btn sm y" data-act="scont" data-a="${k}">讀取</button>` : ''}</td></tr>`).join('')}</tbody></table>`)}<div class="row"><button class="btn" data-act="sback">返回</button></div></div>`;
+    s.innerHTML = `<div class="swiz">${pan('讀取存檔', `<table><tbody>${[1, 2, 3].map(k => `<tr><td class="n">${k}</td><td class="nm">${meta[k] ? metaLine(meta[k]) : '<span class="mute">空</span>'}</td><td>${meta[k] ? `<button class="btn sm y" data-act="scont" data-a="${k}">讀取</button>` : ''}</td></tr>`).join('')}</tbody></table>`)}<div class="row"><button class="btn" data-act="sback">返回</button></div></div>`;
   } else {
-    const cty = CTRY.find(x => x[0] === W.cty), lid = cty[2].includes(W.lg) ? W.lg : cty[2][0];
+    const cs = ctrs(PLAY_LG), cty = cs.find(x => x[0] === W.cty) || cs[0], lid = cty[2].includes(W.lg) ? W.lg : cty[2][0];
     const clubs = byRepStatic(lid);
     s.innerHTML = `<div class="swiz">
-      ${pan('開新遊戲', `<div class="row"><label>領隊名 <input class="inp" id="wname" maxlength="20" value="${esc(W.name)}" placeholder="你嘅名"></label><span class="mute">存檔位</span>${[1, 2, 3].map(k => `<button class="chip" data-act="wslot" data-a="${k}" aria-pressed="${W.slot === k}">${k}${meta[k] ? '（會覆蓋）' : ''}</button>`).join('')}</div>
-        <div class="tabs" style="margin-top:8px">${CTRY.map(x => `<button class="chip" data-act="wcty" data-a="${x[0]}" aria-pressed="${W.cty === x[0]}">${x[1]}</button>`).join('')}</div>
+      ${pan('開新遊戲', `<div class="tabs"><span class="mute" style="align-self:center">開局球季</span>${Object.entries(FM.ERAS).map(([y, E]) => `<button class="chip" data-act="wera" data-a="${y}" aria-pressed="${+y === ERA.y}">${E.n}</button>`).join('')}${info(ERA.d || '')}</div>
+        <div class="row" style="margin-top:8px"><label>領隊名 <input class="inp" id="wname" maxlength="20" value="${esc(W.name)}" placeholder="你嘅名"></label><span class="mute">存檔位</span>${[1, 2, 3].map(k => `<button class="chip" data-act="wslot" data-a="${k}" aria-pressed="${W.slot === k}">${k}${meta[k] ? '（會覆蓋）' : ''}</button>`).join('')}</div>
+        <div class="tabs" style="margin-top:8px">${cs.map(x => `<button class="chip" data-act="wcty" data-a="${x[0]}" aria-pressed="${cty[0] === x[0]}">${x[1]}</button>`).join('')}</div>
         ${cty[2].length > 1 ? `<div class="tabs">${cty[2].map(l => `<button class="chip" data-act="wlg" data-a="${l}" aria-pressed="${lid === l}">${LG[l].name}</button>`).join('')}</div>` : ''}`, { st: 'flex:none' })}
       ${pan(`${esc(LG[lid].name)} · 揀球會`, `<table><thead><tr><th></th><th>球會</th><th>聲望</th><th class="n">資金</th><th class="hm">球場</th><th class="n hm">容量</th><th class="hm">董事局目標</th></tr></thead><tbody>${clubs.map(c => `<tr class="click ${W.cid === c ? 'sel' : ''}" data-act="wclub" data-a="${c}"><td>${badgeSVG(c, 26)}</td><td class="nm">${esc(CL[c].name)}</td><td class="num" style="color:${W.cid === c ? 'inherit' : 'var(--sel)'}">${stars(CL[c].rep)}</td><td class="n">${money(CL[c].bank * 1e6)}</td><td class="hm nm">${esc(CL[c].stadium)}</td><td class="n hm">${CL[c].cap.toLocaleString()}</td><td class="hm">${boardGoal(lid, c)}</td></tr>`).join('')}</tbody></table>`, { st: 'flex:1' })}
       <div class="row"><button class="btn" data-act="sback">返回</button><span style="margin-left:auto" class="mute">${W.cid ? esc(CL[W.cid].name) : '未揀球會'}</span><button class="btn y" data-act="wgo" ${W.cid ? '' : 'disabled'}>開始 ▶</button></div></div>`;
@@ -807,9 +819,10 @@ const SACT = {
   snew: () => { W.step = 1; showStart(); },
   sloadl: () => { W.step = 9; showStart(); },
   sback: () => { W.step = 0; showStart(); },
-  scont: el => { const k = +el.dataset.a; if (k && loadGame(k)) { save(); enterGame(); } else toast('讀取失敗'); },
+  scont: el => openSlot(+el.dataset.a),
+  wera: el => { const y = +el.dataset.a; if (y !== ERA.y) toEra(y, 'new=1'); },
   wslot: el => { W.name = $('#wname').value; W.slot = +el.dataset.a; showStart(); },
-  wcty: el => { W.name = $('#wname').value; W.cty = el.dataset.a; W.lg = CTRY.find(x => x[0] === W.cty)[2][0]; W.cid = null; showStart(); },
+  wcty: el => { W.name = $('#wname').value; W.cty = el.dataset.a; W.lg = ctrs(PLAY_LG).find(x => x[0] === W.cty)[2][0]; W.cid = null; showStart(); },
   wlg: el => { W.name = $('#wname').value; W.lg = el.dataset.a; W.cid = null; showStart(); },
   wclub: el => { W.name = $('#wname').value; W.cid = el.dataset.a; showStart(); },
   wgo: () => {
@@ -819,6 +832,27 @@ const SACT = {
   },
 };
 
-/* ---------- boot ---------- */
+/* ---------- boot: load one era's data (fm/eras.js), then the start screen ---------- */
+function loadEra(y) {
+  return new Promise((ok, bad) => {
+    const E = FM.ERAS[y]; let n = E.files.length;
+    for (const f of E.files) {
+      const s = document.createElement('script'); s.src = E.dir + f + '.js'; s.async = false; // keep file order
+      s.onload = () => { if (--n === 0) ok(); }; s.onerror = () => bad(new Error(f + '.js'));
+      document.head.appendChild(s);
+    }
+  }).then(() => indexEra(y));
+}
 addEventListener('resize', () => { if (MT && MT.phase === 'live') { cancelAnimationFrame(MT.raf); MT.raf = requestAnimationFrame(drawPitch); } });
-showStart();
+(function boot() {
+  const q = new URLSearchParams(location.search), meta = loadMeta(), last = +localStorage.getItem('xifm-fm-last') || 0;
+  let y = +q.get('era') || (meta[last] ? eraOf(meta[last]) : 2001);
+  if (!FM.ERAS[y]) y = 2001;
+  const s = $('#start'); s.hidden = false; s.innerHTML = '<p class="D" style="font-size:22px;position:relative">載入緊球員資料…</p>';
+  loadEra(y).then(() => {
+    if (q.has('era')) history.replaceState(null, '', location.pathname);
+    if (q.get('slot')) return openSlot(+q.get('slot'));
+    if (q.get('new')) W.step = 1;
+    showStart();
+  }, e => { s.innerHTML = `<p class="bad" style="position:relative">載入資料失敗（${esc(e.message)}），請重新整理頁面。</p>`; });
+})();

@@ -31,20 +31,39 @@ function fdate(n, mode) {
 
 /* ---------- static data index (from fm/data/*.js) ---------- */
 const LG = {}, CL = {}, PS = {}, CLUBS = [];
-const PLAY_LG = ['eng1', 'eng2', 'eng3', 'eng4', 'sco1', 'esp1', 'ita1', 'ger1', 'fra1'];
+// every league the code knows, in display order; the loaded era's data decides which exist (PLAY_LG).
+// A saved game keeps its own list (G.plg); saves from before the extra leagues have none and use OLD_LG.
+const ALL_LG = ['eng1', 'eng2', 'eng3', 'eng4', 'sco1', 'esp1', 'ita1', 'ger1', 'fra1', 'ned1', 'por1', 'tur1', 'bel1'];
+const OLD_LG = ALL_LG.slice(0, 9);
+const PLAY_LG = [];
+const PLG = () => (G && G.plg) || OLD_LG;
+const GCL = () => Object.keys(G.clubs);
 const ENG = ['eng1', 'eng2', 'eng3', 'eng4'];
+let ERA = { y: 2001 };
 function shortName(full) { const p = full.split(' '); return p.length < 2 ? full : p[0][0] + '. ' + p.slice(1).join(' '); }
-for (const L of FM.leagues) {
-  LG[L.id] = L;
-  for (const c of L.clubs) {
-    const cid = L.id + '.' + c.id;
-    c.cid = cid; c.lg0 = L.id; CL[cid] = c; CLUBS.push(cid);
-    c.p.forEach((r, i) => { PS[cid + '.' + i] = { no: r[0], name: r[1], pos: r[2], nat: r[3], by: r[4], sk: r[5], sn: r[6] || shortName(r[1]) }; });
+/* Build the static index from the loaded era's data files (FM.leagues). A club entry {ref:'eur.aja'} moves an
+   existing club (keeping its player ids) into that league instead of duplicating it. */
+function indexEra(y) {
+  ERA = Object.assign({ y }, (FM.ERAS || {})[y] || {});
+  for (const o of [LG, CL, PS]) for (const k in o) delete o[k];
+  CLUBS.length = 0; PLAY_LG.length = 0;
+  for (const L of FM.leagues) {
+    LG[L.id] = L;
+    for (const c of L.clubs) {
+      if (c.ref) continue;
+      const cid = L.id + '.' + c.id;
+      c.cid = cid; c.lg0 = L.id; CL[cid] = c; CLUBS.push(cid);
+      c.p.forEach((r, i) => { PS[cid + '.' + i] = { no: r[0], name: r[1], pos: r[2], nat: r[3], by: r[4], sk: r[5], sn: r[6] || shortName(r[1]) }; });
+    }
   }
-}
-// later-season patches register their players now; they join the game at that season's rollover
-for (const [yr, patch] of Object.entries(FM.seasons || {})) {
-  for (const [ck, rows] of Object.entries(patch.clubs || {})) rows.forEach((r, i) => { PS[`s${yr}.${ck}.${i}`] = { no: r[0], name: r[1], pos: r[2], nat: r[3], by: r[4], sk: r[5], sn: r[6] || shortName(r[1]) }; });
+  for (const L of FM.leagues) for (const c of L.clubs) if (c.ref && CL[c.ref]) CL[c.ref].lg0 = L.id;
+  for (const L of FM.leagues) L.cids = L.clubs.map(c => c.ref || c.cid).filter(c => CL[c] && CL[c].lg0 === L.id);
+  PLAY_LG.push(...ALL_LG.filter(l => LG[l]));
+  // later-season patches register their players now; they join the game at that season's rollover
+  for (const [yr, patch] of Object.entries(FM.seasons || {})) {
+    if ((patch.era || 2001) !== y) continue;
+    for (const [ck, rows] of Object.entries(patch.clubs || {})) rows.forEach((r, i) => { PS[`s${yr}.${ck}.${i}`] = { no: r[0], name: r[1], pos: r[2], nat: r[3], by: r[4], sk: r[5], sn: r[6] || shortName(r[1]) }; });
+  }
 }
 const clubName = cid => cid === 'free' ? '自由球員' : CL[cid] ? CL[cid].name : cid;
 const clubShort = cid => CL[cid] ? CL[cid].short : '—';
@@ -103,9 +122,11 @@ const ps = pid => PS[pid] || G.y[pid];
 const pd = pid => G.pl[pid];
 const ageOf = pid => G.season - ps(pid).by;
 const isUser = cid => G && G.mgr.cid === cid;
-const TIERF = { eng1: 1, eng2: .7, eng3: .55, eng4: .45, sco1: .6, esp1: 1, ita1: 1.05, ger1: .95, fra1: .8, eur: .65 };
-const DEFPRICE = { eng1: 25, eng2: 17, eng3: 14, eng4: 12, sco1: 18, esp1: 22, ita1: 24, ger1: 18, fra1: 18, eur: 15 };
-const TV = { eng1: 550e3, eng2: 70e3, eng3: 25e3, eng4: 15e3, sco1: 60e3, esp1: 350e3, ita1: 420e3, ger1: 300e3, fra1: 220e3 };
+const TIERF = { eng1: 1, eng2: .7, eng3: .55, eng4: .45, sco1: .6, esp1: 1, ita1: 1.05, ger1: .95, fra1: .8, ned1: .72, por1: .68, tur1: .66, bel1: .6, eur: .65 };
+const DEFPRICE = { eng1: 25, eng2: 17, eng3: 14, eng4: 12, sco1: 18, esp1: 22, ita1: 24, ger1: 18, fra1: 18, ned1: 18, por1: 15, tur1: 15, bel1: 14, eur: 15 };
+const TV = { eng1: 550e3, eng2: 70e3, eng3: 25e3, eng4: 15e3, sco1: 60e3, esp1: 350e3, ita1: 420e3, ger1: 300e3, fra1: 220e3, ned1: 120e3, por1: 100e3, tur1: 90e3, bel1: 70e3 };
+// European places per league: [Champions League, UEFA Cup] (cup winners add more in England)
+const QSPOTS = { eng1: [4, 2], esp1: [4, 3], ita1: [4, 3], ger1: [4, 3], fra1: [3, 3], sco1: [2, 2], ned1: [2, 2], por1: [2, 2], tur1: [2, 2], bel1: [1, 2] };
 function wageFor(sk, lg) { return Math.max(150, Math.round(2500 * Math.exp(.11 * (sk - 60)) * (TIERF[lg] || .7) / 10) * 10); }
 function roundMoney(v) { return v < 1e5 ? Math.round(v / 5e3) * 5e3 : v < 1e6 ? Math.round(v / 25e3) * 25e3 : Math.round(v / 5e4) * 5e4; }
 function valueOf(pid) {
@@ -137,7 +158,7 @@ function movePlayer(pid, to) {
 }
 function squadNo(cid) { const used = new Set(roster(cid).map(p => pd(p).no)); for (let n = 1; n < 60; n++) if (!used.has(n)) return n; return 0; }
 
-/* ---------- calendar (2001/02 base; later seasons shift by 364 days to keep weekdays) ---------- */
+/* ---------- calendar (2001/02 base; every other season, earlier or later eras too, shifts by 364 days to keep weekdays) ---------- */
 const S0 = 2001, off = s => (s - S0) * 364;
 const CAL = {
   start: dn(2001, 7, 2), roll: dn(2002, 7, 1),
@@ -145,6 +166,7 @@ const CAL = {
     eng1: [dn(2001, 8, 18), dn(2002, 5, 11), 6], eng2: [dn(2001, 8, 11), dn(2002, 4, 20), 6], eng3: [dn(2001, 8, 11), dn(2002, 4, 20), 6], eng4: [dn(2001, 8, 11), dn(2002, 4, 20), 6],
     sco1: [dn(2001, 7, 28), dn(2002, 5, 11), 6], esp1: [dn(2001, 8, 25), dn(2002, 5, 11), 6], ita1: [dn(2001, 8, 26), dn(2002, 5, 5), 0],
     ger1: [dn(2001, 7, 28), dn(2002, 5, 4), 6], fra1: [dn(2001, 7, 28), dn(2002, 5, 4), 6],
+    ned1: [dn(2001, 8, 18), dn(2002, 5, 5), 0], por1: [dn(2001, 8, 18), dn(2002, 5, 12), 0], tur1: [dn(2001, 8, 11), dn(2002, 5, 19), 6], bel1: [dn(2001, 7, 28), dn(2002, 5, 12), 6],
   },
 };
 const FAC_D = [dn(2001, 11, 17), dn(2001, 12, 8), dn(2002, 1, 5), dn(2002, 1, 26), dn(2002, 2, 16), dn(2002, 3, 9), dn(2002, 4, 14), dn(2002, 5, 4)];
@@ -198,7 +220,7 @@ function resolveClashes() {
 }
 
 /* ---------- competitions ---------- */
-const CUPNAME = { fac: '足總盃', lc: '聯賽盃', cl: '歐洲冠軍聯賽', uefa: '歐洲足協盃', sco_c: '蘇格蘭盃', esp_c: '西班牙國王盃', ita_c: '意大利盃', ger_c: '德國盃', fra_c: '法國盃', po2: '英甲升級附加賽', po3: '英乙升級附加賽', po4: '英丙升級附加賽' };
+const CUPNAME = { fac: '足總盃', lc: '聯賽盃', cl: '歐洲冠軍聯賽', uefa: '歐洲足協盃', sco_c: '蘇格蘭盃', esp_c: '西班牙國王盃', ita_c: '意大利盃', ger_c: '德國盃', fra_c: '法國盃', ned_c: '荷蘭盃', por_c: '葡萄牙盃', tur_c: '土耳其盃', bel_c: '比利時盃', po2: '英甲升級附加賽', po3: '英乙升級附加賽', po4: '英丙升級附加賽' };
 const compName = id => G.comp[id]?.nm || CUPNAME[id] || LG[id]?.name || id;
 function newTab(cl) { return Object.fromEntries(cl.map(c => [c, [0, 0, 0, 0, 0, 0]])); }
 function standings(tab) {
@@ -208,7 +230,7 @@ function standings(tab) {
 function createLeague(lid, o) {
   const cl = shuffle([...G.lgm[lid]]), n = cl.length;
   let rr = roundRobin(n); rr = rr.concat(rr.map(rd => rd.map(([a, b]) => [b, a])));
-  if (lid === 'sco1') rr = rr.concat(roundRobin(n).slice(0, n - 1)); // 33 rounds, like the SPL
+  if (lid === 'sco1') rr = n <= 10 ? rr.concat(rr) : rr.concat(roundRobin(n).slice(0, n - 1)); // 10 clubs: 36 rounds (1990s); 12: 33 like the SPL
   const [st, en, wd] = CAL.lg[lid];
   const excl = new Set(ENG.includes(lid) ? FAC_D.map(d => d + o) : []);
   const dates = datesFor(st + o, en + o, wd, rr.length, excl);
@@ -229,15 +251,19 @@ function createCups(s, o) {
     { n: '第一圈', d: [D(2001, 8, 22, o)], ent: [...G.lgm.eng2, ...G.lgm.eng3, ...G.lgm.eng4] }, { n: '第二圈', d: [D(2001, 9, 12, o)], ent: e1.filter(c => !inEurope.has(c)) },
     { n: '第三圈', d: [D(2001, 10, 10, o)], ent: e1.filter(c => inEurope.has(c)) }, { n: '第四圈', d: [D(2001, 11, 28, o)] }, { n: '八強', d: [D(2001, 12, 12, o)] },
     { n: '四強', d: [D(2002, 1, 9, o), D(2002, 1, 23, o)], legs: 2 }, { n: '決賽', d: [D(2002, 2, 24, o)], neu: 1, fin: 1, ven: '千禧球場' }]);
-  const dom = (id, lid, dates, fin, ven) => createKO(id, [{ n: '第一圈', d: [dates[0]], ent: [...G.lgm[lid]] }, ...dates.slice(1).map((d, k) => ({ n: ['第二圈', '第三圈', '八強', '四強'][k] || '第' + (k + 2) + '圈', d: [d] })), { n: '決賽', d: [fin], neu: 1, fin: 1, ven }]);
+  const dom = (id, lid, dates, fin, ven) => PLG().includes(lid) && createKO(id, [{ n: '第一圈', d: [dates[0]], ent: [...G.lgm[lid]] }, ...dates.slice(1).map((d, k) => ({ n: ['第二圈', '第三圈', '八強', '四強'][k] || '第' + (k + 2) + '圈', d: [d] })), { n: '決賽', d: [fin], neu: 1, fin: 1, ven }]);
   const W = [D(2001, 10, 3, o), D(2001, 11, 7, o), D(2001, 12, 12, o), D(2002, 1, 16, o), D(2002, 2, 6, o), D(2002, 3, 20, o)];
   dom('sco_c', 'sco1', [D(2002, 1, 26, o), D(2002, 2, 23, o), D(2002, 3, 23, o)], D(2002, 5, 4, o), '漢普頓公園');
   dom('esp_c', 'esp1', [D(2001, 10, 3, o), D(2001, 11, 7, o), D(2001, 12, 5, o), D(2002, 1, 9, o), D(2002, 1, 30, o)], D(2002, 3, 6, o), '伯納烏球場');
   dom('ita_c', 'ita1', W, D(2002, 5, 9, o), '奧林匹克球場（羅馬）');
   dom('ger_c', 'ger1', W, D(2002, 5, 11, o), '柏林奧林匹克球場');
   dom('fra_c', 'fra1', W, D(2002, 5, 11, o), '法蘭西球場');
+  dom('ned_c', 'ned1', W, D(2002, 5, 12, o), '飛燕諾球場');
+  dom('por_c', 'por1', W, D(2002, 5, 12, o), '國家球場（里斯本）');
+  dom('tur_c', 'tur1', W, D(2002, 5, 15, o), '阿塔圖爾克奧林匹克球場');
+  dom('bel_c', 'bel1', W, D(2002, 5, 12, o), '博杜安國王球場');
 }
-// the real 2001/02 Champions League groups (first group stage)
+// the real 2001/02 Champions League groups (first group stage); other eras may give ERA.cl / ERA.ueEng in fm/eras.js
 const CL01 = [['Roma', 'Real Madrid', 'Lokomotiv', 'Anderlecht'], ['Liverpool', 'Boavista', 'Dynamo Kyiv', 'Dortmund'], ['Panathinaikos', 'Arsenal', 'Mallorca', 'Schalke'], ['Nantes', 'Galatasaray', 'PSV', 'Lazio'], ['Celtic', 'Juventus', 'Porto', 'Rosenborg'], ['Barcelona', 'Leverkusen', 'Lyon', 'Fenerbah'], ['Deportivo', 'Manchester United', 'Lille', 'Olympiacos'], ['Bayern', 'Sparta', 'Feyenoord', 'Spartak']];
 const UEFA_ENG01 = ['Chelsea', 'Ipswich', 'Leeds', 'Aston Villa'];
 function findClub(q, pool) { pool = pool || CLUBS; const ql = q.toLowerCase(); return pool.find(c => CL[c].name.toLowerCase() === ql) || pool.find(c => CL[c].name.toLowerCase().includes(ql)); }
@@ -245,26 +271,29 @@ const byRep = a => [...a].sort((x, y) => G.clubs[y].rep - G.clubs[x].rep);
 function createEurope(s, o) {
   let clT, ueT;
   const eur = byRep(G.lgm.eur || []);
-  if (s === S0 || !G.qual) {
-    const grp = CL01.map(g => g.map(n => findClub(n)).filter(Boolean));
+  const realCL = !G.qual && (ERA.cl || (ERA.y === 2001 ? CL01 : null));
+  if (realCL) {
+    const grp = realCL.map(g => g.map(n => findClub(n, GCL())).filter(Boolean));
     const used = new Set(grp.flat());
     // fill gaps if any club is missing from the data
-    const fill = byRep(CLUBS.filter(c => !used.has(c)));
+    const fill = byRep(GCL().filter(c => !used.has(c)));
     grp.forEach(g => { while (g.length < 4) { const c = fill.shift(); g.push(c); used.add(c); } });
     clT = grp;
-    const eng = UEFA_ENG01.map(n => findClub(n, G.lgm.eng1)).filter(c => c && !used.has(c));
-    const per = l => byRep(G.lgm[l]).filter(c => !used.has(c));
-    ueT = [...eng, ...per('esp1').slice(0, 4), ...per('ita1').slice(0, 4), ...per('ger1').slice(0, 4), ...per('fra1').slice(0, 3), ...per('sco1').slice(0, 2), ...eur.filter(c => !used.has(c))];
+    const eng = (ERA.ueEng || (ERA.y === 2001 ? UEFA_ENG01 : [])).map(n => findClub(n, G.lgm.eng1)).filter(c => c && !used.has(c));
+    const per = l => G.lgm[l] ? byRep(G.lgm[l]).filter(c => !used.has(c)) : [];
+    ueT = [...(eng.length ? eng : per('eng1').slice(0, 4)), ...per('esp1').slice(0, 4), ...per('ita1').slice(0, 4), ...per('ger1').slice(0, 4), ...per('fra1').slice(0, 3), ...per('sco1').slice(0, 2), ...['ned1', 'por1', 'tur1', 'bel1'].flatMap(l => per(l).slice(0, 2)), ...eur.filter(c => !used.has(c))];
   } else {
-    const q = G.qual, cl = [...q.cl], used = new Set(cl);
+    // later seasons: last season's qualifiers; an era's first season without real groups: by reputation
+    const q = G.qual || { cl: PLG().flatMap(l => QSPOTS[l] ? byRep(G.lgm[l]).slice(0, QSPOTS[l][0]) : []), uefa: PLG().flatMap(l => QSPOTS[l] ? byRep(G.lgm[l]).slice(QSPOTS[l][0], QSPOTS[l][0] + QSPOTS[l][1] + 1) : []) };
+    const cl = [...q.cl], used = new Set(cl);
     for (const c of eur) if (cl.length < 32 && !used.has(c)) { cl.push(c); used.add(c); }
-    for (const c of byRep(CLUBS)) if (cl.length < 32 && !used.has(c)) { cl.push(c); used.add(c); }
-    clT = drawGroups(cl);
+    for (const c of byRep(GCL())) if (cl.length < 32 && !used.has(c)) { cl.push(c); used.add(c); }
+    clT = drawGroups(cl.slice(0, 32));
     ueT = q.uefa.filter(c => !used.has(c)); ueT.forEach(c => used.add(c));
     for (const c of eur) if (!used.has(c)) { ueT.push(c); used.add(c); }
   }
   const usedAll = new Set([...clT.flat(), ...ueT]);
-  for (const c of byRep(CLUBS)) { if (ueT.length >= 32) break; if (!usedAll.has(c)) { ueT.push(c); usedAll.add(c); } }
+  for (const c of byRep(GCL())) { if (ueT.length >= 32) break; if (!usedAll.has(c)) { ueT.push(c); usedAll.add(c); } }
   ueT = ueT.slice(0, 32);
   // Champions League: 8 groups of 4, then two-legged knockout
   const gd = [D(2001, 9, 12, o), D(2001, 9, 19, o), D(2001, 9, 26, o), D(2001, 10, 17, o), D(2001, 10, 24, o), D(2001, 10, 31, o)];
@@ -356,7 +385,9 @@ function mkYouth(cid, pos, sk) {
 }
 function newPl(cid, sk, ct, no) { return { c: cid, no, sk, cond: 100, fm: [], inj: 0, injn: '', sus: 0, w: wageFor(sk, CL[cid] ? G.clubs[cid]?.lg || CL[cid].lg0 : 'eng3'), ct, list: 0, s: newStats() }; }
 function fillYouth(cid, min, gap = 4) {
-  const ros = roster(cid), avg = ros.length ? sum(ros.map(p => pd(p).sk)) / ros.length : 50;
+  // thinly documented clubs (fewer than 8 known players): base the level on club reputation, not on the few names we have
+  const ros = roster(cid), rs = clamp(Math.round(28 + (G.clubs[cid]?.rep ?? CL[cid].rep) * .6), 40, 76);
+  const avg = ros.length >= 8 ? sum(ros.map(p => pd(p).sk)) / ros.length : (sum(ros.map(p => pd(p).sk)) + (8 - ros.length) * rs) / 8;
   const cnt = { G: 0, D: 0, M: 0, A: 0 }; ros.forEach(p => cnt[lineOf(ps(p).pos)]++);
   const POSBY = { G: ['GK'], D: ['CD', 'CD', 'RB', 'LB'], M: ['CM', 'RM', 'LM', 'CM', 'DM'], A: ['ST'] };
   let guard = 0;
@@ -415,7 +446,7 @@ function attendance(cid, oppCid, comp) {
 function weekly() {
   const wage = {};
   for (const pid in G.pl) { const d = G.pl[pid]; if (G.clubs[d.c]) wage[d.c] = (wage[d.c] || 0) + d.w; }
-  for (const cid of CLUBS) {
+  for (const cid of GCL()) {
     const c = G.clubs[cid]; c.fin.w = {};
     fin(cid, 'wage', -(wage[cid] || 0));
     fin(cid, 'staff', -Math.round(sum(Object.values(c.st).map(l => l * l)) * 350 * (TIERF[c.lg] || .7)));
@@ -455,7 +486,7 @@ function wageDemand(pid, buyer) {
 }
 function refusesMove(pid, buyer) {
   const d = pd(pid); if (d.c === 'free') return false;
-  const tierOf = cid => ({ eng1: 1, eng2: 2, eng3: 3, eng4: 4, sco1: 2, esp1: 1, ita1: 1, ger1: 1, fra1: 1, eur: 2 }[G.clubs[cid].lg] || 2);
+  const tierOf = cid => ({ eng1: 1, eng2: 2, eng3: 3, eng4: 4, sco1: 2, esp1: 1, ita1: 1, ger1: 1, fra1: 1, ned1: 2, por1: 2, tur1: 2, bel1: 2, eur: 2 }[G.clubs[cid].lg] || 2);
   return d.sk >= 76 && tierOf(buyer) - tierOf(d.c) >= 2;
 }
 // AI market
@@ -474,7 +505,7 @@ function lineAvg(cid) {
   return { G: top(by.G, 1), D: top(by.D, 4), M: top(by.M, 4), A: top(by.A, 2) };
 }
 function aiBuy() {
-  const buyers = CLUBS.filter(c => !isUser(c) && G.clubs[c].lg !== 'eur' && G.clubs[c].cash > 4e5);
+  const buyers = GCL().filter(c => !isUser(c) && G.clubs[c].lg !== 'eur' && G.clubs[c].cash > 4e5);
   if (!buyers.length) return;
   const buyer = wpick(buyers, buyers.map(c => Math.sqrt(G.clubs[c].cash)));
   const b = G.clubs[buyer], la = lineAvg(buyer), ovr = (la.G + la.D * 4 + la.M * 4 + la.A * 2) / 11;
@@ -493,14 +524,14 @@ function aiBuy() {
 }
 function aiFree() {
   const fa = roster('free'); if (!fa.length) return;
-  const short = CLUBS.filter(c => !isUser(c) && G.clubs[c].lg !== 'eur' && roster(c).length < 21);
+  const short = GCL().filter(c => !isUser(c) && G.clubs[c].lg !== 'eur' && roster(c).length < 21);
   if (!short.length) return;
   const cid = pick(short), la = lineAvg(cid), ovr = (la.D + la.M + la.A) / 3;
   const cand = fa.filter(p => pd(p).sk <= ovr + 4 && pd(p).sk >= ovr - 10).sort((a, b) => pd(b).sk - pd(a).sk)[0];
   if (cand) transfer(cand, cid, 0);
 }
 function aiTrim() {
-  const fat = CLUBS.filter(c => !isUser(c) && roster(c).length > 32);
+  const fat = GCL().filter(c => !isUser(c) && roster(c).length > 32);
   if (!fat.length) return;
   const cid = pick(fat), worst = [...roster(cid)].sort((a, b) => pd(a).sk - pd(b).sk)[0];
   movePlayer(worst, 'free');
@@ -514,7 +545,7 @@ function aiOffers() {
     const p = d.list ? .12 : top.includes(pid) ? .006 : .0015;
     if (R() > p || G.off.some(o => o.pid === pid)) continue;
     const fee0 = valueOf(pid);
-    const buyers = CLUBS.filter(c => c !== me && G.clubs[c].lg !== 'eur' && G.clubs[c].cash > fee0 * .8 && Math.abs(G.clubs[c].rep - G.clubs[me].rep) < 30 && lineAvg(c)[lineOf(ps(pid).pos)] < d.sk + 3);
+    const buyers = GCL().filter(c => c !== me && G.clubs[c].lg !== 'eur' && G.clubs[c].cash > fee0 * .8 && Math.abs(G.clubs[c].rep - G.clubs[me].rep) < 30 && lineAvg(c)[lineOf(ps(pid).pos)] < d.sk + 3);
     if (!buyers.length) continue;
     const from = pick(buyers), fee = roundMoney(fee0 * (d.list ? .7 + R() * .35 : 1.1 + R() * .4));
     const id = G.nid++;
@@ -569,7 +600,7 @@ function releasePlayer(pid) {
 
 /* ---------- scout gacha (抽卡球探) ---------- */
 const GRATES = [['UR', .6], ['SSR', 4], ['SR', 14], ['R', 33], ['C', 48.4]];
-const PULLCOST = { eng1: 5e5, eng2: 2.5e5, eng3: 1e5, eng4: 5e4, sco1: 1.5e5, esp1: 5e5, ita1: 5e5, ger1: 4e5, fra1: 3e5 };
+const PULLCOST = { eng1: 5e5, eng2: 2.5e5, eng3: 1e5, eng4: 5e4, sco1: 1.5e5, esp1: 5e5, ita1: 5e5, ger1: 4e5, fra1: 3e5, ned1: 2.5e5, por1: 2e5, tur1: 2e5, bel1: 1.5e5 };
 const pullCost = n => { const c = PULLCOST[G.clubs[G.mgr.cid].lg] || 2e5; return n === 10 ? c * 9 : c; };
 function gachaPool() {
   const me = G.mgr.cid, pool = { UR: [], SSR: [], SR: [], R: [], C: [] };
@@ -604,13 +635,13 @@ function gachaPull(n) {
 function setupSeason(s) {
   G.season = s; const o = off(s);
   G.fx = []; G.comp = {}; FXD = new Map();
-  for (const cid of CLUBS) { const c = G.clubs[cid]; c.fin.s = {}; }
+  for (const cid of GCL()) { const c = G.clubs[cid]; c.fin.s = {}; }
   createEurope(s, o);
-  for (const lid of PLAY_LG) createLeague(lid, o);
+  for (const lid of PLG()) createLeague(lid, o);
   createCups(s, o);
   resolveClashes();
-  for (const lid of PLAY_LG) byRep(G.lgm[lid]).forEach((c, i) => { G.clubs[c].exp = i + 1; });
-  for (const cid of CLUBS) if (!isUser(cid)) autoPick(cid);
+  for (const lid of PLG()) byRep(G.lgm[lid]).forEach((c, i) => { G.clubs[c].exp = i + 1; });
+  for (const cid of GCL()) if (!isUser(cid)) autoPick(cid);
   const me = G.mgr.cid;
   if (me) {
     const c = G.clubs[me], n = G.lgm[c.lg].length;
@@ -641,24 +672,25 @@ function leagueFinished(comp) {
 function rollover() {
   const s = G.season, me = G.mgr.cid;
   // league prize money & board review
-  for (const lid of PLAY_LG) {
+  for (const lid of PLG()) {
     const comp = G.comp[lid]; if (!comp.fin) comp.fin = standings(comp.tab).map(x => x.c);
     const n = comp.fin.length;
     comp.fin.forEach((cid, i) => fin(cid, 'prize', Math.round((n - i) * 5.5e5 * (TIERF[lid] || .7) ** 2)));
   }
   // awards
   const aw = [];
-  for (const lid of PLAY_LG) {
+  for (const lid of PLG()) {
     const pl = G.lgm[lid].flatMap(c => roster(c));
     const ts = pl.sort((a, b) => pd(b).s.gl - pd(a).s.gl)[0];
     const bp = pl.filter(p => pd(p).s.ap >= 15).sort((a, b) => pd(b).s.rt / pd(b).s.ap - pd(a).s.rt / pd(a).s.ap)[0];
     aw.push({ lg: lid, top: ts && [ts, pd(ts).s.gl, pd(ts).c], best: bp && [bp, +(pd(bp).s.rt / pd(bp).s.ap).toFixed(2), pd(bp).c] });
   }
-  G.hist.push({ s, champs: Object.fromEntries(PLAY_LG.map(l => [l, G.comp[l].fin[0]])), cups: Object.fromEntries(Object.values(G.comp).filter(c => c.t !== 'L').map(c => [c.id, c.win])), aw, me: me && { cid: me, lg: G.clubs[me].lg, pos: G.comp[G.clubs[me].lg].fin.indexOf(me) + 1 } });
+  G.hist.push({ s, champs: Object.fromEntries(PLG().map(l => [l, G.comp[l].fin[0]])), cups: Object.fromEntries(Object.values(G.comp).filter(c => c.t !== 'L').map(c => [c.id, c.win])), aw, me: me && { cid: me, lg: G.clubs[me].lg, pos: G.comp[G.clubs[me].lg].fin.indexOf(me) + 1 } });
   // qualification for next season's Europe
   const top = (l, a, b) => G.comp[l].fin.slice(a, b);
-  const cl = [...top('eng1', 0, 4), ...top('esp1', 0, 4), ...top('ita1', 0, 4), ...top('ger1', 0, 4), ...top('fra1', 0, 3), ...top('sco1', 0, 2)];
-  const ue = [...top('eng1', 4, 6), G.comp.fac.win, G.comp.lc.win, ...top('esp1', 4, 7), ...top('ita1', 4, 7), ...top('ger1', 4, 7), ...top('fra1', 3, 6), ...top('sco1', 2, 4)].filter(c => c && !cl.includes(c) && G.clubs[c].lg !== 'eng2' || (c && G.lgm.eng1.includes(c) && !cl.includes(c)));
+  const ql = PLG().filter(l => QSPOTS[l]);
+  const cl = ql.flatMap(l => top(l, 0, QSPOTS[l][0]));
+  const ue = [...top('eng1', 4, 6), G.comp.fac.win, G.comp.lc.win, ...ql.filter(l => l !== 'eng1').flatMap(l => top(l, QSPOTS[l][0], QSPOTS[l][0] + QSPOTS[l][1]))].filter(c => c && !cl.includes(c) && G.clubs[c].lg !== 'eng2' || (c && G.lgm.eng1.includes(c) && !cl.includes(c)));
   G.qual = { cl, uefa: [...new Set(ue)] };
   // board verdict
   if (me) {
@@ -694,10 +726,10 @@ function rollover() {
     d.s = newStats(); d.fm = []; d.cond = 100; d.sus = 0;
   }
   // new real players for the new season, if a data patch exists
-  const patch = FM.seasons?.[ns];
+  const patch = FM.seasons?.[ns] && (FM.seasons[ns].era || 2001) === (G.era || 2001) ? FM.seasons[ns] : null;
   if (patch) for (const [ck, rows] of Object.entries(patch.clubs || {})) rows.forEach((r, i) => { const pid = `s${ns}.${ck}.${i}`; const cid = G.clubs[ck] ? ck : 'free'; G.pl[pid] = newPl(cid, r[5], ns + ri(1, 4), r[0]); (ROS[cid] = ROS[cid] || []).push(pid); });
   // youth intake
-  for (const cid of CLUBS) { if (!isUser(cid)) { for (let k = 0; k < ri(0, 2); k++) mkYouth(cid, pick(['CD', 'CM', 'ST', 'RM', 'LB', 'GK']), clamp(Math.round(lineAvg(cid).M - 14 + ri(-3, 4)), 32, 70)); } fillYouth(cid, isUser(cid) ? 16 : 20, 10); }
+  for (const cid of GCL()) { if (!isUser(cid)) { for (let k = 0; k < ri(0, 2); k++) mkYouth(cid, pick(['CD', 'CM', 'ST', 'RM', 'LB', 'GK']), clamp(Math.round(lineAvg(cid).M - 14 + ri(-3, 4)), 32, 70)); } fillYouth(cid, isUser(cid) ? 16 : 20, 10); }
   ALLP = null;
   G.off = [];
   setupSeason(ns);
@@ -713,7 +745,7 @@ function sackManager(why) {
 }
 function jobOffers(n) {
   const r = G.mgr.rep, me = G.mgr.cid;
-  const cand = shuffle(CLUBS.filter(c => c !== me && G.clubs[c].lg !== 'eur' && G.clubs[c].rep <= r + 18 && G.clubs[c].rep >= r - 30));
+  const cand = shuffle(GCL().filter(c => c !== me && G.clubs[c].lg !== 'eur' && G.clubs[c].rep <= r + 18 && G.clubs[c].rep >= r - 30));
   G.jobs = cand.slice(0, me ? (R() < .5 ? 1 : 0) : n).map(c => ({ c, exp: G.day + 30 }));
   if (G.jobs.length) mail('工作邀請', G.jobs.map(j => esc(clubName(j.c))).join('、') + ' 想請你做領隊，可以喺「董事局」頁面考慮。');
 }
@@ -728,21 +760,22 @@ function takeJob(cid) {
 
 /* ---------- new game ---------- */
 function newGame(name, cid, slot) {
-  G = { v: 1, slot, mgr: { name, cid, rep: clamp(CL[cid].rep - 5, 20, 80) }, season: S0, day: CAL.start, inf: false, clubs: {}, pl: {}, y: {}, comp: {}, fx: [], nfx: 1, nid: 1, mail: [], news: [], off: [], tlog: [], hist: [], trophies: [], jobs: [], lgm: null, qual: null, stats: { pulls: 0 } };
-  G.lgm = Object.fromEntries(Object.values(LG).map(L => [L.id, L.clubs.map(c => c.cid)]));
+  const s0 = ERA.y;
+  G = { v: 2, era: s0, plg: [...PLAY_LG], slot, mgr: { name, cid, rep: clamp(CL[cid].rep - 5, 20, 80) }, season: s0, day: CAL.start + off(s0), inf: false, clubs: {}, pl: {}, y: {}, comp: {}, fx: [], nfx: 1, nid: 1, mail: [], news: [], off: [], tlog: [], hist: [], trophies: [], jobs: [], lgm: null, qual: null, stats: { pulls: 0 } };
+  G.lgm = Object.fromEntries(Object.values(LG).map(L => [L.id, [...L.cids]]));
   for (const id of CLUBS) {
     const c = CL[id];
     G.clubs[id] = { lg: c.lg0, cash: Math.round(c.bank * 1e6), cap: c.cap, price: DEFPRICE[c.lg0] || 18, rep: c.rep, form: aiForm(id), sty: { ment: 1, pass: 1, tempo: 1, mark: 0, trap: 0 }, xi: [], sb: [], ord: {}, tr: { int: 1, foc: 'bal' }, st: { coach: 2, physio: 2, scout: 1 }, conf: 65, exp: 10, build: null, fin: { w: {}, s: {} } };
   }
   for (const pid in PS) {
     if (/^s\d{4}\./.test(pid)) continue;
-    const p = PS[pid], c = pid.split('.').slice(0, 2).join('.'), a = S0 - p.by;
-    G.pl[pid] = newPl(c, p.sk, S0 + ri(1, a < 24 ? 5 : a < 30 ? 4 : 2), p.no);
+    const p = PS[pid], c = pid.split('.').slice(0, 2).join('.'), a = s0 - p.by;
+    G.pl[pid] = newPl(c, p.sk, s0 + ri(1, a < 24 ? 5 : a < 30 ? 4 : 2), p.no);
   }
   reindex();
   for (const cid of CLUBS) fillYouth(cid, 18);
   for (const cid of CLUBS) { const used = new Set(); for (const p of roster(cid)) { const d = pd(p); if (!d.no || used.has(d.no)) d.no = 0; used.add(d.no); } for (const p of roster(cid)) if (!pd(p).no) pd(p).no = squadNo(cid); }
-  setupSeason(S0);
+  setupSeason(s0);
   autoPick(cid);
   mail('歡迎嚟到 ' + clubName(cid), `${esc(name)}，董事局歡迎你出任 <b>${esc(clubName(cid))}</b> 領隊。<br>撳右上角「下一日」推進日子；有比賽嘅日子會自動入比賽畫面。季前可以先去「球員搜尋」或者「球探抽卡」補強。`);
 }
@@ -759,7 +792,7 @@ function nextDay() {
   const d = G.day;
   // recovery & injuries
   const rec = {};
-  for (const cid of CLUBS) { const c = G.clubs[cid]; rec[cid] = [7, 6, 4.5][c.tr.int] + c.st.physio * .4; }
+  for (const cid of GCL()) { const c = G.clubs[cid]; rec[cid] = [7, 6, 4.5][c.tr.int] + c.st.physio * .4; }
   for (const pid in G.pl) {
     const p = G.pl[pid]; if (p.c === 'ret') continue;
     p.cond = Math.min(100, p.cond + (rec[p.c] || 7));
@@ -775,7 +808,7 @@ function nextDay() {
   if (d >= CAL.roll + off(G.season)) rollover();
 }
 function training() {
-  for (const cid of CLUBS) {
+  for (const cid of GCL()) {
     const c = G.clubs[cid], g = [.55, 1, 1.4][c.tr.int] * (.7 + c.st.coach * .15);
     for (const pid of roster(cid)) {
       const d = pd(pid), a = ageOf(pid);
@@ -862,11 +895,14 @@ function unpack(str) {
   G = g; reindex(); reindexFx(); ALLP = null;
 }
 function saveGame() {
-  try { localStorage.setItem(SKEY(G.slot), pack()); const m = loadMeta(); m[G.slot] = { mgr: G.mgr.name, cid: G.mgr.cid, day: G.day, season: G.season }; localStorage.setItem('xifm-fm-meta', JSON.stringify(m)); return true; }
+  try { localStorage.setItem(SKEY(G.slot), pack()); const m = loadMeta(); m[G.slot] = { mgr: G.mgr.name, cid: G.mgr.cid, cn: G.mgr.cid ? clubName(G.mgr.cid) : '', era: G.era || 2001, day: G.day, season: G.season }; localStorage.setItem('xifm-fm-meta', JSON.stringify(m)); return true; }
   catch (e) { return false; }
 }
 function loadMeta() { try { return JSON.parse(localStorage.getItem('xifm-fm-meta')) || {}; } catch (e) { return {}; } }
 function loadGame(slot) { try { const s = localStorage.getItem(SKEY(slot)); if (!s) return false; unpack(s); G.slot = slot; return true; } catch (e) { return false; } }
 function deleteSave(slot) { try { localStorage.removeItem(SKEY(slot)); const m = loadMeta(); delete m[slot]; localStorage.setItem('xifm-fm-meta', JSON.stringify(m)); } catch (e) { } }
+
+// data already present (headless tools bundle it before core): index it now; the page loads an era later and calls indexEra itself
+if (FM.leagues.length) indexEra(FM.era || 2001);
 
 if (typeof module !== 'undefined') module.exports = { get G() { return G; } };
