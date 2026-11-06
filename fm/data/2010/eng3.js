@@ -45,7 +45,7 @@ FM.addLeague({
      col:["#DA291C","#000000"], rep:46, bank:1,
      p:[
        [9,"Brett Pitman","ST","ENG",1988,60],
-       [7,"Marc Pugh","LM","ENG",1987,58],
+       [7,"Marc Pugh","LW","ENG",1987,58],
        [34,"Danny Ings","ST","ENG",1992,52],
      ]},
     {id:"ley", name:"Leyton Orient", short:"LEY", country:"ENG", stadium:"Brisbane Road", cap:13842,

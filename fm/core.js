@@ -80,14 +80,15 @@ const LINE = { GK: 'G', RB: 'D', LB: 'D', CD: 'D', RWB: 'D', LWB: 'D', DM: 'M', 
 const lineOf = p => LINE[p] || 'M';
 // in a match a wing-back slot counts towards midfield (a 3-5-2 stays a 3-5-2); the player's own group (search, youth, squad needs) stays defence
 const slotLine = s => s === 'RWB' || s === 'LWB' ? 'M' : lineOf(s);
+// twin positions (ST/CF, RM/RW, LM/LW, RB/RWB, LB/LWB) are the same job: no penalty either way
 const NEARP = {
-  RB: { RWB: .95, LB: .9, LWB: .86, RM: .86, CD: .85 }, LB: { LWB: .95, RB: .9, RWB: .86, LM: .86, CD: .85 },
-  RWB: { RB: .95, RM: .9, LWB: .9, LB: .86, RW: .84 }, LWB: { LB: .95, LM: .9, RWB: .9, RB: .86, LW: .84 },
+  RB: { RWB: 1, LB: .9, LWB: .86, RM: .86, CD: .85 }, LB: { LWB: 1, RB: .9, RWB: .86, LM: .86, CD: .85 },
+  RWB: { RB: 1, RM: .9, LWB: .9, LB: .86, RW: .84 }, LWB: { LB: 1, LM: .9, RWB: .9, RB: .86, LW: .84 },
   CD: { DM: .88, RB: .84, LB: .84 }, DM: { CM: .95, CD: .86 }, CM: { DM: .95, AM: .92, RM: .88, LM: .88 },
-  RM: { RW: .95, LM: .9, RWB: .88, AM: .86, CM: .88, RB: .85, LW: .85 }, LM: { LW: .95, RM: .9, LWB: .88, AM: .86, CM: .88, LB: .85, RW: .85 },
+  RM: { RW: 1, LM: .9, RWB: .88, AM: .86, CM: .88, RB: .85, LW: .85 }, LM: { LW: 1, RM: .9, LWB: .88, AM: .86, CM: .88, LB: .85, RW: .85 },
   AM: { CF: .93, CM: .9, ST: .9, RM: .87, LM: .87, RW: .86, LW: .86 },
-  RW: { RM: .95, LW: .9, ST: .86, CF: .86, AM: .86, LM: .85, RWB: .8 }, LW: { LM: .95, RW: .9, ST: .86, CF: .86, AM: .86, RM: .85, LWB: .8 },
-  CF: { ST: .96, AM: .92, RW: .86, LW: .86 }, ST: { CF: .95, AM: .9, RW: .86, LW: .86 },
+  RW: { RM: 1, LW: .9, ST: .86, CF: .86, AM: .86, LM: .85, RWB: .8 }, LW: { LM: 1, RW: .9, ST: .86, CF: .86, AM: .86, RM: .85, LWB: .8 },
+  CF: { ST: 1, AM: .92, RW: .86, LW: .86 }, ST: { CF: 1, AM: .9, RW: .86, LW: .86 },
 };
 function fitPos(nat, slot) {
   if (nat === slot) return 1;

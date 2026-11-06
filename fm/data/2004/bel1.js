@@ -28,7 +28,7 @@ FM.addLeague({
        [15,"Besnik Hasi","CM","ALB",1971,72],
        [10,"Walter Baseggio","CM","BEL",1978,76],
        [21,"Pär Zetterberg","AM","SWE",1970,74],
-       [17,"Christian Wilhelmsson","RM","SWE",1979,76],
+       [17,"Christian Wilhelmsson","RW","SWE",1979,76],
        [8,"Nenad Jestrović","ST","SCG",1976,74],
        [9,"Mbo Mpenza","ST","BEL",1976,76],
      ]},
@@ -36,7 +36,7 @@ FM.addLeague({
      col:["#E2001A","#FFFFFF"], rep:72, bank:3,
      p:[
        [0,"Oguchi Onyewu","CD","USA",1982,76],
-       [0,"Sérgio Conceição","RM","POR",1974,74],
+       [0,"Sérgio Conceição","RW","POR",1974,74],
      ]},
     {id:"gnk", name:"Genk", short:"GNK", country:"BEL", stadium:"Fenixstadion", cap:22989,
      col:["#0060A9","#FFFFFF"], rep:66, bank:2,

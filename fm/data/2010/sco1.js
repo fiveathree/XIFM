@@ -11,7 +11,7 @@ FM.addLeague({
        [5,"Sasa Papac","LB","BIH",1980,72],
        [8,"Steven Davis","CM","NIR",1985,78],
        [7,"Maurice Edu","CM","USA",1986,72],
-       [20,"Vladimír Weiss","LM","SVK",1989,72],
+       [20,"Vladimír Weiss","LW","SVK",1989,72],
        [9,"Kenny Miller","ST","SCO",1979,76],
        [18,"Nikica Jelavić","ST","CRO",1985,78],
        [14,"Steven Naismith","ST","SCO",1986,74],

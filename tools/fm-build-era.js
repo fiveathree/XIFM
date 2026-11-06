@@ -60,10 +60,10 @@ for (const l of leagues) for (const c of l.clubs) if (c.country === 'EUR') err(0
 if (errs) { console.log(`${errs} error(s); nothing written`); process.exit(1); }
 const dir = path.join('fm/data', String(era)); fs.mkdirSync(dir, { recursive: true });
 // keep squad numbers already in the built files (filled by tools/fm-shirt-numbers.js) — keyed by club name + player name
-const oldNo = new Map();
-global.FM = { addLeague(L) { for (const c of L.clubs) for (const p of c.p || []) if (p[0]) oldNo.set(c.name + '|' + p[1], p[0]); } };
+const oldNo = new Map(), oldPos = new Map(), NEWPOS = new Set(['RW', 'LW', 'RWB', 'LWB', 'CF']);   // positions set by tools/fm-positions.js are kept too
+global.FM = { addLeague(L) { for (const c of L.clubs) for (const p of c.p || []) { if (p[0]) oldNo.set(c.name + '|' + p[1], p[0]); if (NEWPOS.has(p[2])) oldPos.set(p[1], p[2]); } } };
 for (const l of leagues) { const p = path.resolve(dir, l.id + '.js'); if (fs.existsSync(p)) { delete require.cache[p]; require(p); } }
-for (const l of leagues) for (const c of l.clubs) for (const p of c.p) p[0] = oldNo.get(c.name + '|' + p[1]) || 0;
+for (const l of leagues) for (const c of l.clubs) for (const p of c.p) { p[0] = oldNo.get(c.name + '|' + p[1]) || 0; if (oldPos.has(p[1]) && !NEWPOS.has(p[2])) p[2] = oldPos.get(p[1]); }
 const q = s => JSON.stringify(s);
 for (const l of leagues) {
   const out = `FM.addLeague({\n  id:${q(l.id)}, country:${q(l.country)}, name:${q(l.name)}, ename:${q(l.ename)}, tier:${l.tier},\n  clubs:[\n` +

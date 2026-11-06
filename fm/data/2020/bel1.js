@@ -13,7 +13,7 @@ FM.addLeague({
        [20,"Hans Vanaken","CM","BEL",1992,80],
        [25,"Ruud Vormer","CM","NED",1988,76],
        [90,"Charles De Ketelaere","CM","BEL",2001,74],
-       [10,"Noa Lang","RM","NED",1999,77],
+       [10,"Noa Lang","RW","NED",1999,77],
        [42,"Emmanuel Bonaventure Dennis","ST","NGA",1997,75],
        [29,"Bas Dost","ST","NED",1989,76],
      ]},

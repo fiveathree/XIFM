@@ -26,8 +26,8 @@ FM.addLeague({
        [2,"Ashley Williams","CD","WAL",1984,74],
        [37,"Leon Britton","CM","ENG",1982,70],
        [24,"Joe Allen","CM","WAL",1990,70],
-       [12,"Nathan Dyer","RM","ENG",1987,70],
-       [21,"Scott Sinclair","RM","ENG",1989,74],
+       [12,"Nathan Dyer","RW","ENG",1987,70],
+       [21,"Scott Sinclair","RW","ENG",1989,74],
      ]},
     {id:"car", name:"Cardiff City", short:"CAR", country:"WAL", stadium:"Cardiff City Stadium", cap:26828,
      col:["#0060A9","#FFFFFF"], rep:60, bank:3,
@@ -114,7 +114,7 @@ FM.addLeague({
     {id:"por", name:"Portsmouth", short:"POR", country:"ENG", stadium:"Fratton Park", cap:19179,
      col:["#001489","#FFFFFF"], rep:56, bank:1,
      p:[
-       [7,"Liam Lawrence","RM","IRL",1981,66],
+       [7,"Liam Lawrence","RW","IRL",1981,66],
        [10,"David Nugent","ST","ENG",1985,66],
      ]},
     {id:"bar", name:"Barnsley", short:"BAR", country:"ENG", stadium:"Oakwell", cap:23009,
@@ -135,7 +135,7 @@ FM.addLeague({
     {id:"cry", name:"Crystal Palace", short:"CRY", country:"ENG", stadium:"Selhurst Park", cap:26309,
      col:["#1B458F","#C4122E"], rep:54, bank:1,
      p:[
-       [2,"Nathaniel Clyne","RB","ENG",1991,66],
+       [2,"Nathaniel Clyne","RWB","ENG",1991,66],
        [16,"Wilfried Zaha","AM","CIV",1992,60],
      ]},
     {id:"don", name:"Doncaster Rovers", short:"DON", country:"ENG", stadium:"Keepmoat Stadium", cap:15231,

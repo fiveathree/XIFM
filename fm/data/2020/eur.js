@@ -140,7 +140,7 @@ FM.addLeague({
      col:["#FFFFFF","#0060A9"], rep:60, bank:5,
      p:[
        [21,"Karl-Johan Johnsson","GK","SWE",1990,72],
-       [23,"Jonas Wind","ST","DEN",1999,72],
+       [23,"Jonas Wind","CF","DEN",1999,72],
      ]},
     {id:"mol", name:"Molde", short:"MOL", country:"NOR", stadium:"Aker Stadion", cap:11249,
      col:["#0060A9","#FFFFFF"], rep:56, bank:3,

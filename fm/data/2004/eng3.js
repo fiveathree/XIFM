@@ -41,7 +41,7 @@ FM.addLeague({
     {id:"shw", name:"Sheffield Wednesday", short:"SHW", country:"ENG", stadium:"Hillsborough", cap:39859,
      col:["#0F3E8A","#FFFFFF"], rep:56, bank:2,
      p:[
-       [11,"Chris Brunt","LM","NIR",1984,58],
+       [11,"Chris Brunt","LW","NIR",1984,58],
        [6,"Glenn Whelan","CM","IRL",1984,58],
        [2,"Lee Bullen","CD","SCO",1971,56],
        [9,"Steve MacLean","ST","SCO",1982,60],
@@ -61,7 +61,7 @@ FM.addLeague({
      col:["#E21A23","#FFFFFF"], rep:48, bank:1,
      p:[
        [0,"Leroy Lita","ST","ENG",1984,60],
-       [0,"Scott Murray","RM","SCO",1974,60],
+       [0,"Scott Murray","RW","SCO",1974,60],
        [0,"Christian Roberts","ST","WAL",1979,58],
        [0,"Steve Phillips","GK","ENG",1978,60],
        [0,"Louis Carey","CD","SCO",1977,58],
@@ -85,7 +85,7 @@ FM.addLeague({
     {id:"don", name:"Doncaster Rovers", short:"DON", country:"ENG", stadium:"Belle Vue", cap:10593,
      col:["#E2001A","#FFFFFF"], rep:42, bank:1,
      p:[
-       [0,"Michael McIndoe","LM","SCO",1979,58],
+       [0,"Michael McIndoe","LW","SCO",1979,58],
        [0,"Leo Fortune-West","ST","ENG",1971,58],
        [0,"Paul Green","CM","ENG",1983,58],
        [0,"Andy Warrington","GK","ENG",1976,56],

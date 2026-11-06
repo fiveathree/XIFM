@@ -84,7 +84,7 @@ FM.addLeague({
     {id:"rea", name:"Reading", short:"REA", country:"ENG", stadium:"Madejski Stadium", cap:24200,
      col:["#004494","#FFFFFF"], rep:48, bank:2,
      p:[
-       [0,"Darren Caskey","CM","ENG",1974,62],
+       [3,"Darren Caskey","CM","ENG",1974,62],
      ]},
     {id:"lut", name:"Luton Town", short:"LUT", country:"ENG", stadium:"Kenilworth Road", cap:9970,
      col:["#F78F1E","#FFFFFF"], rep:44, bank:1,
