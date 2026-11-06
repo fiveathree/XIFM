@@ -4,6 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>傳奇十一人</title>
+<meta name="description" content="足球經理 × 抽卡：抽歷代球星唔同時期嘅卡，排兵佈陣、揀戰術、打聯賽同盃賽。另有 2001/02 經理生涯模式。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="傳奇十一人 XIFM">
+<meta property="og:description" content="抽歷代球星、排兵佈陣、打聯賽同盃賽；仲有 2001/02 真實球員經理生涯模式。">
+<meta property="og:image" content="https://fiveathree.github.io/XIFM/og-xifm.png">
+<meta property="og:url" content="https://fiveathree.github.io/XIFM/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://fiveathree.github.io/XIFM/og-xifm.png">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20x%3D%2210%22%20y%3D%223%22%20width%3D%2244%22%20height%3D%2258%22%20rx%3D%227%22%20fill%3D%22%230a1226%22/%3E%3Crect%20x%3D%2212.5%22%20y%3D%225.5%22%20width%3D%2239%22%20height%3D%2253%22%20rx%3D%225%22%20fill%3D%22none%22%20stroke%3D%22%23ffc94a%22%20stroke-width%3D%222.5%22/%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2222%22%20r%3D%228%22%20fill%3D%22%23ffc94a%22/%3E%3Cpath%20d%3D%22M32%2016l3.6%202.6-1.4%204.2h-4.4l-1.4-4.2z%22%20fill%3D%22%230a1226%22/%3E%3Ctext%20x%3D%2232%22%20y%3D%2251%22%20text-anchor%3D%22middle%22%20font-family%3D%22Arial%20Narrow%2CArial%2Csans-serif%22%20font-weight%3D%22900%22%20font-size%3D%2217%22%20fill%3D%22%23eef2fb%22%3EXI%3C/text%3E%3C/svg%3E">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20x%3D%2210%22%20y%3D%223%22%20width%3D%2244%22%20height%3D%2258%22%20rx%3D%227%22%20fill%3D%22%230a1226%22/%3E%3Crect%20x%3D%2212.5%22%20y%3D%225.5%22%20width%3D%2239%22%20height%3D%2253%22%20rx%3D%225%22%20fill%3D%22none%22%20stroke%3D%22%23ffc94a%22%20stroke-width%3D%222.5%22/%3E%3Ccircle%20cx%3D%2232%22%20cy%3D%2222%22%20r%3D%228%22%20fill%3D%22%23ffc94a%22/%3E%3Cpath%20d%3D%22M32%2016l3.6%202.6-1.4%204.2h-4.4l-1.4-4.2z%22%20fill%3D%22%230a1226%22/%3E%3Ctext%20x%3D%2232%22%20y%3D%2251%22%20text-anchor%3D%22middle%22%20font-family%3D%22Arial%20Narrow%2CArial%2Csans-serif%22%20font-weight%3D%22900%22%20font-size%3D%2217%22%20fill%3D%22%23eef2fb%22%3EXI%3C/text%3E%3C/svg%3E">
@@ -33,6 +41,9 @@ header{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:rg
 .logo{font-family:var(--f-disp);font-weight:800;font-size:22px;letter-spacing:.04em;line-height:1;display:flex;align-items:baseline;gap:8px}
 .logo b{color:var(--amber)}
 .logo small{font-family:var(--f-body);font-size:11px;color:var(--mute);font-weight:500;letter-spacing:.08em}
+.fmlink{margin-left:auto;font:800 13px/1 var(--f-body);color:#2a1d00;background:var(--amber);border-radius:999px;padding:6px 12px;text-decoration:none;white-space:nowrap}
+.fmlink:hover{filter:brightness(1.08)}
+.fmlink+.coins{margin-left:0}
 .coins{margin-left:auto;font-family:var(--f-disp);font-weight:700;font-size:18px;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:2px 12px 2px 8px;display:flex;align-items:center;gap:6px;font-variant-numeric:tabular-nums}
 .coin{width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff3c4,var(--amber) 55%,#a87510);box-shadow:0 0 0 1px #7a540a inset}
 nav.tabs{display:flex;gap:4px;padding-bottom:8px;overflow-x:auto}
@@ -265,6 +276,7 @@ select{background:var(--night2);border:1px solid var(--line);color:var(--chalk);
   <div class="wrap">
     <div class="hbar">
       <div class="logo">傳奇<b>XI</b><small>FOOTBALL MANAGER</small></div>
+      <a class="fmlink" href="fm.html">經理生涯 01/02 ›</a>
       <div class="coins" title="金幣"><span class="coin"></span><span id="coinv">0</span></div>
     </div>
     <nav class="tabs" role="tablist">

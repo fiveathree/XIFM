@@ -15,8 +15,9 @@ Football-manager × gacha web game. UI language is Cantonese (Traditional Chines
 | `favicon.svg` | Standalone copy of the favicon (the page embeds it inline as a data URI in `<head>`). |
 | `README.md` | Player-facing description (Cantonese). |
 | `tools/check-data.js` | Data / card-ID stability check (see below). Not loaded by the game. |
-| `fm.html`, `fm/` | **經理生涯模式 (career mode, work in progress).** Separate page and save. Start with [`fm/PLAN.md`](fm/PLAN.md): what is done, architecture, and the ordered to-do list. Data format: `fm/DATA_SPEC.md`. |
-| `tools/fm-check-data.js`, `tools/fm-sim.js`, `tools/fm-sim-season.js` | Career-mode data validator and headless season simulator. |
+| `fm.html`, `fm/` | **經理生涯模式 (career mode, XI 經理 2002).** Separate page and save (`localStorage['xifm-fm-<slot>']`). `fm.html` = CSS + shell; `fm/data/*.js` → `fm/core.js` → `fm/match.js` → `fm/ui.js` (screens). Read [`fm/PLAN.md`](fm/PLAN.md) first: architecture, UI conventions, remaining ideas. Data format: `fm/DATA_SPEC.md`. |
+| `fm/favicon.svg`, `og-fm.png`, `og-xifm.png` | Career-mode favicon; share images (1200×630) for `fm.html` and `index.html`. |
+| `tools/fm-check-data.js`, `tools/fm-sim.js`, `tools/fm-sim-season.js` | Career-mode data validator and headless season simulator: `node tools/fm-sim.js tools/fm-sim-season.js` (run from the repo root; keep goals/game ≈ 2.5–2.7 after engine changes). |
 
 No build step, no dependencies, no framework. Plain DOM + template strings. Only external resource is Google Fonts (Saira Condensed, Noto Sans TC).
 

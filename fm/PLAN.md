@@ -23,7 +23,16 @@ Legal: do **not** use EA / Premier League names, logos or crests, or real club c
 | `fm/core.js` | **Done, tested headless.** Data index, state, calendar, leagues, cups, Europe, promotion/relegation + play-offs, finances, AI transfers, user bids/contracts, gacha, season rollover, save/load. No DOM. |
 | `fm/match.js` | **Done, tested headless.** Minute-by-minute engine used for every match; supports live play (pause, subs, formation/tactic changes). |
 | `tools/fm-sim.js` + `tools/fm-sim-season.js` | Headless harness: `node tools/fm-sim.js tools/fm-sim-season.js` simulates a season and prints goals/game, top scorers, tables. |
-| `fm.html` | **Shell only:** meta tags (og:image `og-fm.png`, favicon `fm/favicon.svg` — both still to be made), full CSS for every screen, layout skeleton, script tags. Loads `fm/ui.js`, which **does not exist yet**. |
+| `fm.html` | Meta tags, full CSS for every screen (plus the ui.js additions block and phone rules), layout skeleton, script tags. |
+| `fm/ui.js` | **Done (Nov 2026).** All 24 screens below, delegated click/change/input handlers, live match view, start screen + new-game wizard. Tested at 1280×800 and 390×844: no page scroll, no overflow, no console errors. |
+| `fm/favicon.svg`, `og-fm.png` | **Done.** `index.html` has the 「經理生涯 01/02」 entry link and its own `og-xifm.png`. |
+
+**UI conventions (ui.js)** — keep these when adding screens:
+- A screen is `SCREENS.name = arg => main(html)`; nav entry in `NAVG` + title in `TITLE`; screens that need a club go in `NEEDCLUB` (unemployed managers are sent to 董事局).
+- Buttons use `data-act="x"` → `ACT.x(el)`; selects/inputs use `data-ch="x"` → `CH.x(el)`; links `data-go` / `data-pl`. Never redeclare a core/match global (`R D G step ev card goal form off fin training …`) — run the clash check in §3 Step 3.
+- Explanations go behind `info(text)` (ⓘ popover, fixed 260×150), never as long inline text. Dialogs use `modal()`; `.mbox` has a fixed height (`.sm` / default / `.tall`) so buttons and tabs never move when content changes.
+- Call `save()` (wraps `saveGame()` + remembers the last slot) after every advance and every state change.
+- Phone (≤760 px): wrap multi-panel screens in `.cols ... m-stack` (panels stack and scroll as one); give low-priority table columns class `hm`.
 
 Headless results (one full 2001/02 season, all 9 leagues, all cups): about 20 s in Node (~55 ms per game day). Season-sim numbers: 2.5 goals/game, home win 40 %, draw 25 %. Champions are plausible (Man United/Arsenal/Leeds, Real Madrid, Juventus, Bayern, Celtic/Rangers, Lyon). Top scorers reach 40–50 in all competitions, which is a little high (see §5).
 
@@ -57,9 +66,9 @@ Plain `<script>` tags, globals, no modules: `FM` registry → `fm/data/*.js` →
 
 ---
 
-## 3. To do — in this order
+## 3. Build steps (all done — kept as the screen spec)
 
-### Step 1 · `fm/ui.js` (the main job)
+### Step 1 · `fm/ui.js` ✅
 Render with template strings into `#top`, `#nav`, `#main`, `#tick`, `#modal`, `#toast` (all CSS already in `fm.html`). One delegated click handler using `data-go="screen"`, `data-pl="pid"` (opens player profile), `data-act="name"`. `go(screen,arg)` → `render()`. Call `saveGame()` after every advance and every important action.
 
 Screens (Cantonese labels; nav groups 球隊 / 轉會 / 球會 / 賽事 / 系統):
@@ -93,12 +102,13 @@ Screens (Cantonese labels; nav groups 球隊 / 轉會 / 球會 / 賽事 / 系統
     - Full time: summary, MOM, 繼續 → `playToday()` → home.
 24. **Phone** (≤760 px): CSS already switches to a drawer nav (`#nav[data-open]`, `#menuBtn`) and one column; hide low-priority table columns with class `hm`.
 
-### Step 2 · Assets & integration
+### Step 2 · Assets & integration ✅
 - `fm/favicon.svg` (shield + "XI" + 2002, navy/blue/yellow) and `og-fm.png` 1200×630 at repo root (render an HTML card with the pre-installed Playwright and screenshot it).
 - `index.html`: add an entry to the mode in the header (e.g. a "經理生涯 01/02" link to `fm.html`). `index.html` should also get an og:image (user rule).
 - Update `README.md` (Cantonese, player-facing) and the root `CLAUDE.md` (files table, link to this plan, how to run the tools).
 
-### Step 3 · Test
+### Step 3 · Test ✅ (two headless seasons: both rollovers, promotion/relegation, Europe qualification, save → load identical; browser run of every screen + a live match with subs at both sizes)
+- Global-name clash check for ui.js: `node -e "const fs=require('fs'),n=f=>new Set([...fs.readFileSync(f,'utf8').matchAll(/^(?:const|let|function|async function)\s+([$\w]+)/gm)].map(m=>m[1])),u=n('fm/ui.js'),e=new Set([...n('fm/core.js'),...n('fm/match.js'),'D','off','G']);console.log([...u].filter(x=>e.has(x)))"` must print `[]`.
 - `node tools/fm-sim.js tools/fm-sim-season.js` after any engine change; keep goals/game ≈ 2.5–2.7.
 - Headless test of two seasons including rollover, promotion, Europe qualification, save → load round trip.
 - Playwright: start a game, play one live match, make a sub, skip to full time, advance a week, open every screen at 1280×800 and 390×844; no page scroll, no console errors.
