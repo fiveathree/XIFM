@@ -14,6 +14,14 @@ const UI = { sel: null, tb: { c: 'ENG', l: 'eng1', r: null }, sr: { q: '', pos: 
 const myCid = () => G.mgr.cid;
 const myClub = () => G.clubs[G.mgr.cid];
 const seasonTxt = s => `${s}/${String(s + 1).slice(2)}`;
+// fee typed by the player: accepts 26150000, 26,150,000, £26.15m, 26.15 (millions), 750k; NaN when unreadable
+function parseFee(v) {
+  let s = String(v || '').replace(/[£,s]/g, '').toLowerCase(); if (!s) return NaN;
+  let k = 1; if (s.endsWith('m')) { k = 1e6; s = s.slice(0, -1); } else if (s.endsWith('k')) { k = 1e3; s = s.slice(0, -1); }
+  let n = +s; if (!isFinite(n) || n < 0) return NaN;
+  if (k === 1 && n > 0 && n < 1000) k = 1e6;   // a bare small number means millions
+  return Math.round(n * k);
+}
 function toast(t) { const el = $('#toast'); el.textContent = t; el.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => { el.hidden = true; }, 2600); }
 const stars = rep => { const n = clamp(Math.round(rep / 20), 1, 5); return '★'.repeat(n) + '☆'.repeat(5 - n); };
 const pan = (title, body, o = {}) => `<section class="pan ${o.cls || ''}" ${o.st ? `style="${o.st}"` : ''}><h3 class="${o.t ? 't' : ''}">${title}${o.r ? `<span class="r">${o.r}</span>` : ''}</h3><div class="pb">${body}</div></section>`;
@@ -868,7 +876,7 @@ const ACT = {
   srs: el => { const f = UI.sr, k = el.dataset.a; f.dir = f.sort === k ? -(f.dir || SRCOL[k][2]) : SRCOL[k][2]; f.sort = k; render(); },
   clubv: el => clubPanel(el.dataset.a),
   cofopen: el => cofPanel(+el.dataset.a),
-  cof: el => { const id = +el.dataset.a, ask = Math.max(0, Math.round(+$('#cofv').value || 0)); const r = counterOffer(id, ask); save(); if (r.gone) { closeModal(); toast(r.msg); render(); } else { cofPanel(id, r.msg); render(); } },
+  cof: el => { const id = +el.dataset.a, ask = parseFee($('#cofv').value); if (isNaN(ask)) return cofPanel(id, '睇唔明個價錢，請打數字，例如 26150000 或者 26.15m'); const r = counterOffer(id, ask); save(); if (r.gone) { closeModal(); toast(r.msg); render(); } else { cofPanel(id, r.msg); render(); } },
   cofacc: el => { closeModal(); toast(acceptOffer(+el.dataset.a)); save(); render(); },
   reject: el => { const id = +el.dataset.a; G.off = G.off.filter(o => o.id !== id); save(); render(); toast('已拒絕報價'); },
   unlist: el => { pd(el.dataset.a).list = 0; save(); render(); },
@@ -894,7 +902,7 @@ const ACT = {
   list: () => { const d = pd(UI.pm.pid); d.list = d.list ? 0 : 1; save(); drawPlayer(); render(); },
   release: () => { const m = releasePlayer(UI.pm.pid); save(); closeModal(); render(); toast(m); },
   renew: () => { const P = UI.pm, w = +$('#pw').value, y = +$('#py').value; P.wage = w; P.yrs = y; const r = renewContract(P.pid, w, y); P.msg = r.msg; if (r.ok) { P.step = null; save(); render(); } drawPlayer(); },
-  bid: () => { const P = UI.pm, fee = Math.max(0, Math.round(+$('#pf').value || 0)); P.fee = fee; P.n = +($('#pn')?.value || 1); P.swap = $('#psw')?.value || null; const r = userBid(P.pid, fee, P.n, P.swap); P.msg = r.msg; P.counter = r.counter; if (r.ok) { P.fee = r.fee; P.step = 'ct'; } drawPlayer(); },
+  bid: () => { const P = UI.pm, fee = $('#pf').disabled ? 0 : parseFee($('#pf').value); if (isNaN(fee)) { UI.pm.msg = '睇唔明個價錢，請打數字，例如 26150000 或者 26.15m'; return drawPlayer(); } P.fee = fee; P.n = +($('#pn')?.value || 1); P.swap = $('#psw')?.value || null; const r = userBid(P.pid, fee, P.n, P.swap); P.msg = r.msg; P.counter = r.counter; if (r.ok) { P.fee = r.fee; P.step = 'ct'; } drawPlayer(); },
   bidc: () => { const P = UI.pm, v = P.counter; $('#pf').value = v; ACT.bid(); },
   offerct: () => { const P = UI.pm, w = +$('#pw').value, y = +$('#py').value; P.wage = w; P.yrs = y; if (!G.inf && myClub().cash < Math.round(P.fee / (P.n || 1))) { P.msg = '資金唔夠'; return drawPlayer(); } if (P.swap && pd(P.swap).c !== myCid()) P.swap = null; const r = contractTalk(P.pid, w, y); P.msg = r.msg; if (r.ok) { completeSigning(P.pid, P.fee, w, y, P.n || 1, P.swap); save(); closeModal(); render(); toast(`簽入 ${ps(P.pid).sn}！`); return; } drawPlayer(); },
   // match
