@@ -1,0 +1,107 @@
+FM.addLeague({
+  id:"bel1", country:"BEL", name:"比甲", ename:"Pro League", tier:1,
+  clubs:[
+    {id:"usg", name:"Union Saint-Gilloise", short:"USG", country:"BEL", stadium:"Stade Joseph Marien", cap:9400,
+     col:["#FFD700","#0060A9"], rep:72, bank:8,
+     p:[
+       [37,"Kjell Scherpen","GK","NED",2000,74],
+       [5,"Kevin Mac Allister","CD","ARG",1997,75],
+       [16,"Christian Burgess","CD","ENG",1991,74],
+       [10,"Anouar Ait El Hadj","CM","BEL",2002,75],
+       [26,"Ross Sykes","CM","ENG",1999,72],
+       [12,"Promise David","ST","CAN",2001,75],
+       [13,"Kevin Rodríguez","ST","ECU",2000,74],
+     ]},
+    {id:"cbr", name:"Club Brugge", short:"CBR", country:"BEL", stadium:"Jan Breydel Stadium", cap:29042,
+     col:["#0071C5","#000000"], rep:78, bank:10,
+     p:[
+       [22,"Simon Mignolet","GK","BEL",1988,77],
+       [65,"Joaquin Seys","RB","BEL",2005,73],
+       [44,"Brandon Mechele","CD","BEL",1993,76],
+       [4,"Joel Ordóñez","CD","ECU",2004,77],
+       [15,"Raphael Onyedika","DM","NGA",2001,78],
+       [20,"Hans Vanaken","CM","BEL",1992,79],
+       [10,"Hugo Vetlesen","AM","NOR",2000,75],
+       [8,"Christos Tzolis","LM","GRE",2002,79],
+       [9,"Carlos Forbs","RM","POR",2004,76],
+       [7,"Nicolò Tresoldi","ST","GER",2004,73],
+     ]},
+    {id:"gnt", name:"Gent", short:"GNT", country:"BEL", stadium:"Jules Ottenstadion", cap:12500,
+     col:["#0060A9","#FFFFFF"], rep:62, bank:3,
+     p:[
+       [33,"Davy Roef","GK","BEL",1994,74],
+       [21,"Max Dean","ST","ENG",2004,72],
+     ]},
+    {id:"and", name:"Anderlecht", short:"AND", country:"BEL", stadium:"Constant Vanden Stock Stadium", cap:28063,
+     col:["#4B2D7F","#FFFFFF"], rep:72, bank:5,
+     p:[
+       [26,"Colin Coosemans","GK","BEL",1992,74],
+       [0,"Jan-Carlo Simić","CD","SRB",2005,74],
+       [10,"Yari Verschaeren","CM","BEL",2001,75],
+       [9,"Mihajlo Cvetković","AM","SRB",2002,72],
+     ]},
+    {id:"ant", name:"Antwerp", short:"ANT", country:"BEL", stadium:"Bosuilstadion", cap:16649,
+     col:["#E2001A","#FFFFFF"], rep:62, bank:4,
+     p:[
+       [18,"Vincent Janssen","ST","NED",1994,72],
+     ]},
+    {id:"gnk", name:"Genk", short:"GNK", country:"BEL", stadium:"Fenixstadion", cap:22989,
+     col:["#0060A9","#FFFFFF"], rep:68, bank:5,
+     p:[
+       [1,"Hendrik Van Crombrugge","GK","BEL",1993,74],
+       [8,"Bryan Heynen","CM","BEL",1997,75],
+       [7,"Jarne Steuckers","AM","BEL",2002,74],
+       [0,"Hyeon-gyu Oh","ST","KOR",2001,72],
+     ]},
+    {id:"mec", name:"Mechelen", short:"KVM", country:"BEL", stadium:"Achter de Kazerne", cap:13123,
+     col:["#FFD700","#E2001A"], rep:50, bank:2,
+     p:[
+       [1,"Ortwin De Wolf","GK","BEL",1997,70],
+     ]},
+    {id:"sta", name:"Standard Liège", short:"STA", country:"BEL", stadium:"Stade Maurice Dufrasne", cap:30000,
+     col:["#E2001A","#FFFFFF"], rep:60, bank:3,
+     p:[
+       [1,"Matthieu Epolo","GK","BEL",2005,72],
+     ]},
+    {id:"cha", name:"Charleroi", short:"CHA", country:"BEL", stadium:"Stade du Pays de Charleroi", cap:22000,
+     col:["#000000","#FFFFFF"], rep:52, bank:2,
+     p:[
+       [0,"Martin Delavallée","GK","BEL",2003,66],
+     ]},
+    {id:"wes", name:"Westerlo", short:"WES", country:"BEL", stadium:"Het Kuipje", cap:8035,
+     col:["#FFD700","#0B3B8C"], rep:50, bank:2,
+     p:[
+       [18,"Griffin Yow","ST","USA",2002,68],
+     ]},
+    {id:"ohl", name:"OH Leuven", short:"OHL", country:"BEL", stadium:"Stadion Den Dreef", cap:10020,
+     col:["#E2001A","#FFFFFF"], rep:48, bank:1,
+     p:[
+       [0,"Tobe Leysen","GK","BEL",1998,68],
+     ]},
+    {id:"cer", name:"Cercle Brugge", short:"CER", country:"BEL", stadium:"Jan Breydel Stadium", cap:29042,
+     col:["#000000","#00A040"], rep:46, bank:1,
+     p:[
+       [0,"Warleson Oliveira","GK","BRA",1996,68],
+     ]},
+    {id:"stt", name:"Sint-Truiden", short:"STV", country:"BEL", stadium:"Stayen", cap:11200,
+     col:["#FFD700","#0B3B8C"], rep:46, bank:1,
+     p:[
+       [16,"Leo Kokubo","GK","JPN",2001,70],
+     ]},
+    {id:"den", name:"Dender", short:"DEN", country:"BEL", stadium:"Van Roy Stadion", cap:6429,
+     col:["#0060A9","#FFFFFF"], rep:40, bank:1,
+     p:[
+       [77,"Bruny Nsimba","ST","COD",2002,64],
+     ]},
+    {id:"zwa", name:"Zulte Waregem", short:"ZWA", country:"BEL", stadium:"Regenboogstadion", cap:8500,
+     col:["#E2001A","#00A040"], rep:46, bank:1,
+     p:[
+       [0,"Jelle Vossen","ST","BEL",1989,64],
+     ]},
+    {id:"lal", name:"La Louvière", short:"RAL", country:"BEL", stadium:"Stade du Tivoli", cap:8050,
+     col:["#00A040","#E2001A"], rep:40, bank:1,
+     p:[
+       [21,"Marcos Peano","GK","ARG",2003,64],
+     ]},
+  ]
+});

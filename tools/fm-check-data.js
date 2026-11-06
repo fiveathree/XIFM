@@ -8,7 +8,7 @@ global.FM={addLeague(L){
     for(const k of ['id','name','short','country','stadium','cap','col','rep','bank','p'])if(c[k]==null){out.push(c.id+' missing '+k);errs++}
     const gk=c.p.filter(p=>p[2]==='GK').length;
     for(const p of c.p){n++;
-      const bad=!Number.isInteger(p[0])||typeof p[1]!=='string'||!POS.has(p[2])||!/^[A-Z]{3}$/.test(p[3])||!(p[4]>=1950&&p[4]<=1996)||!(p[5]>=30&&p[5]<=95);
+      const bad=!Number.isInteger(p[0])||typeof p[1]!=='string'||!POS.has(p[2])||!/^[A-Z]{3}$/.test(p[3])||!(p[4]>=1950&&p[4]<=2010)||!(p[5]>=30&&p[5]<=95);
       if(bad){out.push('bad row '+c.id+' '+JSON.stringify(p));errs++}
       if(names.has(p[1])){out.push('dup player '+p[1]+' in '+names.get(p[1])+' & '+c.id);errs++}names.set(p[1],c.id);
     }

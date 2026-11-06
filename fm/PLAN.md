@@ -6,7 +6,7 @@ Decisions already made by the user:
 - Lives **inside XIFM as a separate page** `fm.html` (own save, own economy). XIFM's `index.html` gets an entry button.
 - Leagues: **England Premier League + Divisions One/Two/Three, Scottish Premier League, La Liga, Serie A, Bundesliga, French Division 1, Eredivisie, Portuguese, Turkish and Belgian top flights**, plus 18 European guest clubs for European cups. (The last four were added in Nov 2026; saves made before keep their nine leagues.)
 - **Transfers stay**; gacha is an **extra channel**: a pulled player joins your club straight away (takes a squad place, draws a wage), paid for with club money.
-- **Start seasons (eras): 1994/95, 1998/99, 2001/02, 2004/05, 2010/11**, each with its own real squads (`fm/eras.js`, `fm/data/<year>/`). 2001/02 has the deepest data (~3,700 players); the other eras cover the big clubs well and lower divisions thinly (see DATA_SPEC.md).
+- **Start seasons (eras): 1994/95, 1998/99, 2001/02, 2004/05, 2010/11, 2020/21, 2025/26**, each with its own real squads (`fm/eras.js`, `fm/data/<year>/`). 2001/02 has the deepest data (~3,700 players); the other eras cover the big clubs well and lower divisions thinly (see DATA_SPEC.md).
 - Follow the user's coding principles: least code, browser-native features first, no framework, no build step. Every page needs a favicon and an og:image. Aim for one screen without page scrolling (panels may scroll inside).
 
 Legal: do **not** use EA / Premier League names, logos or crests, or real club crests. Club badges are generic shields in club colours with the 3-letter short name. Real player and club names are fine. Screen layout may follow the 2001 game's structure, but the art is our own.

@@ -159,7 +159,7 @@ function movePlayer(pid, to) {
 function squadNo(cid) { const used = new Set(roster(cid).map(p => pd(p).no)); for (let n = 1; n < 60; n++) if (!used.has(n)) return n; return 0; }
 
 /* ---------- calendar (2001/02 base; every other season, earlier or later eras too, shifts by 364 days to keep weekdays) ---------- */
-const S0 = 2001, off = s => (s - S0) * 364;
+const S0 = 2001, off = s => (s - S0) * 364 + 7 * (ERA.wk || 0); // ERA.wk: whole weeks to pull a far-off era back to the real early-July start
 const CAL = {
   start: dn(2001, 7, 2), roll: dn(2002, 7, 1),
   lg: {

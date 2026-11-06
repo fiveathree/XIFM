@@ -31,7 +31,7 @@ Club fields
 - `bank`: approximate cash in £ millions (number, may be decimal).
 
 Player row: `[shirtNo, fullName, pos, nat, birthYear, skill, shortName?]`
-- `shirtNo`: real 2001/02 squad number if known, else 0.
+- `shirtNo`: the real squad number that season if known, else 0 (the game then gives a free number). Filled from Wikipedia season pages by `tools/fm-shirt-numbers.js`; `tools/fm-build-era.js` keeps the numbers already in a file when it rebuilds it.
 - `fullName`: proper spelling with accents.
 - `pos` — exactly one of: `GK RB LB CD DM CM RM LM AM ST`
   (CD = centre-back, DM = defensive mid, AM = attacking mid / second striker, wingers → RM/LM).

@@ -4,13 +4,13 @@ FM.addLeague({
     {id:"che", name:"Chesterfield", short:"CHF", country:"ENG", stadium:"b2net Stadium", cap:10504,
      col:["#0060A9","#FFFFFF"], rep:40, bank:1,
      p:[
-       [0,"Jack Lester","ST","ENG",1975,56],
-       [0,"Craig Davies","ST","WAL",1986,58],
+       [14,"Jack Lester","ST","ENG",1975,56],
+       [9,"Craig Davies","ST","WAL",1986,58],
      ]},
     {id:"bury", name:"Bury", short:"BUR", country:"ENG", stadium:"Gigg Lane", cap:11840,
      col:["#00205B","#FFFFFF"], rep:38, bank:1,
      p:[
-       [0,"Ryan Lowe","ST","ENG",1978,58],
+       [15,"Ryan Lowe","ST","ENG",1978,58],
      ]},
     {id:"wyc", name:"Wycombe Wanderers", short:"WYC", country:"ENG", stadium:"Adams Park", cap:10000,
      col:["#87CEEB","#002D62"], rep:38, bank:1,
@@ -39,12 +39,12 @@ FM.addLeague({
     {id:"rot", name:"Rotherham United", short:"ROT", country:"ENG", stadium:"Millmoor", cap:11486,
      col:["#E2231A","#FFFFFF"], rep:38, bank:1,
      p:[
-       [0,"Adam Le Fondre","ST","ENG",1986,58],
+       [10,"Adam Le Fondre","ST","ENG",1986,58],
      ]},
     {id:"cre", name:"Crewe Alexandra", short:"CRE", country:"ENG", stadium:"Gresty Road", cap:10046,
      col:["#E2001A","#FFFFFF"], rep:38, bank:1,
      p:[
-       [0,"Clayton Donaldson","ST","JAM",1984,58],
+       [7,"Clayton Donaldson","ST","JAM",1984,58],
      ]},
     {id:"pva", name:"Port Vale", short:"PVA", country:"ENG", stadium:"Vale Park", cap:22350,
      col:["#000000","#FFFFFF"], rep:38, bank:1,
@@ -53,7 +53,7 @@ FM.addLeague({
     {id:"oxf", name:"Oxford United", short:"OXF", country:"ENG", stadium:"Kassam Stadium", cap:12500,
      col:["#FFD200","#002147"], rep:38, bank:1,
      p:[
-       [0,"James Constable","ST","ENG",1984,56],
+       [9,"James Constable","ST","ENG",1984,56],
      ]},
     {id:"sou", name:"Southend United", short:"SOU", country:"ENG", stadium:"Roots Hall", cap:12306,
      col:["#003DA5","#FFFFFF"], rep:38, bank:1,

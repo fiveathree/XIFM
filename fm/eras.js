@@ -18,6 +18,18 @@ FM.ERAS = {
       ['Bayern Munich', 'Roma', 'Basel', 'CFR Cluj'], ['Chelsea', 'Marseille', 'Spartak Moscow', 'Žilina'], ['Real Madrid', 'AC Milan', 'Ajax', 'Auxerre'], ['Shakhtar Donetsk', 'Arsenal', 'Braga', 'Partizan']],
     ueEng: ['Liverpool', 'Aston Villa', 'Manchester City'],
   },
+  2020: {
+    n: '2020/21', d: '疫情下嘅空場球季：哥迪奧拿曼城重奪英超、車路士奪歐聯；美斯喺巴塞最後一季，C 朗喺祖記；夏蘭特、麥巴比冒起。',
+    dir: 'fm/data/2020/', files: ERA_FILES, wk: 3,
+    cl: [['Bayern Munich', 'Atlético Madrid', 'Red Bull Salzburg', 'Lokomotiv Moscow'], ['Real Madrid', 'Shakhtar Donetsk', 'Inter', 'Borussia Mönchengladbach'], ['Manchester City', 'Porto', 'Olympiacos', 'Marseille'], ['Liverpool', 'Ajax', 'Atalanta', 'Midtjylland'],
+      ['Chelsea', 'Sevilla', 'Krasnodar', 'Rennes'], ['Borussia Dortmund', 'Lazio', 'Club Brugge', 'Zenit St Petersburg'], ['Juventus', 'Barcelona', 'Dynamo Kyiv', 'Ferencváros'], ['Paris Saint-Germain', 'Manchester United', 'RB Leipzig', 'İstanbul Başakşehir']],
+    ueEng: ['Tottenham Hotspur', 'Arsenal', 'Leicester City'],
+  },
+  2025: {
+    n: '2025/26', d: '雅馬爾、麥巴比、夏蘭特當打：利物浦以英超冠軍身份開季，巴黎聖日耳門係衛冕歐聯冠軍，夏天轉會市場破紀錄。（當年歐聯係 36 隊聯賽階段，遊戲用 32 隊分組。）',
+    dir: 'fm/data/2025/', files: ERA_FILES, wk: 4,
+    ueEng: ['Aston Villa', 'Nottingham Forest'],
+  },
   1994: {
     n: '1994/95', d: '亞倫舒利亞同薩頓帶布力般流浪封王；簡東拿飛踢球迷；阿積士不敗奪歐聯；AC 米蘭、祖記、拿玻里時代。（英超 22 隊、蘇超 10 隊；歐聯用 32 隊抽籤。）',
     dir: 'fm/data/1994/', files: ERA_FILES,
