@@ -84,6 +84,7 @@ function modal(title, body, cls = '') {
   m.innerHTML = `<div class="mbox ${cls}" role="dialog" aria-label="${esc(title)}"><h3>${title}<button class="btn sm x" data-act="mclose">關閉</button></h3><div class="mb">${body}</div></div>`;
 }
 function closeModal() {
+  if (MT) MT.dr = null;   // an unconfirmed substitution / tactics-board draft is dropped
   if (MT && MT.phase === 'live' && MT.M && MT.M.pause) return breakPanel(); // half/extra time: back to the break panel, never a dead end
   const m = $('#modal'); m.hidden = true; m.innerHTML = ''; UI.pm = null;
   if (MT && MT.resume) { MT.resume = false; runLive(); }
@@ -689,18 +690,36 @@ function cofPanel(id, msg) {
     <div class="row"><button class="btn y" data-act="cofacc" data-a="${id}">以 ${money(o.fee)} 接受</button><button class="btn" data-act="mclose">遲啲先決定</button></div>`, 'sm');
 }
 function subPanel() {
-  const M = MT.M, S = M[M.u], col = CL[S.cid].col, left = 3 - S.subs;
+  const M = MT.M, S = M[M.u], col = CL[S.cid].col;
+  // all changes go into a draft (MT.dr) until 確認; closing the popup throws the draft away
+  if (!MT.dr) MT.dr = { on: S.on.map(o => ({ ...o })), form: S.form, orig: S.on.map(o => o.pid).filter(Boolean) };
+  const D = MT.dr, onSet = new Set(D.on.map(o => o.pid).filter(Boolean)), orig = new Set(D.orig);
+  const ins = [...onSet].filter(p => !orig.has(p)), left = 3 - S.subs - ins.length;
+  const bench = [...S.bench, ...D.orig].filter(p => !onSet.has(p));
   const cc = c => c >= 75 ? 'cg' : c >= 55 ? 'cw' : 'cb';
-  const shirts = S.on.map((o, i) => {
+  const changed = ins.length || D.form !== S.form || D.on.some((o, i) => o.pid !== S.on[i]?.pid || o.slot !== S.on[i]?.slot || o.x !== S.on[i]?.x || o.y !== S.on[i]?.y);
+  const shirts = D.on.map((o, i) => {
     const pid = o.pid, f = pid ? fitPos(ps(pid).pos, o.slot) : 1, cond = pid ? Math.round(pd(pid).cond) : 0;
-    return `<div class="shirt dg ${pid && MT.sel === pid ? 'selp' : ''}" data-mi="${i}" style="left:${o.x}%;top:${o.y}%"><b class="sp">${o.slot}</b><i style="background:${col[0]};color:${col[1]}">${pid ? pd(pid).no || '' : ''}</i><span class="${f < .85 ? 'bad' : ''}">${pid ? esc(ps(pid).sn) : '冇人'}</span>${pid ? `<em class="rt ${f < 1 ? 'down' : ''}">${Math.round(pd(pid).sk * f)} · <b class="${cc(cond)}">${cond}%</b></em>` : ''}</div>`;
+    return `<div class="shirt dg ${pid && MT.sel === pid ? 'selp' : ''} ${pid && !orig.has(pid) ? 'newin' : ''}" data-mi="${i}" style="left:${o.x}%;top:${o.y}%"><b class="sp">${o.slot}</b><i style="background:${col[0]};color:${col[1]}">${pid ? pd(pid).no || '' : ''}</i><span class="${f < .85 ? 'bad' : ''}">${pid ? esc(ps(pid).sn) : '冇人'}</span>${pid ? `<em class="rt ${f < 1 ? 'down' : ''}">${Math.round(pd(pid).sk * f)} · <b class="${cc(cond)}">${cond}%</b></em>` : ''}</div>`;
   }).join('');
-  const bench = S.bench.map(p => { const cond = Math.round(pd(p).cond); return `<div class="mbc" data-mb="${p}"><b class="n">${ps(p).pos}</b><span class="nm">${esc(ps(p).sn)}</span><span class="n">${pd(p).sk}</span><span class="n ${cc(cond)}">${cond}%</span></div>`; }).join('') || '<div class="mute">冇後備</div>';
-  modal(`換人 · 戰術（仲可以換 ${left} 個）`, `<div class="mtbw">
-    <div class="mtbl"><div class="lbl">戰術板 ${info('拖住球衣：放喺另一件球衣上面＝兩個人對調位置；放喺空位＝將佢移去嗰度（位置跟住變）；拖去右邊後備＝換人。由右邊拖後備落球衣上面都係換人。唔想拖：撳一件球衣揀咗佢，再撳另一件球衣對調，或者撳後備換入。數字係扣咗位置之後嘅能力 · 體力。')}</div><div class="pitchv" id="mtb">${PITCHV}${shirts}</div></div>
-    <div class="mtbr"><div class="lbl">後備（拖落球衣換人）</div><div id="mtbench">${bench}</div>
-    <div class="lbl" style="margin-top:10px">陣式</div><select class="inp" data-ch="mform">${formOpts(S.form)}</select>
-    <div class="lbl" style="margin-top:10px">打法</div>${Object.entries(STYLE).map(([k, v]) => `<div class="row" style="margin-bottom:4px"><span style="width:64px">${STYLEN[k]}</span>${v.map((t, i) => `<button class="chip" data-act="msty" data-a="${k}:${i}" aria-pressed="${S.sty[k] === i}">${t}</button>`).join('')}</div>`).join('')}</div></div>`, 'tall');
+  const benchH = bench.map(p => { const cond = Math.round(pd(p).cond), out = orig.has(p); return `<div class="mbc ${out ? 'out' : ''}" data-mb="${p}"><b class="n">${ps(p).pos}</b><span class="nm">${esc(ps(p).sn)}${out ? ' <span class="tag t-ex">換出</span>' : ''}</span><span class="n">${pd(p).sk}</span><span class="n ${cc(cond)}">${cond}%</span></div>`; }).join('') || '<div class="mute">冇後備</div>';
+  modal(`換人 · 戰術（仲可以換 ${Math.max(0, left)} 個${ins.length ? `，${ins.length} 個未確認` : ''}）`, `<div class="mtbw">
+    <div class="mtbl"><div class="lbl">戰術板 ${info('拖住球衣：放喺另一件球衣上面＝兩個人對調位置；放喺空位＝將佢移去嗰度（位置跟住變）；拖去右邊後備＝換人。由右邊拖後備落球衣上面都係換人。換出咗嘅球員會留喺後備名單（標住「換出」），未確認之前可以拖返入去。唔想拖：撳一件球衣揀咗佢，再撳另一件球衣對調，或者撳後備換入。全部排好撳「確認」先正式生效；撳「還原」或者關閉就當冇改過。數字係扣咗位置之後嘅能力 · 體力。')}</div><div class="pitchv" id="mtb">${PITCHV}${shirts}</div></div>
+    <div class="mtbr"><div class="lbl">後備（拖落球衣換人）</div><div id="mtbench">${benchH}</div>
+    <div class="row" style="margin-top:10px"><button class="btn y" data-act="mconf" ${changed ? '' : 'disabled'}>確認${ins.length ? `換人（${ins.length}）` : '改動'}</button><button class="btn" data-act="mundo" ${changed ? '' : 'disabled'}>還原</button></div>
+    <div class="lbl" style="margin-top:10px">陣式</div><select class="inp" data-ch="mform">${formOpts(D.form)}</select>
+    <div class="lbl" style="margin-top:10px">打法（即時生效）</div>${Object.entries(STYLE).map(([k, v]) => `<div class="row" style="margin-bottom:4px"><span style="width:64px">${STYLEN[k]}</span>${v.map((t, i) => `<button class="chip" data-act="msty" data-a="${k}:${i}" aria-pressed="${S.sty[k] === i}">${t}</button>`).join('')}</div>`).join('')}</div></div>`, 'tall');
+}
+// apply the draft: each new player replaces one of the players taken off (a real substitution, counted and logged)
+function mConfirm() {
+  const M = MT.M, S = M[M.u], D = MT.dr; if (!D) return;
+  const onSet = new Set(D.on.map(o => o.pid).filter(Boolean)), orig = new Set(D.orig);
+  const ins = [...onSet].filter(p => !orig.has(p)), outs = D.orig.filter(p => !onSet.has(p));
+  if (S.subs + ins.length > 3) return toast('最多只可以換 3 個');
+  ins.forEach((p, k) => { const o = S.on.find(x => x.pid === outs[k]); if (o) doSub(M, S, o, p); });
+  S.form = D.form; S.on = D.on.map(o => ({ ...o }));
+  MT.dr = null; MT.sel = null; MT.pos = {};
+  toast(ins.length ? `換咗 ${ins.length} 個人` : '已更新陣容'); updLive(); closeModal();
 }
 /* in-match tactics board: drag shirts to swap / move, drag between the pitch and the bench to substitute; taps work too */
 let MDRG = null;
@@ -712,15 +731,18 @@ function mbTarget(e) {
   const p = el.closest('#mtb'); if (p && MDRG.sh) { const r = p.getBoundingClientRect(); return { move: [clamp((e.clientX - r.left) / r.width * 100, 5, 95), clamp((e.clientY - r.top) / r.height * 100, 5, 95)] }; }
   return null;
 }
-function mbSub(outPid, inPid) {
-  if (!outPid) return toast('嗰個位冇人，揀另一個');
-  if (!userSub(MT.M, outPid, inPid)) return toast(MT.M[MT.M.u].subs >= 3 ? '已經換晒 3 個' : '換唔到');
-  MT.sel = null; return true;
+// draft substitution: bench player inPid takes slot i (the player there goes to the bench list)
+function mbSub(i, inPid) {
+  const S = MT.M[MT.M.u], D = MT.dr, o = D.on[i];
+  if (!o.pid) return toast('嗰個位冇人，揀另一個');
+  const orig = new Set(D.orig), willIns = D.on.filter((x, k) => k !== i && x.pid && !orig.has(x.pid)).length + (orig.has(inPid) ? 0 : 1);
+  if (S.subs + willIns > 3) return toast(S.subs >= 3 ? '已經換晒 3 個' : `最多仲可以換 ${3 - S.subs} 個`);
+  o.pid = inPid; MT.sel = null; return true;
 }
-function mbDone() { subPanel(); updLive(); }
+function mbDone() { subPanel(); }
 function mbClear(d) { if (d.g) d.g.remove(); d.el.classList.remove('dragging'); $$('.dropon').forEach(x => x.classList.remove('dropon')); }
 document.addEventListener('pointerdown', e => {
-  if (MDRG || !MT || !MT.M || !$('#mtb')) return;
+  if (MDRG || !MT || !MT.M || !MT.dr || !$('#mtb')) return;
   const sh = e.target.closest('#mtb .shirt[data-mi]'), b = !sh && e.target.closest('#mtbench [data-mb]');
   if (!sh && !b) return;
   MDRG = { sh: !!sh, src: sh ? +sh.dataset.mi : b.dataset.mb, el: sh || b, x0: e.clientX, y0: e.clientY, id: e.pointerId, on: false };
@@ -730,7 +752,7 @@ document.addEventListener('pointermove', e => {
   if (!MDRG || e.pointerId !== MDRG.id) return;
   if (!MDRG.on) {
     if (Math.hypot(e.clientX - MDRG.x0, e.clientY - MDRG.y0) < 6) return;
-    const S = MT.M[MT.M.u], pid = MDRG.sh ? S.on[MDRG.src].pid : MDRG.src;
+    const pid = MDRG.sh ? MT.dr.on[MDRG.src].pid : MDRG.src;
     if (!pid) { MDRG = null; return; }
     MDRG.on = true; MDRG.g = Object.assign(document.createElement('div'), { className: 'dghost', textContent: ps(pid).sn });
     document.body.appendChild(MDRG.g); MDRG.el.classList.add('dragging');
@@ -740,18 +762,20 @@ document.addEventListener('pointermove', e => {
 });
 document.addEventListener('pointerup', e => {
   if (!MDRG || e.pointerId !== MDRG.id) return;
-  const d = MDRG, t = d.on ? mbTarget(e) : null, S = MT.M[MT.M.u];
+  const d = MDRG, t = d.on ? mbTarget(e) : null, D = MT.dr;
   mbClear(d); MDRG = null;
   if (!d.on) {   // taps: shirt = select, a second shirt = swap; bench = bring on for the selected player
-    if (d.sh) { const pid = S.on[d.src].pid; if (MT.sel && pid && MT.sel !== pid && S.on.some(o => o.pid === MT.sel)) { userSwap(MT.M, MT.sel, pid); MT.sel = null; } else MT.sel = MT.sel === pid ? null : pid; }
-    else if (!MT.sel) toast('先撳球場上要換走嘅球員'); else mbSub(MT.sel, d.src);
+    if (d.sh) {
+      const pid = D.on[d.src].pid, j = D.on.findIndex(o => o.pid && o.pid === MT.sel);
+      if (MT.sel && pid && MT.sel !== pid && j >= 0) { [D.on[j].pid, D.on[d.src].pid] = [D.on[d.src].pid, D.on[j].pid]; MT.sel = null; } else MT.sel = MT.sel === pid ? null : pid;
+    } else { const j = D.on.findIndex(o => o.pid && o.pid === MT.sel); if (j < 0) toast('先撳球場上要換走嘅球員'); else mbSub(j, d.src); }
     return mbDone();
   }
   if (!t) return mbDone();
-  if (d.sh && t.i != null) { const a = S.on[d.src], b = S.on[t.i]; [a.pid, b.pid] = [b.pid, a.pid]; }
-  else if (d.sh && t.b) mbSub(S.on[d.src].pid, t.b);
-  else if (!d.sh && t.i != null) mbSub(S.on[t.i].pid, d.src);
-  else if (d.sh && t.move) { const o = S.on[d.src]; o.x = Math.round(t.move[0]); o.y = Math.round(t.move[1]); o.slot = slotAt(o.x, o.y); MT.pos = {}; }
+  if (d.sh && t.i != null) { const a = D.on[d.src], b = D.on[t.i]; [a.pid, b.pid] = [b.pid, a.pid]; }
+  else if (d.sh && t.b) mbSub(d.src, t.b);
+  else if (!d.sh && t.i != null) mbSub(t.i, d.src);
+  else if (d.sh && t.move) { const o = D.on[d.src]; o.x = Math.round(t.move[0]); o.y = Math.round(t.move[1]); o.slot = slotAt(o.x, o.y); }
   mbDone();
 });
 document.addEventListener('pointercancel', () => { if (MDRG) { mbClear(MDRG); MDRG = null; } });
@@ -847,7 +871,9 @@ const ACT = {
   mquick: () => { MT.M = newMatch(MT.f, false); runToEnd(MT.M); MT.phase = 'ft'; save(); render(); },
   mspd: el => { MT.spd = +el.dataset.a; if (MT.timer) { pauseLive(); runLive(); } else render(); $$('[data-act="mspd"]').forEach(b => b.setAttribute('aria-pressed', b.dataset.a == MT.spd)); },
   mrun: () => { if (MT.timer) pauseLive(); else runLive(); updLive(); },
-  msub: () => { if (MT.timer) { pauseLive(); MT.resume = true; } MT.sel = null; subPanel(); },
+  msub: () => { if (MT.timer) { pauseLive(); MT.resume = true; } MT.sel = null; MT.dr = null; subPanel(); },
+  mconf: () => mConfirm(),
+  mundo: () => { MT.dr = null; MT.sel = null; subPanel(); },
   msel: el => { MT.sel = el.dataset.a; subPanel(); },
   msubin: el => { if (!MT.sel) return toast('先揀要換走嘅球員'); if (!userSub(MT.M, MT.sel, el.dataset.a)) return toast(MT.M[MT.M.u].subs >= 3 ? '已經換晒 3 個' : '換唔到'); MT.sel = null; subPanel(); updLive(); },
   msty: el => { const [k, v] = el.dataset.a.split(':'); MT.M[MT.M.u].sty[k] = +v; subPanel(); },
@@ -863,7 +889,7 @@ const CH = {
   fxc: el => { UI.fxc = el.value; render(); },
   cup: el => { UI.cup = el.value; render(); },
   price: el => { myClub().price = clamp(Math.round(+el.value || 1), 1, 200); save(); render(); },
-  mform: el => { userForm(MT.M, el.value); MT.pos = {}; subPanel(); },
+  mform: el => { const D = MT.dr, sl = FORMS[el.value]; D.form = el.value; D.on = sl.map((x, i) => ({ pid: D.on[i] ? D.on[i].pid : null, slot: x[0], x: x[1], y: x[2] })); subPanel(); },
 };
 document.addEventListener('click', e => {
   if (NOCLICK) return;
