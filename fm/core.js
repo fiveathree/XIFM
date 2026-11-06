@@ -69,7 +69,7 @@ const clubName = cid => cid === 'free' ? '自由球員' : CL[cid] ? CL[cid].name
 const clubShort = cid => CL[cid] ? CL[cid].short : '—';
 const clubCountry = cid => CL[cid].country || LG[CL[cid].lg0].country;
 
-const NATZ = { ENG: '英格蘭', SCO: '蘇格蘭', WAL: '威爾斯', NIR: '北愛爾蘭', IRL: '愛爾蘭', FRA: '法國', GER: '德國', ESP: '西班牙', ITA: '意大利', NED: '荷蘭', BEL: '比利時', POR: '葡萄牙', BRA: '巴西', ARG: '阿根廷', URU: '烏拉圭', NOR: '挪威', SWE: '瑞典', DEN: '丹麥', FIN: '芬蘭', ISL: '冰島', SUI: '瑞士', AUT: '奧地利', CZE: '捷克', SVK: '斯洛伐克', POL: '波蘭', HUN: '匈牙利', ROU: '羅馬尼亞', BUL: '保加利亞', CRO: '克羅地亞', SRB: '塞爾維亞', YUG: '南斯拉夫', SVN: '斯洛文尼亞', BIH: '波黑', MKD: '北馬其頓', GRE: '希臘', TUR: '土耳其', RUS: '俄羅斯', UKR: '烏克蘭', GEO: '格魯吉亞', BLR: '白俄羅斯', LVA: '拉脫維亞', LTU: '立陶宛', EST: '愛沙尼亞', ISR: '以色列', CMR: '喀麥隆', NGA: '尼日利亞', GHA: '加納', CIV: '科特迪瓦', SEN: '塞內加爾', MAR: '摩洛哥', TUN: '突尼斯', ALG: '阿爾及利亞', EGY: '埃及', RSA: '南非', ZIM: '津巴布韋', ZAM: '贊比亞', MLI: '馬里', GUI: '幾內亞', COD: '剛果民主共和國', LBR: '利比里亞', USA: '美國', CAN: '加拿大', MEX: '墨西哥', CRC: '哥斯達黎加', JAM: '牙買加', TRI: '千里達', HON: '洪都拉斯', COL: '哥倫比亞', CHI: '智利', PAR: '巴拉圭', PER: '秘魯', ECU: '厄瓜多爾', VEN: '委內瑞拉', BOL: '玻利維亞', AUS: '澳洲', NZL: '新西蘭', JPN: '日本', KOR: '南韓', CHN: '中國', IRN: '伊朗', KSA: '沙特阿拉伯' };
+const NATZ = { ENG: '英格蘭', SCO: '蘇格蘭', WAL: '威爾斯', NIR: '北愛爾蘭', IRL: '愛爾蘭', FRA: '法國', GER: '德國', ESP: '西班牙', ITA: '意大利', NED: '荷蘭', BEL: '比利時', POR: '葡萄牙', BRA: '巴西', ARG: '阿根廷', URU: '烏拉圭', NOR: '挪威', SWE: '瑞典', DEN: '丹麥', FIN: '芬蘭', ISL: '冰島', SUI: '瑞士', AUT: '奧地利', CZE: '捷克', SVK: '斯洛伐克', POL: '波蘭', HUN: '匈牙利', ROU: '羅馬尼亞', BUL: '保加利亞', CRO: '克羅地亞', SRB: '塞爾維亞', YUG: '南斯拉夫', SVN: '斯洛文尼亞', BIH: '波黑', MKD: '北馬其頓', GRE: '希臘', TUR: '土耳其', RUS: '俄羅斯', UKR: '烏克蘭', GEO: '格魯吉亞', BLR: '白俄羅斯', LVA: '拉脫維亞', LTU: '立陶宛', EST: '愛沙尼亞', ISR: '以色列', CMR: '喀麥隆', NGA: '尼日利亞', GHA: '加納', CIV: '科特迪瓦', SEN: '塞內加爾', MAR: '摩洛哥', TUN: '突尼斯', ALG: '阿爾及利亞', EGY: '埃及', RSA: '南非', ZIM: '津巴布韋', ZAM: '贊比亞', MLI: '馬里', GUI: '幾內亞', COD: '剛果民主共和國', LBR: '利比里亞', USA: '美國', CAN: '加拿大', MEX: '墨西哥', CRC: '哥斯達黎加', JAM: '牙買加', TRI: '千里達', HON: '洪都拉斯', COL: '哥倫比亞', CHI: '智利', PAR: '巴拉圭', PER: '秘魯', ECU: '厄瓜多爾', VEN: '委內瑞拉', BOL: '玻利維亞', AUS: '澳洲', NZL: '新西蘭', JPN: '日本', KOR: '南韓', CHN: '中國', IRN: '伊朗', KSA: '沙特阿拉伯', BFA: '布基納法索', VIN: '聖文森', BER: '百慕達', BRB: '巴巴多斯', GIB: '直布羅陀', BEN: '貝寧', MSR: '蒙特塞拉特', ANG: '安哥拉', GRN: '格林納達', SKN: '聖基茨', PAN: '巴拿馬', TJK: '塔吉克', UZB: '烏茲別克', ARM: '亞美尼亞', ALB: '阿爾巴尼亞', CYP: '塞浦路斯', GAM: '岡比亞', TOG: '多哥', LUX: '盧森堡', SCG: '塞黑', NAM: '納米比亞', DOM: '多米尼加', SLE: '塞拉利昂', GAB: '加蓬', LIE: '列支敦士登', MNE: '黑山', KOS: '科索沃', CPV: '佛得角', CGO: '剛果', ZAM: '贊比亞' };
 const natName = c => NATZ[c] || c;
 // EU / EEA nations in 2001 (others are shown as NON EU, like the original game)
 const EU = new Set('AUT BEL DEN FIN FRA GER GRE IRL ITA LUX NED POR ESP SWE ENG SCO WAL NIR NOR ISL LIE'.split(' '));
@@ -660,7 +660,7 @@ function leagueFinished(comp) {
   if (PO) {
     const [id, [a, b]] = PO, f = comp.fin;
     const last = Math.max(...G.fx.filter(x => x.c === comp.id).map(x => x.d));
-    createKO(id, [{ n: '準決賽', d: [last + 7, last + 11], legs: 2, seeded: [[f[b], f[a]], [f[b - 1], f[a + 1]]] }, { n: '決賽', d: [last + 22], neu: 1, fin: 1, ven: '千禧球場' }]);
+    createKO(id, [{ n: '準決賽', d: [last + 7, last + 11], legs: 2, seeded: [[f[b], f[a]], [f[b - 1], f[a + 1]]] }, { n: '決賽', d: [last + 22], neu: 1, fin: 1, ven: '千禧球場' }], { nm: LG[comp.id].name + '升級附加賽' }); // named after the league (英甲 in 2001, 英冠 from 2004)
     G.comp[id].alive = [];
   }
   const me = G.mgr.cid;

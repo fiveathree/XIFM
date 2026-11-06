@@ -1,0 +1,125 @@
+FM.addLeague({
+  id:"eng3", country:"ENG", name:"英甲", ename:"League One", tier:3,
+  clubs:[
+    {id:"lut", name:"Luton Town", short:"LUT", country:"ENG", stadium:"Kenilworth Road", cap:9970,
+     col:["#F78F1E","#FFFFFF"], rep:50, bank:1,
+     p:[
+       [0,"Rowan Vine","ST","ENG",1982,62],
+       [0,"Curtis Davies","CD","ENG",1985,60],
+       [0,"Marlon Beresford","GK","ENG",1969,58],
+       [0,"Steve Howard","ST","ENG",1976,62],
+       [0,"Kevin Nicholls","CM","ENG",1979,60],
+     ]},
+    {id:"hul", name:"Hull City", short:"HUL", country:"ENG", stadium:"Boothferry Park", cap:15160,
+     col:["#F5A12D","#000000"], rep:52, bank:2,
+     p:[
+       [0,"Nick Barmby","AM","ENG",1974,64],
+       [0,"Leon Cort","CD","ENG",1979,58],
+       [0,"Stuart Elliott","ST","NIR",1978,62],
+       [0,"Ian Ashbee","CM","ENG",1976,58],
+     ]},
+    {id:"tra", name:"Tranmere Rovers", short:"TRA", country:"ENG", stadium:"Prenton Park", cap:16600,
+     col:["#FFFFFF","#003399"], rep:48, bank:1,
+     p:[
+       [0,"Iain Hume","ST","CAN",1983,58],
+       [0,"John Achterberg","GK","NED",1971,58],
+     ]},
+    {id:"bre", name:"Brentford", short:"BRE", country:"ENG", stadium:"Griffin Park", cap:12700,
+     col:["#E30613","#FFFFFF"], rep:46, bank:1,
+     p:[
+     ]},
+    {id:"shw", name:"Sheffield Wednesday", short:"SHW", country:"ENG", stadium:"Hillsborough", cap:39859,
+     col:["#0F3E8A","#FFFFFF"], rep:56, bank:2,
+     p:[
+       [0,"Chris Brunt","LM","NIR",1984,58],
+       [0,"Glenn Whelan","CM","IRL",1984,58],
+       [0,"Lee Bullen","CD","SCO",1971,56],
+       [0,"Steve MacLean","ST","SCO",1982,60],
+     ]},
+    {id:"har", name:"Hartlepool United", short:"HAR", country:"ENG", stadium:"Victoria Park", cap:7629,
+     col:["#003DA5","#FFFFFF"], rep:42, bank:1,
+     p:[
+       [0,"Adam Boyd","ST","ENG",1982,58],
+     ]},
+    {id:"bri", name:"Bristol City", short:"BRC", country:"ENG", stadium:"Ashton Gate", cap:21500,
+     col:["#E21A23","#FFFFFF"], rep:48, bank:1,
+     p:[
+       [0,"Leroy Lita","ST","ENG",1984,60],
+     ]},
+    {id:"bou", name:"Bournemouth", short:"BOU", country:"ENG", stadium:"Dean Court", cap:9600,
+     col:["#DA291C","#000000"], rep:44, bank:1,
+     p:[
+       [0,"James Hayter","ST","ENG",1979,58],
+     ]},
+    {id:"hud", name:"Huddersfield Town", short:"HUD", country:"ENG", stadium:"McAlpine Stadium", cap:24500,
+     col:["#0E63AD","#FFFFFF"], rep:46, bank:1,
+     p:[
+       [0,"Andy Booth","ST","ENG",1973,56],
+     ]},
+    {id:"don", name:"Doncaster Rovers", short:"DON", country:"ENG", stadium:"Belle Vue", cap:10593,
+     col:["#E2001A","#FFFFFF"], rep:42, bank:1,
+     p:[
+       [0,"Michael McIndoe","LM","SCO",1979,58],
+     ]},
+    {id:"bra", name:"Bradford City", short:"BRA", country:"ENG", stadium:"Valley Parade", cap:25136,
+     col:["#7A1E3A","#F2A900"], rep:48, bank:1,
+     p:[
+       [0,"Dean Windass","ST","ENG",1969,60],
+     ]},
+    {id:"swi", name:"Swindon Town", short:"SWI", country:"ENG", stadium:"County Ground", cap:15700,
+     col:["#DA291C","#FFFFFF"], rep:44, bank:1,
+     p:[
+       [0,"Sam Parkin","ST","SCO",1981,60],
+     ]},
+    {id:"bar", name:"Barnsley", short:"BAR", country:"ENG", stadium:"Oakwell", cap:23009,
+     col:["#D71920","#FFFFFF"], rep:46, bank:1,
+     p:[
+     ]},
+    {id:"wal", name:"Walsall", short:"WAL", country:"ENG", stadium:"Bescot Stadium", cap:11300,
+     col:["#DF0024","#FFFFFF"], rep:44, bank:1,
+     p:[
+     ]},
+    {id:"col", name:"Colchester United", short:"COL", country:"ENG", stadium:"Layer Road", cap:7500,
+     col:["#0057B8","#FFFFFF"], rep:42, bank:1,
+     p:[
+       [0,"Greg Halford","RB","ENG",1984,56],
+     ]},
+    {id:"bpl", name:"Blackpool", short:"BLP", country:"ENG", stadium:"Bloomfield Road", cap:9500,
+     col:["#F68712","#FFFFFF"], rep:44, bank:1,
+     p:[
+     ]},
+    {id:"che", name:"Chesterfield", short:"CHE", country:"ENG", stadium:"Saltergate", cap:8500,
+     col:["#0057B8","#FFFFFF"], rep:42, bank:1,
+     p:[
+     ]},
+    {id:"pva", name:"Port Vale", short:"PVA", country:"ENG", stadium:"Vale Park", cap:22350,
+     col:["#000000","#FFFFFF"], rep:42, bank:1,
+     p:[
+     ]},
+    {id:"old", name:"Oldham Athletic", short:"OLD", country:"ENG", stadium:"Boundary Park", cap:13600,
+     col:["#004A98","#FFFFFF"], rep:44, bank:1,
+     p:[
+     ]},
+    {id:"mkd", name:"MK Dons", short:"MKD", country:"ENG", stadium:"National Hockey Stadium", cap:9000,
+     col:["#FFFFFF","#000000"], rep:40, bank:1,
+     p:[
+       [0,"Izale McLeod","ST","ENG",1984,56],
+     ]},
+    {id:"tor", name:"Torquay United", short:"TOR", country:"ENG", stadium:"Plainmoor", cap:6283,
+     col:["#FFD200","#003DA5"], rep:40, bank:1,
+     p:[
+     ]},
+    {id:"wre", name:"Wrexham", short:"WRE", country:"WAL", stadium:"Racecourse Ground", cap:15500,
+     col:["#D7192D","#FFFFFF"], rep:42, bank:1,
+     p:[
+     ]},
+    {id:"pet", name:"Peterborough United", short:"PET", country:"ENG", stadium:"London Road", cap:15300,
+     col:["#0055A5","#FFFFFF"], rep:42, bank:1,
+     p:[
+     ]},
+    {id:"sto", name:"Stockport County", short:"STO", country:"ENG", stadium:"Edgeley Park", cap:11541,
+     col:["#005DA4","#FFFFFF"], rep:42, bank:1,
+     p:[
+     ]},
+  ]
+});

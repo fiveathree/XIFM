@@ -1,0 +1,117 @@
+FM.addLeague({
+  id:"por1", country:"POR", name:"葡超", ename:"Primeira Liga", tier:1,
+  clubs:[
+    {id:"ben", name:"Benfica", short:"BEN", country:"POR", stadium:"Estádio da Luz", cap:65000,
+     col:["#E2001A","#FFFFFF"], rep:80, bank:4,
+     p:[
+       [0,"Quim","GK","POR",1975,78,"Quim"],
+       [0,"José Moreira","GK","POR",1982,76],
+       [0,"Miguel","RB","POR",1980,80,"Miguel"],
+       [0,"Luisão","CD","BRA",1981,80,"Luisão"],
+       [0,"Ricardo Rocha","CD","POR",1978,76],
+       [0,"Petit","DM","POR",1976,78,"Petit"],
+       [0,"Manuel Fernandes","CM","POR",1986,74],
+       [0,"Simão Sabrosa","LM","POR",1979,84,"Simão"],
+       [0,"Geovanni","AM","BRA",1980,76,"Geovanni"],
+       [0,"Zlatko Zahovič","AM","SVN",1971,76],
+       [0,"Nuno Gomes","ST","POR",1976,80],
+       [0,"Mantorras","ST","ANG",1982,74,"Mantorras"],
+       [0,"Azar Karadas","ST","NOR",1981,72],
+     ]},
+    {id:"por", name:"Porto", short:"POR", country:"POR", stadium:"Estádio das Antas", cap:55000,
+     col:["#003893","#FFFFFF"], rep:86, bank:10,
+     p:[
+       [0,"Vítor Baía","GK","POR",1969,82],
+       [0,"Giourkas Seitaridis","RB","GRE",1981,78],
+       [0,"José Bosingwa","RB","POR",1982,76],
+       [0,"Pepe","CD","POR",1983,76,"Pepe"],
+       [0,"Ricardo Costa","CD","POR",1981,76],
+       [0,"Pedro Emanuel","CD","POR",1975,76],
+       [0,"Jorge Costa","CD","POR",1971,76],
+       [0,"Costinha","DM","POR",1974,80,"Costinha"],
+       [0,"Maniche","CM","POR",1977,82,"Maniche"],
+       [0,"Diego","AM","BRA",1985,80,"Diego"],
+       [0,"Carlos Alberto","AM","BRA",1984,74],
+       [0,"Ricardo Quaresma","RM","POR",1983,80],
+       [0,"Benni McCarthy","ST","RSA",1977,80],
+       [0,"Luís Fabiano","ST","BRA",1980,80],
+       [0,"Derlei","ST","BRA",1975,78,"Derlei"],
+       [0,"Hugo Almeida","ST","POR",1984,72],
+     ]},
+    {id:"scp", name:"Sporting CP", short:"SCP", country:"POR", stadium:"Estádio José Alvalade", cap:52000,
+     col:["#008057","#FFFFFF"], rep:80, bank:4,
+     p:[
+       [0,"Ricardo","GK","POR",1976,80,"Ricardo"],
+       [0,"Anderson Polga","CD","BRA",1979,76],
+       [0,"Rui Jorge","LB","POR",1973,74],
+       [0,"Fábio Rochemback","CM","BRA",1981,78],
+       [0,"João Moutinho","CM","POR",1986,70],
+       [0,"Pedro Barbosa","AM","POR",1970,74],
+       [0,"Rodrigue Douala","RM","CMR",1978,74],
+       [0,"Liedson","ST","BRA",1977,82,"Liedson"],
+       [0,"Ricardo Sá Pinto","ST","POR",1972,72],
+       [0,"Mauricio Pinilla","ST","CHI",1984,70],
+     ]},
+    {id:"bra", name:"Braga", short:"BRA", country:"POR", stadium:"Estádio 1º de Maio", cap:28000,
+     col:["#E2001A","#FFFFFF"], rep:64, bank:2,
+     p:[
+       [0,"João Tomás","ST","POR",1975,74],
+     ]},
+    {id:"vgu", name:"Vitória de Guimarães", short:"VSC", country:"POR", stadium:"Estádio D. Afonso Henriques", cap:30000,
+     col:["#FFFFFF","#000000"], rep:62, bank:1,
+     p:[
+     ]},
+    {id:"boa", name:"Boavista", short:"BOA", country:"POR", stadium:"Estádio do Bessa", cap:13000,
+     col:["#000000","#FFFFFF"], rep:64, bank:2,
+     p:[
+     ]},
+    {id:"mar", name:"Marítimo", short:"MAR", country:"POR", stadium:"Estádio dos Barreiros", cap:10600,
+     col:["#E2001A","#00A040"], rep:58, bank:1,
+     p:[
+     ]},
+    {id:"rav", name:"Rio Ave", short:"RAV", country:"POR", stadium:"Estádio dos Arcos", cap:12815,
+     col:["#00A040","#FFFFFF"], rep:50, bank:1,
+     p:[
+     ]},
+    {id:"nac", name:"Nacional", short:"NAC", country:"POR", stadium:"Estádio da Madeira", cap:5132,
+     col:["#000000","#FFFFFF"], rep:54, bank:1,
+     p:[
+     ]},
+    {id:"gil", name:"Gil Vicente", short:"GIL", country:"POR", stadium:"Estádio Adelino Ribeiro Novo", cap:5000,
+     col:["#E2001A","#0B3B8C"], rep:50, bank:1,
+     p:[
+     ]},
+    {id:"bel", name:"Belenenses", short:"BEL", country:"POR", stadium:"Estádio do Restelo", cap:32500,
+     col:["#0060A9","#FFFFFF"], rep:56, bank:1,
+     p:[
+     ]},
+    {id:"pen", name:"Penafiel", short:"PEN", country:"POR", stadium:"Estádio Municipal 25 de Abril", cap:5230,
+     col:["#E2001A","#000000"], rep:46, bank:1,
+     p:[
+     ]},
+    {id:"aca", name:"Académica", short:"ACA", country:"POR", stadium:"Estádio Cidade de Coimbra", cap:30075,
+     col:["#000000","#FFFFFF"], rep:52, bank:1,
+     p:[
+     ]},
+    {id:"lei", name:"União de Leiria", short:"LEI", country:"POR", stadium:"Estádio Dr. Magalhães Pessoa", cap:15000,
+     col:["#0B1A3A","#FFFFFF"], rep:54, bank:1,
+     p:[
+     ]},
+    {id:"vse", name:"Vitória de Setúbal", short:"VFC", country:"POR", stadium:"Estádio do Bonfim", cap:21000,
+     col:["#00A040","#FFFFFF"], rep:52, bank:1,
+     p:[
+     ]},
+    {id:"mor", name:"Moreirense", short:"MOR", country:"POR", stadium:"Parque de Jogos Comendador Joaquim de Almeida Freitas", cap:6153,
+     col:["#00A040","#FFFFFF"], rep:46, bank:1,
+     p:[
+     ]},
+    {id:"bmr", name:"Beira-Mar", short:"BMR", country:"POR", stadium:"Estádio Mário Duarte", cap:12000,
+     col:["#FFD700","#000000"], rep:48, bank:1,
+     p:[
+     ]},
+    {id:"est", name:"Estoril", short:"EST", country:"POR", stadium:"Estádio António Coimbra da Mota", cap:8000,
+     col:["#FFD700","#0060A9"], rep:46, bank:1,
+     p:[
+     ]},
+  ]
+});

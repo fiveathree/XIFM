@@ -1,0 +1,85 @@
+FM.addLeague({
+  id:"sco1", country:"SCO", name:"蘇超", ename:"Scottish Premier League", tier:1,
+  clubs:[
+    {id:"ran", name:"Rangers", short:"RAN", country:"SCO", stadium:"Ibrox Stadium", cap:50444,
+     col:["#1B458F","#FFFFFF"], rep:80, bank:8,
+     p:[
+       [0,"Ronald Waterreus","GK","NED",1970,74],
+       [0,"Fernando Ricksen","RB","NED",1976,74],
+       [0,"Sotirios Kyrgiakos","LB","GRE",1979,70],
+       [0,"Marvin Andrews","CD","TRI",1975,70],
+       [0,"Barry Ferguson","CM","SCO",1978,77],
+       [0,"Peter Løvenkrands","RM","DEN",1980,72],
+       [0,"Hamed Namouchi","CM","TUN",1984,64],
+       [0,"Nacho Novo","ST","ESP",1979,72],
+       [0,"Dado Pršo","ST","CRO",1974,74],
+     ]},
+    {id:"cel", name:"Celtic", short:"CEL", country:"SCO", stadium:"Celtic Park", cap:60832,
+     col:["#018749","#FFFFFF"], rep:82, bank:10,
+     p:[
+       [0,"Rab Douglas","GK","SCO",1972,72],
+       [0,"David Marshall","GK","SCO",1985,64],
+       [0,"Didier Agathe","RB","FRA",1975,72],
+       [0,"Jackie McNamara","LB","SCO",1973,73],
+       [0,"Bobo Baldé","CD","GUI",1975,75],
+       [0,"Stanislav Varga","CD","SVK",1972,74],
+       [0,"Neil Lennon","CM","NIR",1971,73],
+       [0,"Stilian Petrov","CM","BUL",1979,78],
+       [0,"Alan Thompson","CM","ENG",1973,72],
+       [0,"Aiden McGeady","RM","IRL",1986,66],
+       [0,"John Hartson","ST","WAL",1975,77],
+       [0,"Chris Sutton","ST","ENG",1973,74],
+     ]},
+    {id:"hib", name:"Hibernian", short:"HIB", country:"SCO", stadium:"Easter Road", cap:17500,
+     col:["#006F3C","#FFFFFF"], rep:62, bank:2,
+     p:[
+       [0,"Scott Brown","CM","SCO",1985,68],
+       [0,"Kevin Thomson","CM","SCO",1984,64],
+       [0,"Derek Riordan","ST","SCO",1983,66],
+       [0,"Garry O'Connor","ST","SCO",1983,66],
+     ]},
+    {id:"abe", name:"Aberdeen", short:"ABE", country:"SCO", stadium:"Pittodrie", cap:22199,
+     col:["#E2001A","#FFFFFF"], rep:60, bank:2,
+     p:[
+       [0,"Darren Mackie","ST","SCO",1982,62],
+       [0,"Russell Anderson","CD","SCO",1978,66],
+     ]},
+    {id:"hea", name:"Heart of Midlothian", short:"HEA", country:"SCO", stadium:"Tynecastle", cap:18008,
+     col:["#7A1C2E","#FFFFFF"], rep:62, bank:2,
+     p:[
+       [0,"Craig Gordon","GK","SCO",1982,74],
+       [0,"Steven Pressley","CD","SCO",1973,68],
+       [0,"Paul Hartley","ST","SCO",1976,68],
+     ]},
+    {id:"mot", name:"Motherwell", short:"MOT", country:"SCO", stadium:"Fir Park", cap:13742,
+     col:["#FDB913","#8B1E3F"], rep:56, bank:1,
+     p:[
+       [0,"Phil O'Donnell","CM","SCO",1972,62],
+       [0,"Scott McDonald","ST","AUS",1983,64],
+     ]},
+    {id:"kil", name:"Kilmarnock", short:"KIL", country:"SCO", stadium:"Rugby Park", cap:18128,
+     col:["#004C99","#FFFFFF"], rep:54, bank:1,
+     p:[
+     ]},
+    {id:"ict", name:"Inverness Caledonian Thistle", short:"ICT", country:"SCO", stadium:"Caledonian Stadium", cap:7780,
+     col:["#003399","#E2001A"], rep:50, bank:1,
+     p:[
+     ]},
+    {id:"dunu", name:"Dundee United", short:"DUU", country:"SCO", stadium:"Tannadice Park", cap:14209,
+     col:["#F58220","#000000"], rep:54, bank:1,
+     p:[
+     ]},
+    {id:"liv", name:"Livingston", short:"LIV", country:"SCO", stadium:"Almondvale Stadium", cap:10016,
+     col:["#F7A800","#000000"], rep:52, bank:1,
+     p:[
+     ]},
+    {id:"dunf", name:"Dunfermline Athletic", short:"DNF", country:"SCO", stadium:"East End Park", cap:12509,
+     col:["#000000","#FFFFFF"], rep:52, bank:1,
+     p:[
+     ]},
+    {id:"dun", name:"Dundee", short:"DUN", country:"SCO", stadium:"Dens Park", cap:11506,
+     col:["#0B1F4D","#FFFFFF"], rep:50, bank:1,
+     p:[
+     ]},
+  ]
+});
