@@ -33,7 +33,7 @@ Club fields
 Player row: `[shirtNo, fullName, pos, nat, birthYear, skill, shortName?]`
 - `shirtNo`: the real squad number that season if known, else 0 (the game then gives a free number). Filled from Wikipedia season pages by `tools/fm-shirt-numbers.js`; `tools/fm-build-era.js` keeps the numbers already in a file when it rebuilds it.
 - `fullName`: proper spelling with accents.
-- `pos` — exactly one of: `GK RB LB CD DM CM RM LM AM ST`
+- `pos` — exactly one of: `GK RB LB CD RWB LWB DM CM RM LM AM RW LW CF ST` (RWB/LWB wing-backs, RW/LW wingers, CF a forward who plays just behind or around the striker). `tools/fm-positions.js <era>` moves real wingers, wing-backs and second strikers onto these from Wikidata.
   (CD = centre-back, DM = defensive mid, AM = attacking mid / second striker, wingers → RM/LM).
 - `nat`: FIFA 3-letter code (ENG SCO WAL NIR IRL FRA GER ESP ITA NED BEL POR BRA ARG URU ...).
 - `birthYear`: 4-digit year.

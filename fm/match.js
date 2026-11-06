@@ -39,8 +39,8 @@ function sideRatings(S, M) {
   const L = { G: [], D: [], M: [], A: [] };
   let fw = 0, hd = 0;
   for (const o of S.on) {
-    if (!o.pid) { L[lineOf(o.slot)].push(28); continue; }
-    L[lineOf(o.slot)].push(effOf(o.pid, o.slot));
+    if (!o.pid) { L[slotLine(o.slot)].push(28); continue; }
+    L[slotLine(o.slot)].push(effOf(o.pid, o.slot));
     const od = S.ord[o.pid]; if (od === 'fw') fw++; if (od === 'hd') hd++;
   }
   const av = a => a.length ? sum(a) / a.length : 35;
@@ -55,7 +55,7 @@ function sideRatings(S, M) {
   return { att, def, mid, gk, t: [.86, 1, 1.13][st.tempo], pace };
 }
 function wOn(S, fn) { const ps2 = S.on.filter(o => o.pid); return wpick(ps2, ps2.map(fn)); }
-const POSW = { ST: 3.2, AM: 2.4, RM: 1.9, LM: 1.9, CM: 1.5, DM: .6, RB: .5, LB: .5, CD: .55, GK: .01 };
+const POSW = { ST: 3.2, CF: 2.9, AM: 2.4, RW: 2.3, LW: 2.3, RM: 1.9, LM: 1.9, RWB: .8, LWB: .8, CM: 1.5, DM: .6, RB: .5, LB: .5, CD: .55, GK: .01 };
 function rate(M, pid, v) { if (pid && M.rt[pid] != null) M.rt[pid] += v; }
 function ev(M, t, side, p, p2, x) { const e = { m: minLabel(M), t, s: side, p, p2, x }; M.ev.push(e); return e; }
 
@@ -84,7 +84,7 @@ function attack(M, S, O, rs, ro) {
   const sh = wOn(S, o => (POSW[o.slot] || 1) * (attrs(o.pid)[ps(o.pid).pos === 'GK' ? 0 : 5] / 70) * ordW(o));
   if (!sh) return;
   const others = S.on.filter(o => o.pid && o.pid !== sh.pid);
-  const crossers = others.filter(o => S.ord[o.pid] === 'cr' || ['RM', 'LM', 'RB', 'LB'].includes(o.slot));
+  const crossers = others.filter(o => S.ord[o.pid] === 'cr' || ['RM', 'LM', 'RB', 'LB', 'RW', 'LW', 'RWB', 'LWB'].includes(o.slot));
   const as = others.length ? wpick(others, others.map(o => (attrs(o.pid)[4] / 70) ** 2 * (S.ord[o.pid] === 'cr' ? 1.8 : 1) * (S.ord[o.pid] === 'dr' ? 1.2 : 1))) : null;
   const gko = O.on.find(o => o.slot === 'GK' && o.pid);
   const gq = gko ? (attrs(gko.pid)[0] + attrs(gko.pid)[1]) / 2 * clamp(.78 + .22 * (pd(gko.pid).cond - 40) / 52, .7, 1) : 30;

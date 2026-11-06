@@ -153,7 +153,11 @@ const fname = f => isCust(f) ? '自訂' : f;
 const FLIST = () => Object.keys(FORMS).filter(k => !isCust(k));
 const formOpts = cur => FLIST().map(f => opt(f, f, cur)).join('') + (myClub().cust ? opt(CUSTK(myCid()), '自訂', cur) : '');
 function regCustom() { for (const cid in G.clubs) { const c = G.clubs[cid]; if (c.cust) FORMS[CUSTK(cid)] = c.cust; if (isCust(c.form) && !FORMS[c.form]) c.form = '4-4-2'; } }
-function slotAt(x, y) { if (y >= 86) return 'GK'; if (y >= 64) return x < 25 ? 'LB' : x > 75 ? 'RB' : 'CD'; if (y >= 55) return x < 22 ? 'LM' : x > 78 ? 'RM' : 'DM'; if (y >= 40) return x < 22 ? 'LM' : x > 78 ? 'RM' : 'CM'; if (y >= 27) return x < 20 ? 'LM' : x > 80 ? 'RM' : 'AM'; return 'ST'; }
+function slotAt(x, y) {
+  const side = (l, r, c) => x < 22 ? l : x > 78 ? r : c;
+  if (y >= 86) return 'GK'; if (y >= 70) return x < 25 ? 'LB' : x > 75 ? 'RB' : 'CD'; if (y >= 55) return side('LWB', 'RWB', 'DM');
+  if (y >= 40) return side('LM', 'RM', 'CM'); if (y >= 31) return side('LW', 'RW', 'AM'); if (y >= 22) return side('LW', 'RW', 'CF'); return side('LW', 'RW', 'ST');
+}
 function moveSlot(i, x, y) {
   const c = myClub(), k = CUSTK(myCid());
   c.cust = FORMS[c.form].map(s => [...s]); c.form = k;
@@ -616,7 +620,7 @@ function drawPitch() {
   x.beginPath(); x.arc(px(50), py(50), Math.min(W, H) * .12, 0, 7); x.stroke();
   x.strokeRect(px(2), py(28), px(14), py(44)); x.strokeRect(px(84), py(28), px(14), py(44));
   const t = performance.now() / 900, sh = (M.ball[0] - 50) * .3, ease = (k, X, Y) => { const p = MT.pos[k] || (MT.pos[k] = [X, Y]); p[0] += (X - p[0]) * .06; p[1] += (Y - p[1]) * .06; return p; };
-  const rad = Math.max(4, Math.min(W, H) * .022);
+  const rad = Math.max(6, Math.min(W, H) * .03), lab = [];
   for (const S of [M.h, M.a]) {
     const home = S.key === 'h', col = CL[S.cid].col;
     S.on.forEach((o, i) => {
@@ -624,24 +628,123 @@ function drawPitch() {
       let X = home ? (100 - o.y) * .5 : 100 - (100 - o.y) * .5, Y = home ? o.x : 100 - o.x;
       X = clamp(X + (o.slot === 'GK' ? sh * .15 : sh) + Math.sin(t + i * 1.7) * 1.2, 3, 97); Y = clamp(Y + (M.ball[1] - 50) * .12 + Math.cos(t * .8 + i) * 1.5, 5, 95);
       const p = ease(S.key + i, X, Y);
-      x.beginPath(); x.arc(px(p[0]), py(p[1]), rad, 0, 7); x.fillStyle = col[0]; x.fill(); x.lineWidth = 2 * dpr; x.strokeStyle = col[1]; x.stroke();
+      const cx = px(p[0]), cy = py(p[1]), d = pd(o.pid);
+      x.beginPath(); x.arc(cx, cy, rad, 0, 7); x.fillStyle = col[0]; x.fill(); x.lineWidth = 2 * dpr; x.strokeStyle = col[1]; x.stroke();
+      // shirt number inside the dot
+      x.fillStyle = col[1]; x.font = `800 ${Math.round(rad * 1.05)}px "Saira Condensed",sans-serif`; x.textAlign = 'center'; x.textBaseline = 'middle';
+      if (d.no) x.fillText(d.no, cx, cy + rad * .05);
+      lab.push([cx, cy, ps(o.pid).sn, Math.round(d.sk * fitPos(ps(o.pid).pos, o.slot)), Math.round(d.cond), fitPos(ps(o.pid).pos, o.slot) < 1]);
     });
   }
+  // name, then ability · stamina under each player (drawn after all dots so no dot covers a label)
+  const fs1 = Math.max(9, Math.round(rad * .78));
+  x.textBaseline = 'top'; x.lineJoin = 'round';
+  for (const [cx, cy, name, ab, cond, off] of lab) {
+    x.font = `700 ${fs1}px "Noto Sans TC",sans-serif`;
+    const hw = x.measureText(name).width / 2 + 3 * dpr, ty = cy + rad + 2 * dpr, nx = clamp(cx, hw, W - hw); x.lineWidth = 3 * dpr; x.strokeStyle = 'rgba(0,20,10,.85)';
+    x.strokeText(name, nx, ty); x.fillStyle = '#fff'; x.fillText(name, nx, ty);
+    const t2 = `${ab}`, t3 = ` · ${cond}%`, y2 = ty + fs1 * 1.1;
+    x.font = `800 ${fs1}px "Saira Condensed",sans-serif`;
+    const w2 = x.measureText(t2).width, w3 = x.measureText(t3).width, x0 = nx - (w2 + w3) / 2;
+    x.textAlign = 'left';
+    x.strokeText(t2, x0, y2); x.fillStyle = off ? '#ff8a8a' : '#ffe066'; x.fillText(t2, x0, y2);
+    x.strokeText(t3, x0 + w2, y2); x.fillStyle = cond >= 75 ? '#7dffa8' : cond >= 55 ? '#ffb03a' : '#ff6f6f'; x.fillText(t3, x0 + w2, y2);
+    x.textAlign = 'center';
+  }
   const b = ease('ball', M.ball[0], M.ball[1]);
-  x.beginPath(); x.arc(px(b[0]), py(b[1]), rad * .55, 0, 7); x.fillStyle = '#fff'; x.fill(); x.lineWidth = 1; x.strokeStyle = '#000'; x.stroke();
+  const lb = MT.lb || b.slice(); MT.rot = (MT.rot || 0) + Math.hypot(b[0] - lb[0], b[1] - lb[1]) * .25; MT.lb = b.slice();
+  drawBall(x, px(b[0]), py(b[1]), rad * .8, MT.rot, dpr);
   MT.raf = requestAnimationFrame(drawPitch);
+}
+// a classic black-and-white football: shadow, white ball, a centre pentagon and five patches round the edge; turns as it moves
+function drawBall(x, cx, cy, r, rot, dpr) {
+  x.save();
+  x.beginPath(); x.ellipse(cx + r * .25, cy + r * .9, r * .9, r * .35, 0, 0, 7); x.fillStyle = 'rgba(0,0,0,.3)'; x.fill();
+  x.beginPath(); x.arc(cx, cy, r, 0, 7); x.fillStyle = '#fff'; x.fill(); x.clip();
+  const pent = (px0, py0, s, a) => { x.beginPath(); for (let k = 0; k < 5; k++) { const t = a + k * 2 * Math.PI / 5 - Math.PI / 2; x[k ? 'lineTo' : 'moveTo'](px0 + Math.cos(t) * s, py0 + Math.sin(t) * s); } x.closePath(); x.fill(); };
+  x.fillStyle = '#111';
+  pent(cx, cy, r * .38, rot);
+  for (let k = 0; k < 5; k++) { const t = rot + k * 2 * Math.PI / 5 - Math.PI / 2 + Math.PI / 5; pent(cx + Math.cos(t) * r * 1.02, cy + Math.sin(t) * r * 1.02, r * .36, rot + Math.PI); }
+  x.strokeStyle = 'rgba(0,0,0,.45)'; x.lineWidth = Math.max(1, .6 * dpr);
+  for (let k = 0; k < 5; k++) { const t = rot + k * 2 * Math.PI / 5 - Math.PI / 2; x.beginPath(); x.moveTo(cx + Math.cos(t) * r * .38, cy + Math.sin(t) * r * .38); x.lineTo(cx + Math.cos(t) * r, cy + Math.sin(t) * r); x.stroke(); }
+  x.restore();
+  x.beginPath(); x.arc(cx, cy, r, 0, 7); x.lineWidth = Math.max(1, dpr); x.strokeStyle = '#222'; x.stroke();
+  // soft highlight
+  const g = x.createRadialGradient(cx - r * .35, cy - r * .4, 0, cx - r * .35, cy - r * .4, r);
+  g.addColorStop(0, 'rgba(255,255,255,.55)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+  x.beginPath(); x.arc(cx, cy, r, 0, 7); x.fillStyle = g; x.fill();
 }
 function breakPanel() {
   const M = MT.M, k = M.pause;
   modal(k === 'ht' ? '半場' : '加時', `<div class="big" style="text-align:center">${esc(clubShort(M.h.cid))} ${M.h.g} - ${M.a.g} ${esc(clubShort(M.a.cid))}</div>${statsHTML(M)}<div class="row" style="justify-content:center"><button class="btn" data-act="msub">換人 · 戰術</button><button class="btn y" data-act="mcont">${k === 'ht' ? '開始下半場' : '開始加時'}</button></div>`, 'sm');
 }
 function subPanel() {
-  const M = MT.M, S = M[M.u], rt = p => (6 + (M.rt[p] || 0)).toFixed(1);
-  modal(`換人 · 戰術（已換 ${S.subs}/3）`, `<div class="cols c2" style="flex:none"><div><div class="lbl">場上 · 先揀要換走嘅球員</div><table><tbody>${S.on.map(o => o.pid ? `<tr class="click ${MT.sel === o.pid ? 'sel' : ''}" data-act="msel" data-a="${o.pid}"><td class="n">${o.slot}</td><td class="nm">${esc(ps(o.pid).sn)}</td><td>${Math.round(pd(o.pid).cond)}${cbar(pd(o.pid).cond)}</td><td class="n">${rt(o.pid)}</td></tr>` : `<tr><td class="n">${o.slot}</td><td colspan="3" class="bad">冇人</td></tr>`).join('')}</tbody></table></div>
-    <div><div class="lbl">後備 · 再揀換入</div><table><tbody>${S.bench.map(p => `<tr class="click" data-act="msubin" data-a="${p}"><td class="n">${ps(p).pos}</td><td class="nm">${esc(ps(p).sn)}</td><td class="n">${pd(p).sk}</td></tr>`).join('') || '<tr><td class="mute">冇後備</td></tr>'}</tbody></table>
+  const M = MT.M, S = M[M.u], col = CL[S.cid].col, left = 3 - S.subs;
+  const cc = c => c >= 75 ? 'cg' : c >= 55 ? 'cw' : 'cb';
+  const shirts = S.on.map((o, i) => {
+    const pid = o.pid, f = pid ? fitPos(ps(pid).pos, o.slot) : 1, cond = pid ? Math.round(pd(pid).cond) : 0;
+    return `<div class="shirt dg ${pid && MT.sel === pid ? 'selp' : ''}" data-mi="${i}" style="left:${o.x}%;top:${o.y}%"><b class="sp">${o.slot}</b><i style="background:${col[0]};color:${col[1]}">${pid ? pd(pid).no || '' : ''}</i><span class="${f < .85 ? 'bad' : ''}">${pid ? esc(ps(pid).sn) : '冇人'}</span>${pid ? `<em class="rt ${f < 1 ? 'down' : ''}">${Math.round(pd(pid).sk * f)} · <b class="${cc(cond)}">${cond}%</b></em>` : ''}</div>`;
+  }).join('');
+  const bench = S.bench.map(p => { const cond = Math.round(pd(p).cond); return `<div class="mbc" data-mb="${p}"><b class="n">${ps(p).pos}</b><span class="nm">${esc(ps(p).sn)}</span><span class="n">${pd(p).sk}</span><span class="n ${cc(cond)}">${cond}%</span></div>`; }).join('') || '<div class="mute">冇後備</div>';
+  modal(`換人 · 戰術（仲可以換 ${left} 個）`, `<div class="mtbw">
+    <div class="mtbl"><div class="lbl">戰術板 ${info('拖住球衣：放喺另一件球衣上面＝兩個人對調位置；放喺空位＝將佢移去嗰度（位置跟住變）；拖去右邊後備＝換人。由右邊拖後備落球衣上面都係換人。唔想拖：撳一件球衣揀咗佢，再撳另一件球衣對調，或者撳後備換入。數字係扣咗位置之後嘅能力 · 體力。')}</div><div class="pitchv" id="mtb">${PITCHV}${shirts}</div></div>
+    <div class="mtbr"><div class="lbl">後備（拖落球衣換人）</div><div id="mtbench">${bench}</div>
     <div class="lbl" style="margin-top:10px">陣式</div><select class="inp" data-ch="mform">${formOpts(S.form)}</select>
     <div class="lbl" style="margin-top:10px">打法</div>${Object.entries(STYLE).map(([k, v]) => `<div class="row" style="margin-bottom:4px"><span style="width:64px">${STYLEN[k]}</span>${v.map((t, i) => `<button class="chip" data-act="msty" data-a="${k}:${i}" aria-pressed="${S.sty[k] === i}">${t}</button>`).join('')}</div>`).join('')}</div></div>`, 'tall');
 }
+/* in-match tactics board: drag shirts to swap / move, drag between the pitch and the bench to substitute; taps work too */
+let MDRG = null;
+function mbTarget(e) {
+  MDRG.g.hidden = true; const el = document.elementFromPoint(e.clientX, e.clientY); MDRG.g.hidden = false;
+  if (!el) return null;
+  const sh = el.closest('#mtb .shirt[data-mi]'); if (sh && !(MDRG.sh && +sh.dataset.mi === MDRG.src)) return { i: +sh.dataset.mi, el: sh };
+  if (MDRG.sh) { const b = el.closest('#mtbench [data-mb]'); if (b) return { b: b.dataset.mb, el: b }; }
+  const p = el.closest('#mtb'); if (p && MDRG.sh) { const r = p.getBoundingClientRect(); return { move: [clamp((e.clientX - r.left) / r.width * 100, 5, 95), clamp((e.clientY - r.top) / r.height * 100, 5, 95)] }; }
+  return null;
+}
+function mbSub(outPid, inPid) {
+  if (!outPid) return toast('嗰個位冇人，揀另一個');
+  if (!userSub(MT.M, outPid, inPid)) return toast(MT.M[MT.M.u].subs >= 3 ? '已經換晒 3 個' : '換唔到');
+  MT.sel = null; return true;
+}
+function mbDone() { subPanel(); updLive(); }
+function mbClear(d) { if (d.g) d.g.remove(); d.el.classList.remove('dragging'); $$('.dropon').forEach(x => x.classList.remove('dropon')); }
+document.addEventListener('pointerdown', e => {
+  if (MDRG || !MT || !MT.M || !$('#mtb')) return;
+  const sh = e.target.closest('#mtb .shirt[data-mi]'), b = !sh && e.target.closest('#mtbench [data-mb]');
+  if (!sh && !b) return;
+  MDRG = { sh: !!sh, src: sh ? +sh.dataset.mi : b.dataset.mb, el: sh || b, x0: e.clientX, y0: e.clientY, id: e.pointerId, on: false };
+  e.preventDefault(); try { MDRG.el.setPointerCapture(e.pointerId); } catch (x) { }
+});
+document.addEventListener('pointermove', e => {
+  if (!MDRG || e.pointerId !== MDRG.id) return;
+  if (!MDRG.on) {
+    if (Math.hypot(e.clientX - MDRG.x0, e.clientY - MDRG.y0) < 6) return;
+    const S = MT.M[MT.M.u], pid = MDRG.sh ? S.on[MDRG.src].pid : MDRG.src;
+    if (!pid) { MDRG = null; return; }
+    MDRG.on = true; MDRG.g = Object.assign(document.createElement('div'), { className: 'dghost', textContent: ps(pid).sn });
+    document.body.appendChild(MDRG.g); MDRG.el.classList.add('dragging');
+  }
+  MDRG.g.style.left = e.clientX + 'px'; MDRG.g.style.top = e.clientY + 'px';
+  const t = mbTarget(e); $$('.dropon').forEach(x => x.classList.remove('dropon')); if (t && t.el) t.el.classList.add('dropon');
+});
+document.addEventListener('pointerup', e => {
+  if (!MDRG || e.pointerId !== MDRG.id) return;
+  const d = MDRG, t = d.on ? mbTarget(e) : null, S = MT.M[MT.M.u];
+  mbClear(d); MDRG = null;
+  if (!d.on) {   // taps: shirt = select, a second shirt = swap; bench = bring on for the selected player
+    if (d.sh) { const pid = S.on[d.src].pid; if (MT.sel && pid && MT.sel !== pid && S.on.some(o => o.pid === MT.sel)) { userSwap(MT.M, MT.sel, pid); MT.sel = null; } else MT.sel = MT.sel === pid ? null : pid; }
+    else if (!MT.sel) toast('先撳球場上要換走嘅球員'); else mbSub(MT.sel, d.src);
+    return mbDone();
+  }
+  if (!t) return mbDone();
+  if (d.sh && t.i != null) { const a = S.on[d.src], b = S.on[t.i]; [a.pid, b.pid] = [b.pid, a.pid]; }
+  else if (d.sh && t.b) mbSub(S.on[d.src].pid, t.b);
+  else if (!d.sh && t.i != null) mbSub(S.on[t.i].pid, d.src);
+  else if (d.sh && t.move) { const o = S.on[d.src]; o.x = Math.round(t.move[0]); o.y = Math.round(t.move[1]); o.slot = slotAt(o.x, o.y); MT.pos = {}; }
+  mbDone();
+});
+document.addEventListener('pointercancel', () => { if (MDRG) { mbClear(MDRG); MDRG = null; } });
 function mFt() {
   const M = MT.M, f = MT.f, sc = s => M.ev.filter(e => e.t === 'goal' && e.s === s).map(e => `${esc(nm(e.p))} ${e.m}'${e.x === 'pen' ? '（十二碼）' : ''}`).join('<br>') || '—';
   const mine = M[M.u], my = [...M.app].filter(p => pd(p).c === mine.cid).sort((a, b) => M.rt[b] - M.rt[a]);

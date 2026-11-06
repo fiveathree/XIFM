@@ -75,9 +75,20 @@ const natName = c => NATZ[c] || c;
 const EU = new Set('AUT BEL DEN FIN FRA GER GRE IRL ITA LUX NED POR ESP SWE ENG SCO WAL NIR NOR ISL LIE'.split(' '));
 
 /* ---------- positions ---------- */
-const POSN = { GK: '門將', RB: '右閘', LB: '左閘', CD: '中堅', DM: '防守中場', CM: '中場', RM: '右中場', LM: '左中場', AM: '進攻中場', ST: '前鋒' };
-const lineOf = p => p === 'GK' ? 'G' : (p === 'RB' || p === 'LB' || p === 'CD') ? 'D' : p === 'ST' ? 'A' : 'M';
-const NEARP = { RB: { LB: .9, RM: .86, CD: .85 }, LB: { RB: .9, LM: .86, CD: .85 }, CD: { DM: .88, RB: .84, LB: .84 }, DM: { CM: .95, CD: .86 }, CM: { DM: .95, AM: .92, RM: .88, LM: .88 }, RM: { LM: .9, RB: .85, AM: .86, CM: .88 }, LM: { RM: .9, LB: .85, AM: .86, CM: .88 }, AM: { CM: .9, ST: .9, RM: .87, LM: .87 }, ST: { AM: .9 } };
+const POSN = { GK: '門將', RB: '右閘', LB: '左閘', CD: '中堅', RWB: '右翼衛', LWB: '左翼衛', DM: '防守中場', CM: '中場', RM: '右中場', LM: '左中場', AM: '進攻中場', RW: '右翼', LW: '左翼', CF: '中鋒', ST: '前鋒' };
+const LINE = { GK: 'G', RB: 'D', LB: 'D', CD: 'D', RWB: 'D', LWB: 'D', DM: 'M', CM: 'M', RM: 'M', LM: 'M', AM: 'M', RW: 'A', LW: 'A', CF: 'A', ST: 'A' };
+const lineOf = p => LINE[p] || 'M';
+// in a match a wing-back slot counts towards midfield (a 3-5-2 stays a 3-5-2); the player's own group (search, youth, squad needs) stays defence
+const slotLine = s => s === 'RWB' || s === 'LWB' ? 'M' : lineOf(s);
+const NEARP = {
+  RB: { RWB: .95, LB: .9, LWB: .86, RM: .86, CD: .85 }, LB: { LWB: .95, RB: .9, RWB: .86, LM: .86, CD: .85 },
+  RWB: { RB: .95, RM: .9, LWB: .9, LB: .86, RW: .84 }, LWB: { LB: .95, LM: .9, RWB: .9, RB: .86, LW: .84 },
+  CD: { DM: .88, RB: .84, LB: .84 }, DM: { CM: .95, CD: .86 }, CM: { DM: .95, AM: .92, RM: .88, LM: .88 },
+  RM: { RW: .95, LM: .9, RWB: .88, AM: .86, CM: .88, RB: .85, LW: .85 }, LM: { LW: .95, RM: .9, LWB: .88, AM: .86, CM: .88, LB: .85, RW: .85 },
+  AM: { CF: .93, CM: .9, ST: .9, RM: .87, LM: .87, RW: .86, LW: .86 },
+  RW: { RM: .95, LW: .9, ST: .86, CF: .86, AM: .86, LM: .85, RWB: .8 }, LW: { LM: .95, RW: .9, ST: .86, CF: .86, AM: .86, RM: .85, LWB: .8 },
+  CF: { ST: .96, AM: .92, RW: .86, LW: .86 }, ST: { CF: .95, AM: .9, RW: .86, LW: .86 },
+};
 function fitPos(nat, slot) {
   if (nat === slot) return 1;
   if (nat === 'GK' || slot === 'GK') return .3;
@@ -90,14 +101,16 @@ function fitPos(nat, slot) {
 const GKS = ['GK', 50, 93], B4 = [['RB', 86, 72], ['CD', 62, 77], ['CD', 38, 77], ['LB', 14, 72]];
 const FORMS = {
   '4-4-2': [GKS, ...B4, ['RM', 86, 46], ['CM', 62, 51], ['CM', 38, 51], ['LM', 14, 46], ['ST', 62, 20], ['ST', 38, 20]],
-  '4-3-3': [GKS, ...B4, ['CM', 70, 50], ['DM', 50, 58], ['CM', 30, 50], ['ST', 82, 24], ['ST', 50, 17], ['ST', 18, 24]],
+  '4-3-3': [GKS, ...B4, ['CM', 70, 50], ['DM', 50, 58], ['CM', 30, 50], ['RW', 82, 24], ['ST', 50, 17], ['LW', 18, 24]],
+  '4-2-3-1': [GKS, ...B4, ['DM', 62, 57], ['DM', 38, 57], ['RW', 84, 33], ['AM', 50, 36], ['LW', 16, 33], ['ST', 50, 17]],
+  '4-4-1-1': [GKS, ...B4, ['RM', 86, 47], ['CM', 62, 53], ['CM', 38, 53], ['LM', 14, 47], ['CF', 50, 29], ['ST', 50, 16]],
   '4-5-1': [GKS, ...B4, ['RM', 86, 44], ['CM', 66, 51], ['DM', 50, 58], ['CM', 34, 51], ['LM', 14, 44], ['ST', 50, 18]],
   '4-1-2-1-2': [GKS, ...B4, ['DM', 50, 60], ['CM', 72, 48], ['CM', 28, 48], ['AM', 50, 34], ['ST', 62, 17], ['ST', 38, 17]],
-  '4-2-4': [GKS, ...B4, ['CM', 62, 54], ['CM', 38, 54], ['RM', 86, 26], ['ST', 62, 18], ['ST', 38, 18], ['LM', 14, 26]],
-  '3-5-2': [GKS, ['CD', 72, 76], ['CD', 50, 79], ['CD', 28, 76], ['RM', 88, 47], ['CM', 66, 52], ['DM', 50, 60], ['CM', 34, 52], ['LM', 12, 47], ['ST', 62, 18], ['ST', 38, 18]],
-  '3-4-3': [GKS, ['CD', 72, 76], ['CD', 50, 79], ['CD', 28, 76], ['RM', 86, 48], ['CM', 62, 53], ['CM', 38, 53], ['LM', 14, 48], ['ST', 80, 23], ['ST', 50, 16], ['ST', 20, 23]],
-  '5-3-2': [GKS, ['RB', 88, 64], ['CD', 70, 77], ['CD', 50, 80], ['CD', 30, 77], ['LB', 12, 64], ['CM', 70, 49], ['CM', 50, 54], ['CM', 30, 49], ['ST', 62, 18], ['ST', 38, 18]],
-  '5-4-1': [GKS, ['RB', 88, 64], ['CD', 70, 77], ['CD', 50, 80], ['CD', 30, 77], ['LB', 12, 64], ['RM', 84, 45], ['CM', 61, 50], ['CM', 39, 50], ['LM', 16, 45], ['ST', 50, 18]],
+  '4-2-4': [GKS, ...B4, ['CM', 62, 54], ['CM', 38, 54], ['RW', 86, 26], ['ST', 62, 18], ['ST', 38, 18], ['LW', 14, 26]],
+  '3-5-2': [GKS, ['CD', 72, 76], ['CD', 50, 79], ['CD', 28, 76], ['RWB', 88, 50], ['CM', 66, 52], ['DM', 50, 60], ['CM', 34, 52], ['LWB', 12, 50], ['ST', 62, 18], ['ST', 38, 18]],
+  '3-4-3': [GKS, ['CD', 72, 76], ['CD', 50, 79], ['CD', 28, 76], ['RWB', 86, 50], ['CM', 62, 53], ['CM', 38, 53], ['LWB', 14, 50], ['RW', 80, 23], ['ST', 50, 16], ['LW', 20, 23]],
+  '5-3-2': [GKS, ['RWB', 88, 64], ['CD', 70, 77], ['CD', 50, 80], ['CD', 30, 77], ['LWB', 12, 64], ['CM', 70, 49], ['CM', 50, 54], ['CM', 30, 49], ['ST', 62, 18], ['ST', 38, 18]],
+  '5-4-1': [GKS, ['RWB', 88, 64], ['CD', 70, 77], ['CD', 50, 80], ['CD', 30, 77], ['LWB', 12, 64], ['RM', 84, 45], ['CM', 61, 50], ['CM', 39, 50], ['LM', 16, 45], ['ST', 50, 18]],
 };
 const STYLE = { ment: ['防守', '平衡', '進攻'], pass: ['短傳', '混合', '長傳'], tempo: ['慢', '正常', '快'], mark: ['區域防守', '人盯人'], trap: ['唔用', '用'] };
 const ORDERS = { n: '普通', dr: '盤扭', cr: '傳中', ls: '遠射', fw: '前插', hd: '留守', mm: '盯人' };
@@ -109,6 +122,7 @@ const APROF = {
   GK: [2, 2, 0, -4, 0, -12, -6, -4], CD: [-10, -2, 5, 6, -10, -26, 6, -12], RB: [3, 3, -4, 2, -5, -20, -8, -6], LB: [3, 3, -4, 2, -5, -20, -8, -6],
   DM: [-8, 4, 2, 5, -2, -15, -4, -5], CM: [-4, 4, -2, -3, 5, -8, -8, 1], RM: [5, 2, -8, -12, 1, -8, -12, 2], LM: [5, 2, -8, -12, 1, -8, -12, 2],
   AM: [0, -4, -10, -20, 4, 2, -10, 6], ST: [2, -2, 2, -30, -8, 5, 2, 1],
+  RWB: [5, 6, -4, 0, -3, -18, -9, -4], LWB: [5, 6, -4, 0, -3, -18, -9, -4], RW: [8, 0, -10, -24, -1, 0, -12, 5], LW: [8, 0, -10, -24, -1, 0, -12, 5], CF: [0, -4, -2, -28, 1, 4, -1, 5],
 };
 function attrs(pid) {
   const p = ps(pid), sk = G.pl[pid].sk, pr = APROF[p.pos];
@@ -389,7 +403,7 @@ function fillYouth(cid, min, gap = 4) {
   const ros = roster(cid), rs = clamp(Math.round(28 + (G.clubs[cid]?.rep ?? CL[cid].rep) * .6), 40, 76);
   const avg = ros.length >= 8 ? sum(ros.map(p => pd(p).sk)) / ros.length : (sum(ros.map(p => pd(p).sk)) + (8 - ros.length) * rs) / 8;
   const cnt = { G: 0, D: 0, M: 0, A: 0 }; ros.forEach(p => cnt[lineOf(ps(p).pos)]++);
-  const POSBY = { G: ['GK'], D: ['CD', 'CD', 'RB', 'LB'], M: ['CM', 'RM', 'LM', 'CM', 'DM'], A: ['ST'] };
+  const POSBY = { G: ['GK'], D: ['CD', 'CD', 'RB', 'LB'], M: ['CM', 'RM', 'LM', 'CM', 'DM'], A: ['ST', 'ST', 'RW', 'LW', 'CF'] };
   let guard = 0;
   while ((roster(cid).length < min || Object.keys(NEED).some(l => cnt[l] < NEED[l])) && guard++ < 40) {
     const l = Object.keys(NEED).sort((a, b) => (cnt[a] - NEED[a]) - (cnt[b] - NEED[b]))[0];
@@ -428,7 +442,12 @@ function lineupProblems(cid) {
   return out;
 }
 const AIFORM = ['4-4-2', '4-4-2', '4-4-2', '4-3-3', '3-5-2', '4-5-1', '4-1-2-1-2'];
-function aiForm(cid) { const L = CL[cid].lg0; if (ENG.includes(L) || L === 'sco1') return hsh(cid) % 4 ? '4-4-2' : pick(AIFORM); return AIFORM[hsh(cid) % AIFORM.length]; }
+const AIFORM10 = ['4-2-3-1', '4-2-3-1', '4-3-3', '4-3-3', '4-4-2', '3-5-2', '4-4-1-1', '3-4-3'];   // modern eras: 4-2-3-1 and 4-3-3 are the norm
+function aiForm(cid) {
+  const L = CL[cid].lg0, F = G.season >= 2008 ? AIFORM10 : AIFORM;
+  if (G.season < 2008 && (ENG.includes(L) || L === 'sco1')) return hsh(cid) % 4 ? '4-4-2' : pick(F);
+  return F[hsh(cid) % F.length];
+}
 
 /* ---------- mail & news ---------- */
 function mail(t, b, act) { G.mail.unshift({ id: G.nid++, d: G.day, t, b, act: act || null, rd: 0 }); if (G.mail.length > 80) G.mail.length = 80; }
@@ -729,7 +748,7 @@ function rollover() {
   const patch = FM.seasons?.[ns] && (FM.seasons[ns].era || 2001) === (G.era || 2001) ? FM.seasons[ns] : null;
   if (patch) for (const [ck, rows] of Object.entries(patch.clubs || {})) rows.forEach((r, i) => { const pid = `s${ns}.${ck}.${i}`; const cid = G.clubs[ck] ? ck : 'free'; G.pl[pid] = newPl(cid, r[5], ns + ri(1, 4), r[0]); (ROS[cid] = ROS[cid] || []).push(pid); });
   // youth intake
-  for (const cid of GCL()) { if (!isUser(cid)) { for (let k = 0; k < ri(0, 2); k++) mkYouth(cid, pick(['CD', 'CM', 'ST', 'RM', 'LB', 'GK']), clamp(Math.round(lineAvg(cid).M - 14 + ri(-3, 4)), 32, 70)); } fillYouth(cid, isUser(cid) ? 16 : 20, 10); }
+  for (const cid of GCL()) { if (!isUser(cid)) { for (let k = 0; k < ri(0, 2); k++) mkYouth(cid, pick(['CD', 'CM', 'ST', 'RM', 'LB', 'GK', 'LW', 'RWB']), clamp(Math.round(lineAvg(cid).M - 14 + ri(-3, 4)), 32, 70)); } fillYouth(cid, isUser(cid) ? 16 : 20, 10); }
   ALLP = null;
   G.off = [];
   setupSeason(ns);

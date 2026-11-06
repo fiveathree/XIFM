@@ -1,5 +1,5 @@
 // node tools/fm-check-data.js fm/data/eng1.js  — validates a data file against DATA_SPEC.md
-const fs=require('fs');const POS=new Set('GK RB LB CD DM CM RM LM AM ST'.split(' '));
+const fs=require('fs');const POS=new Set('GK RB LB CD RWB LWB DM CM RM LM AM RW LW CF ST'.split(' '));
 let errs=0;const out=[];
 global.FM={addLeague(L){
   const ids=new Set(),names=new Map();let n=0;

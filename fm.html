@@ -239,6 +239,15 @@ a.nb{text-decoration:none;color:inherit;margin-top:auto}
 .shirt.dropon i,.shirt.selp i{outline:3px solid var(--sel);outline-offset:2px}
 tr.dropon td{background:var(--sel)!important;color:var(--selInk)}
 tr[data-k]{user-select:none}
+.mtbw{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;flex:1;min-height:0}
+.mtbl{display:flex;flex-direction:column;min-height:0}
+.mtbl .pitchv{height:100%;width:auto;max-width:100%;aspect-ratio:68/100;margin:0 auto;flex:1;min-height:0}
+#mtb .shirt{gap:2px}#mtb .shirt i{width:36px;height:34px;font-size:16px}#mtb .shirt span{font-size:12px;max-width:96px}#mtb .shirt .rt{font-size:12px}
+#mtb .shirt .rt b{font-weight:800}.cg{color:var(--win)}.cw{color:var(--warn)}.cb{color:var(--loss)}
+.mtbr{overflow:auto;min-height:0}
+#mtbench{display:flex;flex-direction:column;gap:4px}
+.mbc{display:grid;grid-template-columns:40px 1fr 32px 44px;gap:6px;align-items:center;background:var(--cell);padding:6px 8px;cursor:grab;touch-action:none;user-select:none}
+.mbc.dragging{opacity:.35}.mbc.dropon{outline:3px solid var(--sel)}
 .dghost{position:fixed;z-index:99;transform:translate(-50%,-140%);background:var(--sel);color:var(--selInk);font:800 15px/1 var(--f-disp);padding:6px 10px;pointer-events:none;white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.5)}
 .flist{display:flex;flex-direction:column;gap:2px}
 .flist .nb{padding:4px 8px;font-family:var(--f-disp);font-size:15px}
@@ -284,6 +293,7 @@ tr[data-k]{user-select:none}
   .m-stack .pitchwrap .pitchv{width:100%;height:auto}
   .sqg .shirt i{width:38px;height:36px;font-size:17px}.sqg .shirt span{font-size:12px;max-width:80px}.sqg .shirt .rt{font-size:13px}
   .flist{flex-direction:row;flex-wrap:wrap}
+  .mtbw{grid-template-columns:1fr;overflow:auto}.mtbl .pitchv{width:100%;height:auto;flex:none}
   .flist .nb{flex:1 1 28%}
   .sqg>.pan:first-child{order:2}
   .sqg>.fpan{order:1}

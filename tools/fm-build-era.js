@@ -26,7 +26,7 @@ const loadEra = y => { const got = {}; global.FM = { addLeague(L) { for (const c
 for (const y of eraDirs.filter(y => y < +era && y > 2001).sort((a, b) => a - b)) Object.assign(known, loadEra(y));
 for (const y of eraDirs.filter(y => y < 2001 || y > +era).sort((a, b) => Math.abs(a - era) - Math.abs(b - era))) for (const [k, c] of Object.entries(loadEra(y))) if (!known[k]) known[k] = c;
 const CTRY = { eng: 'ENG', sco: 'SCO', esp: 'ESP', ita: 'ITA', ger: 'GER', fra: 'FRA', ned: 'NED', por: 'POR', tur: 'TUR', bel: 'BEL', eur: 'EUR' };
-const POS = new Set('GK RB LB CD DM CM RM LM AM ST'.split(' '));
+const POS = new Set('GK RB LB CD RWB LWB DM CM RM LM AM RW LW CF ST'.split(' '));
 const leagues = []; let L = null, C = null, errs = 0;
 const err = (n, m) => { console.log(`line ${n}: ${m}`); errs++; };
 fs.readFileSync(src, 'utf8').split(/\r?\n/).forEach((raw, i) => {
