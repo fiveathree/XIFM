@@ -1,0 +1,116 @@
+FM.addLeague({
+  id:"tur1", country:"TUR", name:"土超", ename:"Süper Lig", tier:1,
+  clubs:[
+    {id:"fen", name:"Fenerbahçe", short:"FEN", country:"TUR", stadium:"Şükrü Saracoğlu Stadium", cap:46231,
+     col:["#FFED00","#00205B"], rep:82, bank:15,
+     p:[
+       [0,"Volkan Demirel","GK","TUR",1981,80],
+       [0,"Gökhan Gönül","RB","TUR",1985,78],
+       [0,"Diego Lugano","CD","URU",1980,80],
+       [0,"Bekir İrtegün","CD","TUR",1984,74],
+       [0,"André Santos","LB","BRA",1983,78],
+       [0,"Mehmet Topuz","DM","TUR",1983,76],
+       [0,"Emre Belözoğlu","CM","TUR",1980,82],
+       [0,"Cristian Baroni","CM","BRA",1983,76,"Cristian"],
+       [0,"Alex de Souza","AM","BRA",1977,84,"Alex"],
+       [0,"Miroslav Stoch","LM","SVK",1989,76],
+       [0,"Mamadou Niang","ST","SEN",1979,80],
+       [0,"Semih Şentürk","ST","TUR",1983,74],
+     ]},
+    {id:"ts", name:"Trabzonspor", short:"TS", country:"TUR", stadium:"Hüseyin Avni Aker Stadyumu", cap:24000,
+     col:["#7F1734","#56B4E9"], rep:76, bank:6,
+     p:[
+       [0,"Tolga Zengin","GK","TUR",1983,76],
+       [0,"Gustavo Colman","DM","ARG",1985,74],
+       [0,"Selçuk İnan","CM","TUR",1985,80],
+       [0,"Alanzinho","AM","BRA",1983,76,"Alanzinho"],
+       [0,"Jajá","RM","BRA",1986,74,"Jajá"],
+       [0,"Burak Yılmaz","ST","TUR",1985,80],
+       [0,"Umut Bulut","ST","TUR",1983,76],
+     ]},
+    {id:"bur", name:"Bursaspor", short:"BUR", country:"TUR", stadium:"Bursa Atatürk Stadyumu", cap:18587,
+     col:["#00A040","#FFFFFF"], rep:70, bank:4,
+     p:[
+       [0,"Dimitar Ivankov","GK","BUL",1975,74],
+       [0,"Volkan Şen","RM","TUR",1987,76],
+       [0,"Ozan İpek","LM","TUR",1986,74],
+       [0,"Pablo Batalla","AM","ARG",1984,76],
+       [0,"Sercan Yıldırım","ST","TUR",1990,74],
+     ]},
+    {id:"gal", name:"Galatasaray", short:"GAL", country:"TUR", stadium:"Ali Sami Yen Stadium", cap:22000,
+     col:["#A90432","#FDB912"], rep:78, bank:10,
+     p:[
+       [0,"Servet Çetin","CD","TUR",1981,76],
+       [0,"Sabri Sarıoğlu","RB","TUR",1984,74],
+       [0,"Arda Turan","AM","TUR",1987,82],
+       [0,"Elano","RM","BRA",1981,78,"Elano"],
+       [0,"Harry Kewell","LM","AUS",1978,74],
+       [0,"Milan Baroš","ST","CZE",1981,76],
+     ]},
+    {id:"bjk", name:"Beşiktaş", short:"BJK", country:"TUR", stadium:"İnönü Stadyumu", cap:32000,
+     col:["#000000","#FFFFFF"], rep:76, bank:8,
+     p:[
+       [0,"Rüştü Reçber","GK","TUR",1973,76],
+       [0,"İbrahim Toraman","CD","TUR",1981,74],
+       [0,"Ekrem Dağ","RB","TUR",1980,72],
+       [0,"Fabian Ernst","DM","GER",1979,76],
+       [0,"Guti","AM","ESP",1976,78,"Guti"],
+       [0,"Ricardo Quaresma","RM","POR",1983,80],
+       [0,"Filip Hološko","LM","SVK",1984,74],
+       [0,"Bobô","ST","BRA",1985,74,"Bobô"],
+       [0,"Nihat Kahveci","ST","TUR",1979,74],
+     ]},
+    {id:"gaz", name:"Gaziantepspor", short:"GAZ", country:"TUR", stadium:"Kamil Ocak Stadyumu", cap:16000,
+     col:["#E2001A","#000000"], rep:58, bank:2,
+     p:[
+     ]},
+    {id:"kay", name:"Kayserispor", short:"KAY", country:"TUR", stadium:"Kayseri Atatürk Stadyumu", cap:20000,
+     col:["#FFD700","#E2001A"], rep:60, bank:2,
+     p:[
+     ]},
+    {id:"esk", name:"Eskişehirspor", short:"ESK", country:"TUR", stadium:"Eskişehir Atatürk Stadyumu", cap:13520,
+     col:["#E2001A","#000000"], rep:56, bank:2,
+     p:[
+     ]},
+    {id:"kar", name:"Kardemir Karabükspor", short:"KAR", country:"TUR", stadium:"Dr. Necmettin Şeyhoğlu Stadyumu", cap:8000,
+     col:["#E2001A","#0060A9"], rep:52, bank:1,
+     p:[
+     ]},
+    {id:"ank", name:"MKE Ankaragücü", short:"ANK", country:"TUR", stadium:"19 Mayıs Stadyumu", cap:21250,
+     col:["#FFD700","#0B3B8C"], rep:52, bank:1,
+     p:[
+     ]},
+    {id:"man", name:"Manisaspor", short:"MAN", country:"TUR", stadium:"Manisa 19 Mayıs Stadyumu", cap:16597,
+     col:["#000000","#FFFFFF"], rep:50, bank:1,
+     p:[
+     ]},
+    {id:"ant", name:"Antalyaspor", short:"ANT", country:"TUR", stadium:"Antalya Atatürk Stadyumu", cap:12000,
+     col:["#E2001A","#FFFFFF"], rep:52, bank:1,
+     p:[
+     ]},
+    {id:"kas", name:"Kasımpaşa", short:"KAS", country:"TUR", stadium:"Recep Tayyip Erdoğan Stadyumu", cap:14234,
+     col:["#0060A9","#FFFFFF"], rep:50, bank:1,
+     p:[
+     ]},
+    {id:"ibb", name:"İstanbul BB", short:"IBB", country:"TUR", stadium:"Atatürk Olimpiyat Stadyumu", cap:76092,
+     col:["#FF7F00","#0060A9"], rep:52, bank:2,
+     p:[
+     ]},
+    {id:"gen", name:"Gençlerbirliği", short:"GEN", country:"TUR", stadium:"19 Mayıs Stadyumu", cap:21250,
+     col:["#E2001A","#000000"], rep:54, bank:1,
+     p:[
+     ]},
+    {id:"siv", name:"Sivasspor", short:"SIV", country:"TUR", stadium:"Sivas 4 Eylül Stadyumu", cap:14998,
+     col:["#E2001A","#FFFFFF"], rep:54, bank:1,
+     p:[
+     ]},
+    {id:"kon", name:"Konyaspor", short:"KON", country:"TUR", stadium:"Konya Atatürk Stadyumu", cap:22459,
+     col:["#00A040","#FFFFFF"], rep:50, bank:1,
+     p:[
+     ]},
+    {id:"buc", name:"Bucaspor", short:"BUC", country:"TUR", stadium:"Buca Arena", cap:8000,
+     col:["#FFD700","#000000"], rep:44, bank:1,
+     p:[
+     ]},
+  ]
+});

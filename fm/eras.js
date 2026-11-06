@@ -11,6 +11,13 @@ FM.ERAS = {
       ['Arsenal', 'PSV Eindhoven', 'Panathinaikos', 'Rosenborg'], ['AC Milan', 'Barcelona', 'Shakhtar Donetsk', 'Celtic'], ['Inter', 'Werder Bremen', 'Valencia', 'Anderlecht'], ['Chelsea', 'Porto', 'CSKA Moscow', 'Paris Saint-Germain']],
     ueEng: ['Newcastle United', 'Middlesbrough'],
   },
+  2010: {
+    n: '2010/11', d: '美斯、哈維、恩尼斯達嘅巴塞巔峰；摩連奴皇馬對決；曼聯第 19 冠；巴利同摩甸奴嘅熱刺打入歐聯八強。',
+    dir: 'fm/data/2010/', files: ERA_FILES,
+    cl: [['Tottenham Hotspur', 'Inter', 'Twente', 'Werder Bremen'], ['Schalke 04', 'Lyon', 'Benfica', 'Hapoel Tel Aviv'], ['Manchester United', 'Valencia', 'Rangers', 'Bursaspor'], ['Barcelona', 'Copenhagen', 'Rubin Kazan', 'Panathinaikos'],
+      ['Bayern Munich', 'Roma', 'Basel', 'CFR Cluj'], ['Chelsea', 'Marseille', 'Spartak Moscow', 'Žilina'], ['Real Madrid', 'AC Milan', 'Ajax', 'Auxerre'], ['Shakhtar Donetsk', 'Arsenal', 'Braga', 'Partizan']],
+    ueEng: ['Liverpool', 'Aston Villa', 'Manchester City'],
+  },
   2001: {
     n: '2001/02', d: '朗拿度、施丹、碧咸年代：曼聯三連霸之後，阿仙奴雙冠王；皇馬銀河艦隊初成。',
     dir: 'fm/data/', files: ['eng1', 'eng2', 'eng3', 'eng4', 'sco1', 'esp1', 'ita1', 'ger1', 'fra1', 'eur', 'ned1', 'por1', 'tur1', 'bel1'],
