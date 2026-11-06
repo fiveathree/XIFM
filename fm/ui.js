@@ -331,7 +331,7 @@ function drawPlayer() {
 SCREENS.market = () => {
   const t = UI.mk, me = myCid();
   let body;
-  if (t === 'off') body = G.off.length ? `<table><thead><tr><th>球員</th><th>出價球會</th><th class="n">報價</th><th class="n hm">身價</th><th class="n">期限</th><th></th></tr></thead><tbody>${G.off.map(o => `<tr><td class="nm">${pl(o.pid)}</td><td class="nm">${esc(clubName(o.from))}</td><td class="n">${money(o.fee)}</td><td class="n hm">${money(valueOf(o.pid))}</td><td class="n">${fdate(o.exp, 's')}</td><td><button class="btn sm y" data-act="accept" data-a="${o.id}">接受</button> <button class="btn sm" data-act="reject" data-a="${o.id}">拒絕</button></td></tr>`).join('')}</tbody></table>` : '<p class="note">暫時冇報價。放售球員會多啲人問。</p>';
+  if (t === 'off') body = G.off.length ? `<table><thead><tr><th>球員</th><th>出價球會</th><th class="n">報價</th><th class="n hm">身價</th><th class="n">期限</th><th></th></tr></thead><tbody>${G.off.map(o => `<tr><td class="nm">${pl(o.pid)}</td><td class="nm">${esc(clubName(o.from))}</td><td class="n">${money(o.fee)}</td><td class="n hm">${money(valueOf(o.pid))}</td><td class="n">${fdate(o.exp, 's')}</td><td class="nowrap"><button class="btn sm y" data-act="accept" data-a="${o.id}">接受</button> <button class="btn sm" data-act="cofopen" data-a="${o.id}" ${o.ok ? 'disabled' : ''}>還價</button> <button class="btn sm" data-act="reject" data-a="${o.id}">拒絕</button>${o.ok ? ' <span class="tag t-ls">已傾掂</span>' : o.last ? ' <span class="tag t-ex">最後報價</span>' : ''}</td></tr>`).join('')}</tbody></table>` : '<p class="note">暫時冇報價。放售球員會多啲人問。</p>';
   else if (t === 'list') { const l = roster(me).filter(p => pd(p).list); body = l.length ? `<table><thead><tr><th>球員</th><th class="n">歲</th><th class="n">能力</th><th class="n">身價</th><th></th></tr></thead><tbody>${l.map(p => `<tr><td class="nm">${pl(p)}</td><td class="n">${ageOf(p)}</td><td class="n">${pd(p).sk}</td><td class="n">${money(valueOf(p))}</td><td><button class="btn sm" data-act="unlist" data-a="${p}">取消放售</button></td></tr>`).join('')}</tbody></table>` : '<p class="note">你冇放售球員。喺球員資料撳「放售」。</p>'; }
   else body = G.tlog.length ? `<table><thead><tr><th class="n">日期</th><th>球員</th><th class="hm">由</th><th>去</th><th class="n">轉會費</th></tr></thead><tbody>${G.tlog.map(x => `<tr class="${isUser(x.to) || isUser(x.from) ? 'me' : ''}"><td class="n">${fdate(x.d, 's')}</td><td class="nm">${G.pl[x.pid] ? pl(x.pid) : esc(ps(x.pid).sn)}</td><td class="nm hm">${esc(clubName(x.from))}</td><td class="nm">${esc(clubName(x.to))}</td><td class="n">${x.fee ? money(x.fee) : '自由'}</td></tr>`).join('')}</tbody></table>` : '<p class="note">未有轉會。</p>';
   main(`${hdr('轉會市場', `<span class="mute">${inWindow(G.day) ? '轉會窗開放至 3 月 28 日' : '轉會窗已關，7 月 1 日重開'}</span>`)}
@@ -514,7 +514,7 @@ SCREENS.mail = a => {
   main(`${hdr('收件箱', `<span class="mute">${G.mail.filter(x => !x.rd).length} 封未讀</span>`)}
   <div class="cols c2 m-stack" style="grid-template-columns:minmax(0,1fr) minmax(0,1.4fr)">
     ${pan('郵件', `<div class="mlist">${G.mail.map(x => `<button class="mi ${x === m ? 'on' : ''} ${x.rd ? '' : 'un'}" data-go="mail" data-a="${x.id}"><span class="num mute">${fdate(x.d, 's')}</span><span>${esc(x.t)}</span></button>`).join('') || '<p class="note">冇郵件。</p>'}</div>`)}
-    ${pan(m ? esc(m.t) : '—', m ? `<p class="mute num" style="margin-top:0">${fdate(m.d)}</p><div class="mbody">${m.b}</div>${off ? `<div class="row" style="margin-top:12px"><button class="btn y" data-act="accept" data-a="${off.id}">接受報價</button><button class="btn" data-act="reject" data-a="${off.id}">拒絕</button><button class="btn" data-pl="${off.pid}">睇球員</button></div>` : m.act && m.act.k === 'offer' ? '<p class="note">報價已經處理或者過期。</p>' : ''}` : '', { t: 1 })}
+    ${pan(m ? esc(m.t) : '—', m ? `<p class="mute num" style="margin-top:0">${fdate(m.d)}</p><div class="mbody">${m.b}</div>${off ? `<div class="row" style="margin-top:12px"><button class="btn y" data-act="accept" data-a="${off.id}">接受報價</button><button class="btn" data-act="cofopen" data-a="${off.id}" ${off.ok ? 'disabled' : ''}>還價</button><button class="btn" data-act="reject" data-a="${off.id}">拒絕</button><button class="btn" data-pl="${off.pid}">睇球員</button></div>` : m.act && m.act.k === 'offer' ? '<p class="note">報價已經處理或者過期。</p>' : ''}` : '', { t: 1 })}
   </div>`);
 };
 
@@ -678,6 +678,16 @@ function breakPanel() {
   const M = MT.M, k = M.pause;
   modal(k === 'ht' ? '半場' : '加時', `<div class="big" style="text-align:center">${esc(clubShort(M.h.cid))} ${M.h.g} - ${M.a.g} ${esc(clubShort(M.a.cid))}</div>${statsHTML(M)}<div class="row" style="justify-content:center"><button class="btn" data-act="msub">換人 · 戰術</button><button class="btn y" data-act="mcont">${k === 'ht' ? '開始下半場' : '開始加時'}</button></div>`, 'sm');
 }
+// counter-offer on a bid for one of the user's players (fixed-size popup)
+function cofPanel(id, msg) {
+  const o = G.off.find(x => x.id === id); if (!o) return closeModal();
+  const ask = o.ok ? o.fee : roundMoney(o.fee * 1.2);
+  modal(`還價 · ${esc(ps(o.pid).sn)}`, `<div class="row"><span class="mute">買家</span><b>${esc(clubName(o.from))}</b></div>
+    <div class="row"><span class="mute">而家報價</span><b class="num">${money(o.fee)}</b><span class="mute">身價 ${money(valueOf(o.pid))}</span>${o.last ? '<span class="tag t-ex">最後報價</span>' : ''}</div>
+    <div class="row">你想要 £<input class="inp num" id="cofv" value="${ask}" style="width:140px" inputmode="numeric" ${o.ok ? 'disabled' : ''}><button class="btn" data-act="cof" data-a="${id}" ${o.ok ? 'disabled' : ''}>還價</button>${info('買家心入面有個最高價，你唔會知。叫價喺嗰個價以內佢會即刻答應；高過就會加少少價再還畀你，最多傾三轉。叫得太離譜，對方可能直接退出。')}</div>
+    <p class="msg" style="min-height:1.4em">${msg ? esc(msg) : ''}</p>
+    <div class="row"><button class="btn y" data-act="cofacc" data-a="${id}">以 ${money(o.fee)} 接受</button><button class="btn" data-act="mclose">遲啲先決定</button></div>`, 'sm');
+}
 function subPanel() {
   const M = MT.M, S = M[M.u], col = CL[S.cid].col, left = 3 - S.subs;
   const cc = c => c >= 75 ? 'cg' : c >= 55 ? 'cw' : 'cb';
@@ -802,6 +812,9 @@ const ACT = {
   staffup: el => { const c = myClub(), k = el.dataset.a, cost = (c.st[k] + 1) ** 2 * 5e4; if (!G.inf && c.cash < cost) return toast('資金唔夠'); fin(myCid(), 'staff', -cost); c.st[k]++; save(); render(); toast(`${STAFFN[k][0]} 升到 ${c.st[k]} 級`); },
   mktab: el => { UI.mk = el.dataset.a; render(); },
   accept: el => { toast(acceptOffer(+el.dataset.a)); save(); render(); },
+  cofopen: el => cofPanel(+el.dataset.a),
+  cof: el => { const id = +el.dataset.a, ask = Math.max(0, Math.round(+$('#cofv').value || 0)); const r = counterOffer(id, ask); save(); if (r.gone) { closeModal(); toast(r.msg); render(); } else { cofPanel(id, r.msg); render(); } },
+  cofacc: el => { closeModal(); toast(acceptOffer(+el.dataset.a)); save(); render(); },
   reject: el => { const id = +el.dataset.a; G.off = G.off.filter(o => o.id !== id); save(); render(); toast('已拒絕報價'); },
   unlist: el => { pd(el.dataset.a).list = 0; save(); render(); },
   pull: el => { closeModal(); doPull(+el.dataset.a); },

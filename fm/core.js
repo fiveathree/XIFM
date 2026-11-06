@@ -574,6 +574,22 @@ function aiOffers() {
   }
   G.off = G.off.filter(o => { if (o.exp < G.day) { return false; } return true; });
 }
+// the user asks for more: the buyer has a private ceiling; up to 3 rounds, asking far too much can end the talks
+function counterOffer(id, ask) {
+  const o = G.off.find(x => x.id === id); if (!o) return { msg: '報價已經過期', gone: 1 };
+  if (pd(o.pid).c !== G.mgr.cid) { G.off = G.off.filter(x => x.id !== id); return { msg: '球員已經唔喺你球隊', gone: 1 }; }
+  const buyer = clubName(o.from), sn = ps(o.pid).sn;
+  if (o.max == null) o.max = roundMoney(Math.min(o.fee * (1.1 + R() * .3), Math.max(o.fee, G.clubs[o.from].cash * .9)));
+  o.r = (o.r || 0) + 1;
+  if (ask <= o.fee) return { msg: `${buyer}：你叫嘅價唔高過我哋報價，直接撳「接受」就得。` };
+  if (ask <= o.max) { o.fee = roundMoney(ask); o.ok = 1; o.exp = Math.max(o.exp, G.day + 3); return { msg: `${buyer} 同意以 ${money(o.fee)} 收購 ${sn}！撳「接受」完成交易。`, deal: 1 }; }
+  if (ask > o.max * 1.4 && R() < .5 || o.r > 3) { G.off = G.off.filter(x => x.id !== id); return { msg: `${buyer} 覺得你開價離譜，退出咗 ${sn} 嘅談判。`, gone: 1 }; }
+  if (o.fee >= o.max) { o.last = 1; return { msg: `${buyer}：我哋預算得 ${money(o.fee)}，冇得再加。` }; }
+  const nf = roundMoney(o.fee + (o.max - o.fee) * (o.r >= 3 ? 1 : .55));
+  const last = o.r >= 3 || nf >= o.max;
+  o.fee = Math.max(o.fee, nf); o.last = last ? 1 : 0; o.exp = Math.max(o.exp, G.day + 3);
+  return { msg: last ? `${buyer}：${money(o.fee)} 係我哋最後報價，再要多就唔傾。` : `${buyer} 拒絕 ${money(ask)}，加價到 ${money(o.fee)}。` };
+}
 function acceptOffer(id) {
   const o = G.off.find(x => x.id === id); if (!o) return '報價已經過期';
   if (pd(o.pid).c !== G.mgr.cid) { G.off = G.off.filter(x => x.id !== id); return '球員已經唔喺你球隊'; }
