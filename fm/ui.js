@@ -48,7 +48,7 @@ function rTop() {
   const cid = myCid(), f = cid && nextFx(cid), unread = G.mail.some(m => !m.rd);
   $('#top').innerHTML = `<div class="badge" data-act="badge" title="${esc(cid ? clubName(cid) : '')}">${badgeSVG(cid, 60)}</div>
   <div class="tinfo"><span class="scr">${TITLE[SCR] || ''}</span><div class="club"><b>${esc(cid ? clubName(cid) : G.mgr.name + '（待業）')}</b><small>${f ? esc(fxDesc(f, cid)) : '暫時冇比賽'}</small><small class="num"><span class="dl">${fdate(G.day)}</span><span class="ds">${fdate(G.day, 'm')}</span></small></div></div>
-  <div class="tbtns"><button class="tb" data-go="mail" aria-label="收件箱"><span class="dot ${unread ? 'on' : ''}"></span><small>收件箱</small></button>
+  <div class="tbtns">${cid ? `<button class="tb cash" data-go="finance" title="球會資金（撳入去睇財政）"><b class="num">${G.inf ? '∞' : money(G.clubs[cid].cash)}</b><small>資金</small></button>` : ''}<button class="tb" data-go="mail" aria-label="收件箱"><span class="dot ${unread ? 'on' : ''}"></span><small>收件箱</small></button>
   <button class="tb" id="sqBtn" data-go="squad">陣容<small>SQUAD</small></button>
   <button class="tb" id="menuBtn" data-act="menu" aria-label="選單">☰<small>選單</small></button>
   <button class="tb" data-act="until" title="一直推進到下場比賽、新報價或者 60 日">⏩<small>到比賽</small></button>
@@ -136,16 +136,19 @@ function sqSet(c, k, v) { if (k[0] === 'x') c.xi[+k.slice(1)] = v; else if (k[0]
 function sqSwap(a, b) { const c = myClub(), pa = sqGet(c, a), pb = sqGet(c, b); sqSet(c, a, pb); sqSet(c, b, pa); c.sb = c.sb.filter(Boolean).slice(0, 5); }
 function pTags(pid) {
   const d = pd(pid), p = ps(pid), t = [];
-  if (d.inj) t.push(`<span class="tag t-inj" title="${esc(d.injn)}">傷 ${d.inj}日</span>`);
+  const a = d.arw ?? 2; t.push(`<span class="arw a${a}" title="狀態：${ARWN[a]}">${ARWI[a]}</span>`);
+  if (d.inj) t.push(`<span class="tag t-inj" title="${esc(d.injn)}">重傷 · 休息 ${d.inj} 日</span>`);
+  else if (d.lin) t.push(`<span class="tag t-lin" title="${esc(d.injn)}：可以上陣，但能力 −8%，受傷機會高啲，有機會變重傷">輕傷 ${d.lin} 日</span>`);
   if (d.sus) t.push(`<span class="tag t-sus">停賽 ${d.sus}</span>`);
-  if (!EU.has(p.nat)) t.push('<span class="tag t-ne">NON EU</span>');
+  if (d.s && d.s.yc) t.push(`<span class="crd cy" title="今季黃牌 ${d.s.yc} 張">${d.s.yc}</span>`);
+  if (d.s && d.s.rc) t.push(`<span class="crd cr" title="今季紅牌 ${d.s.rc} 張">${d.s.rc}</span>`);
   if (d.list) t.push('<span class="tag t-ls">放售</span>');
   if (d.c !== 'free' && d.ct <= G.season) t.push('<span class="tag t-ex">約滿</span>');
   return t.join('');
 }
 function shirtsHTML(cid, xi, formName, drag) {
   const col = CL[cid].col, slots = FORMS[formName];
-  return xi.map((pid, i) => { const [pos, x, y] = slots[i]; return `<div class="shirt ${drag ? 'dg' : ''} ${drag && UI.sel === 'x' + i ? 'selp' : ''}" ${drag ? `data-i="${i}"` : ''} style="left:${x}%;top:${y}%">${drag ? `<b class="sp">${pos}</b>` : ''}<i style="background:${col[0]};color:${col[1]}">${pid ? pd(pid).no || '' : ''}</i><span class="${pid && fitPos(ps(pid).pos, pos) < .85 ? 'bad' : ''}">${pid ? esc(ps(pid).sn) : pos}</span>${drag && pid ? `<em class="rt ${fitPos(ps(pid).pos, pos) < 1 ? 'down' : ''}" title="${fitPos(ps(pid).pos, pos) < 1 ? `本位能力 ${pd(pid).sk}` : '能力'}">${Math.round(pd(pid).sk * fitPos(ps(pid).pos, pos))}</em>` : ''}</div>`; }).join('');
+  return xi.map((pid, i) => { const [pos, x, y] = slots[i]; return `<div class="shirt ${drag ? 'dg' : ''} ${drag && UI.sel === 'x' + i ? 'selp' : ''}" ${drag ? `data-i="${i}"` : ''} style="left:${x}%;top:${y}%">${drag ? `<b class="sp">${pos}</b>` : ''}<i style="background:${col[0]};color:${col[1]}">${pid ? pd(pid).no || '' : ''}</i><span class="${pid && fitP(pid, pos) < .85 ? 'bad' : ''}">${pid ? esc(ps(pid).sn) : pos}</span>${drag && pid ? `<em class="rt ${fitP(pid, pos) < 1 ? 'down' : ''}" title="${fitP(pid, pos) < 1 ? `本位能力 ${pd(pid).sk}` : '能力'}">${Math.round(pd(pid).sk * fitP(pid, pos))}</em>` : ''}</div>`; }).join('');
 }
 /* custom formation: dragging a shirt to an empty spot copies the formation into club.cust, registered as FORMS['C:'+cid] */
 const CUSTK = cid => 'C:' + cid;
@@ -179,8 +182,8 @@ SCREENS.squad = () => {
   const row = (k, pid, slot) => {
     const sel = UI.sel === k ? 'sel' : '';
     if (!pid) return `<tr class="click ${sel}" data-act="sq" data-k="${k}"><td class="n hm">—</td><td class="n">${slot || ''}</td><td colspan="6" class="mute">（空位，撳一下再撳一個球員）</td></tr>`;
-    const d = pd(pid), p = ps(pid), bad = slot && fitPos(p.pos, slot) < .85;
-    return `<tr class="click ${sel}" data-act="sq" data-k="${k}"><td class="n hm">${d.no || ''}</td><td class="n ${bad ? 'pbad' : ''}" title="${esc(POSN[p.pos])}">${slot || p.pos}</td><td class="nm">${pl(pid)}${slot && slot !== p.pos ? ` <span class="mute">(${p.pos})</span>` : ''}</td><td>${pTags(pid)}</td><td>${Math.round(d.cond)}${cbar(d.cond)}</td><td class="n hm">${form(pid) ? form(pid).toFixed(1) : '–'}</td><td class="n">${slot && slot !== p.pos ? `<span class="${bad ? 'pbad' : ''}" title="本位 ${d.sk}，踢${esc(POSN[slot])}打 ${Math.round(fitPos(p.pos, slot) * 100)}%">${Math.round(d.sk * fitPos(p.pos, slot))}</span> <s class="mute">${d.sk}</s>` : d.sk}</td>
+    const d = pd(pid), p = ps(pid), bad = slot && fitP(pid, slot) < .85;
+    return `<tr class="click ${sel}" data-act="sq" data-k="${k}"><td class="n hm">${d.no || ''}</td><td class="n ${bad ? 'pbad' : ''}" title="${esc(POSN[p.pos])}">${slot || p.pos}</td><td class="nm">${pl(pid)}${slot && slot !== p.pos ? ` <span class="mute">(${[p.pos, ...pos2Of(p)].join('/')})</span>` : ''}</td><td>${pTags(pid)}</td><td>${Math.round(d.cond)}${cbar(d.cond)}</td><td class="n hm">${form(pid) ? form(pid).toFixed(1) : '–'}</td><td class="n">${slot && fitP(pid, slot) < 1 ? `<span class="${bad ? 'pbad' : ''}" title="本位 ${d.sk}，踢${esc(POSN[slot])}打 ${Math.round(fitP(pid, slot) * 100)}%">${Math.round(d.sk * fitP(pid, slot))}</span> <s class="mute">${d.sk}</s>` : d.sk}</td>
       <td class="hm"><select data-ch="ord" data-a="${pid}" aria-label="個人指令">${Object.entries(ORDERS).map(([v, t]) => opt(v, t, c.ord[pid] || 'n')).join('')}</select></td></tr>`;
   };
   const probs = lineupProblems(cid), plans = c.plans || [], cur = c.plan ?? 0;
@@ -255,7 +258,7 @@ SCREENS.tactics = () => {
 /* ---------- 訓練 ---------- */
 SCREENS.training = () => {
   const c = myClub(), ros = roster(myCid());
-  const avgC = ros.length ? Math.round(sum(ros.map(p => pd(p).cond)) / ros.length) : 0, low = ros.filter(p => pd(p).cond < 70).length, inj = ros.filter(p => pd(p).inj).length;
+  const avgC = ros.length ? Math.round(sum(ros.map(p => pd(p).cond)) / ros.length) : 0, low = ros.filter(p => pd(p).cond < 70).length, inj = ros.filter(p => pd(p).inj || pd(p).lin).length;
   main(`${hdr('訓練')}
   <div class="cols c2 m-stack">
     <div class="cols" style="grid-template-rows:auto auto minmax(0,1fr)">
@@ -263,7 +266,7 @@ SCREENS.training = () => {
       ${pan(`重點 ${info('進攻／防守／戰術：比賽中對應能力有少量加成。均衡：冇加成。')}`, `<div class="row">${chips([['bal', '均衡'], ['att', '進攻'], ['def', '防守'], ['tac', '戰術']], c.tr.foc, 'trfoc')}</div>`)}
       ${pan('球隊狀況', `<dl class="kv"><dt>平均體能</dt><dd>${avgC}${cbar(avgC)}</dd><dt>體能低過 70</dt><dd>${low} 人</dd><dt>傷兵</dt><dd>${inj} 人</dd><dt>教練等級</dt><dd>${c.st.coach} / 5</dd><dt>每日回復</dt><dd>約 ${([7, 6, 4.5][c.tr.int] + c.st.physio * .4).toFixed(1)} 體能</dd></dl>`, { t: 1 })}
     </div>
-    ${pan('傷兵名單', inj ? `<table><thead><tr><th>球員</th><th>傷勢</th><th class="n">日</th></tr></thead><tbody>${ros.filter(p => pd(p).inj).map(p => `<tr><td class="nm">${pl(p)}</td><td>${esc(pd(p).injn)}</td><td class="n">${pd(p).inj}</td></tr>`).join('')}</tbody></table>` : '<p class="note">冇傷兵。</p>', { t: 1 })}
+    ${pan('傷兵名單', inj ? `<table><thead><tr><th>球員</th><th>傷勢</th><th class="n">日</th></tr></thead><tbody>${ros.filter(p => pd(p).inj || pd(p).lin).map(p => `<tr><td class="nm">${pl(p)}</td><td>${esc(pd(p).injn)} ${pd(p).inj ? '<span class="tag t-inj">重傷</span>' : '<span class="tag t-lin">輕傷・可上陣</span>'}</td><td class="n">${pd(p).inj || pd(p).lin}</td></tr>`).join('')}</tbody></table>` : '<p class="note">冇傷兵。</p>', { t: 1 })}
   </div>`);
 };
 
@@ -321,7 +324,7 @@ function drawPlayer() {
     if (P.step === 'ct') act = `<div class="row">週薪 £<input class="inp num" id="pw" value="${P.wage ?? wageDemand(pid, myCid())}" style="width:100px" inputmode="numeric"> 年期 <select class="inp" id="py">${[1, 2, 3, 4, 5].map(y => opt(y, y + ' 年', P.yrs)).join('')}</select><button class="btn y" data-act="offerct">提出合約</button><button class="btn" data-act="pstep" data-a="">取消</button></div>`;
     else act = `<div class="row">轉會費 £<input class="inp num" id="pf" value="${P.fee ?? (d.c === 'free' ? 0 : valueOf(pid))}" style="width:120px" inputmode="numeric" ${d.c === 'free' ? 'disabled' : ''}><button class="btn y" data-act="bid">${d.c === 'free' ? '傾合約' : '出價'}</button>${P.counter ? `<button class="btn" data-act="bidc">出 ${money(P.counter)}</button>` : ''}</div>`;
   }
-  modal(`${esc(p.name)}`, `<div class="pf">${d.c !== 'free' && d.c !== 'ret' ? badgeSVG(d.c, 64) : ''}<div><div class="D" style="font-size:20px">${esc(clubName(d.c))}</div><div class="mute">${POSN[p.pos]}（${p.pos}）· ${ageOf(pid)} 歲 · ${esc(natName(p.nat))} · #${d.no || '—'}</div><div>${pTags(pid)}</div></div><div class="gcard g-${GRADE(d.sk)} pfc"><span class="r">${d.sk}</span><span class="g">${GRADE(d.sk)}</span></div></div>
+  modal(`${esc(p.name)}`, `<div class="pf">${d.c !== 'free' && d.c !== 'ret' ? badgeSVG(d.c, 64) : ''}<div><div class="D" style="font-size:20px">${esc(clubName(d.c))}</div><div class="mute">${POSN[p.pos]}（${p.pos}）${pos2Of(p).length ? `，次位置 ${pos2Of(p).map(q => `${POSN[q]}（${q}）`).join('、')}` : ''} · ${ageOf(pid)} 歲 · ${esc(natName(p.nat))} · #${d.no || '—'}</div><div>${pTags(pid)}</div></div><div class="gcard g-${GRADE(d.sk)} pfc"><span class="r">${d.sk}</span><span class="g">${GRADE(d.sk)}</span></div></div>
     <dl class="kv kv2"><dt>身價</dt><dd>${money(valueOf(pid))}</dd><dt>週薪</dt><dd>${money(d.w)}</dd><dt>合約至</dt><dd>${d.c === 'free' ? '—' : d.ct + ' 年 6 月'}</dd><dt>體能</dt><dd>${Math.round(d.cond)}${cbar(d.cond)}</dd><dt>表現</dt><dd>${form(pid) ? form(pid).toFixed(1) : '–'}</dd><dt>傷病</dt><dd>${d.inj ? `${esc(d.injn)}（${d.inj} 日）` : '冇'}</dd></dl>
     <div class="attrs">${an.map((n, k) => `<div><span>${n}</span><b class="num">${a[k]}</b><div class="bar"><i style="width:${a[k]}%;background:${a[k] >= 85 ? 'var(--win)' : a[k] >= 70 ? 'var(--sel)' : a[k] >= 55 ? '#9cc0ff' : 'var(--loss)'}"></i></div></div>`).join('')}</div>
     <table><thead><tr><th class="n">上陣</th><th class="n">入球</th><th class="n">助攻</th><th class="n">黃牌</th><th class="n">紅牌</th><th class="n">最佳</th><th class="n">平均評分</th></tr></thead><tbody><tr><td class="n">${s.ap}</td><td class="n">${s.gl}</td><td class="n">${s.as}</td><td class="n">${s.yc}</td><td class="n">${s.rc}</td><td class="n">${s.mom}</td><td class="n">${s.ap ? (s.rt / s.ap).toFixed(2) : '–'}</td></tr></tbody></table>
@@ -634,7 +637,7 @@ function drawPitch() {
       // shirt number inside the dot
       x.fillStyle = col[1]; x.font = `800 ${Math.round(rad * 1.05)}px "Saira Condensed",sans-serif`; x.textAlign = 'center'; x.textBaseline = 'middle';
       if (d.no) x.fillText(d.no, cx, cy + rad * .05);
-      lab.push([cx, cy, ps(o.pid).sn, Math.round(d.sk * fitPos(ps(o.pid).pos, o.slot)), Math.round(d.cond), fitPos(ps(o.pid).pos, o.slot) < 1]);
+      lab.push([cx, cy, ps(o.pid).sn, Math.round(d.sk * fitP(o.pid, o.slot)), Math.round(d.cond), fitP(o.pid, o.slot) < 1]);
     });
   }
   // name, then ability · stamina under each player (drawn after all dots so no dot covers a label)
@@ -699,7 +702,7 @@ function subPanel() {
   const cc = c => c >= 75 ? 'cg' : c >= 55 ? 'cw' : 'cb';
   const changed = ins.length || D.form !== S.form || D.on.some((o, i) => o.pid !== S.on[i]?.pid || o.slot !== S.on[i]?.slot || o.x !== S.on[i]?.x || o.y !== S.on[i]?.y);
   const shirts = D.on.map((o, i) => {
-    const pid = o.pid, f = pid ? fitPos(ps(pid).pos, o.slot) : 1, cond = pid ? Math.round(pd(pid).cond) : 0;
+    const pid = o.pid, f = pid ? fitP(pid, o.slot) : 1, cond = pid ? Math.round(pd(pid).cond) : 0;
     return `<div class="shirt dg ${pid && MT.sel === pid ? 'selp' : ''} ${pid && !orig.has(pid) ? 'newin' : ''}" data-mi="${i}" style="left:${o.x}%;top:${o.y}%"><b class="sp">${o.slot}</b><i style="background:${col[0]};color:${col[1]}">${pid ? pd(pid).no || '' : ''}</i><span class="${f < .85 ? 'bad' : ''}">${pid ? esc(ps(pid).sn) : '冇人'}</span>${pid ? `<em class="rt ${f < 1 ? 'down' : ''}">${Math.round(pd(pid).sk * f)} · <b class="${cc(cond)}">${cond}%</b></em>` : ''}</div>`;
   }).join('');
   const benchH = bench.map(p => { const cond = Math.round(pd(p).cond), out = orig.has(p); return `<div class="mbc ${out ? 'out' : ''}" data-mb="${p}"><b class="n">${ps(p).pos}</b><span class="nm">${esc(ps(p).sn)}${out ? ' <span class="tag t-ex">換出</span>' : ''}</span><span class="n">${pd(p).sk}</span><span class="n ${cc(cond)}">${cond}%</span></div>`; }).join('') || '<div class="mute">冇後備</div>';
@@ -981,7 +984,7 @@ function loadEra(y) {
     const E = FM.ERAS[y]; let n = E.files.length;
     for (const f of E.files) {
       const s = document.createElement('script'); s.src = E.dir + f + '.js'; s.async = false; // keep file order
-      s.onload = () => { if (--n === 0) ok(); }; s.onerror = () => bad(new Error(f + '.js'));
+      s.onload = () => { if (--n === 0) ok(); }; s.onerror = () => f === 'pos2' ? (--n === 0 && ok()) : bad(new Error(f + '.js'));
       document.head.appendChild(s);
     }
   }).then(() => indexEra(y));

@@ -7,6 +7,6 @@ global.localStorage={s:{},getItem(k){return this.s[k]??null},setItem(k,v){this.s
 vm.runInThisContext(fs.readFileSync('fm/eras.js','utf8'));
 const E=FM.ERAS[era];if(!E)throw new Error('unknown era '+era);
 let src='';
-for(const f of [...E.files.map(f=>E.dir+f+'.js'),'fm/core.js','fm/match.js'])src+=fs.readFileSync(f,'utf8').replace(/if \(typeof module[^\n]*\n/,'')+'\n';
+for(const f of [...E.files.map(f=>E.dir+f+'.js').filter(f=>fs.existsSync(f)),'fm/core.js','fm/match.js'])src+=fs.readFileSync(f,'utf8').replace(/if \(typeof module[^\n]*\n/,'')+'\n';
 src+=fs.readFileSync(process.argv[2],'utf8');
 vm.runInThisContext(src,{filename:'bundle.js'});

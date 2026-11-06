@@ -142,14 +142,18 @@ function wear(M, S) {
     const d = pd(o.pid);
     if (o.slot === 'GK') d.cond = Math.max(0, d.cond - .08);
     else d.cond = Math.max(0, d.cond - clamp(.3 - (attrs(o.pid)[1] - 60) * .004, .12, .4) * tempo);
-    if (R() < .00009 * (d.cond < 55 ? 2.5 : 1)) injure(M, S, o);
+    const risk = .00008 * (d.cond >= 75 ? 1 : d.cond >= 60 ? 1.8 : d.cond >= 45 ? 3.5 : 6) * (d.lin ? 2.5 : 1);
+    if (R() < risk) injure(M, S, o);
+    else if (d.lin && R() < .0018) injure(M, S, o, true);   // playing on with a knock: it can get worse
   }
 }
-function injure(M, S, o) {
+// a light knock (輕傷): plays on, weaker, can get worse; a serious one (重傷): off and out for days. An existing knock always turns serious.
+function injure(M, S, o, worse) {
   const pid = o.pid, d = pd(pid), ph = G.clubs[S.cid].st.physio;
-  const n = INJN[Math.min(INJN.length - 1, Math.floor(R() ** 2.2 * INJN.length))];
-  d.inj = Math.max(2, Math.round((INJN.indexOf(n) + 1) * ri(3, 7) * (1.2 - ph * .08))); d.injn = n;
-  ev(M, 'inj', S.key, pid, null, n);
+  if (!worse && !d.lin && R() < .55) { d.lin = Math.max(2, Math.round(ri(3, 9) * (1.2 - ph * .08))); d.injn = INJN[ri(0, 3)]; ev(M, 'inj', S.key, pid, null, d.injn + '（輕傷，繼續比賽）'); return; }
+  const n = worse || d.lin ? (d.injn || INJN[1]) : INJN[Math.min(INJN.length - 1, Math.floor(R() ** 2.2 * INJN.length))];
+  d.inj = Math.max(4, Math.round((INJN.indexOf(n) + 1) * ri(3, 7) * (1.2 - ph * .08)) + (d.lin || 0)); d.injn = n; d.lin = 0;
+  ev(M, 'inj', S.key, pid, null, `${n}（重傷，休息 ${d.inj} 日）`);
   const sub = bestSub(S, o.slot);
   if (sub && S.subs < 3) doSub(M, S, o, sub);
   else o.pid = null;

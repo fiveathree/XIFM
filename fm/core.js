@@ -53,7 +53,7 @@ function indexEra(y) {
       if (c.ref) continue;
       const cid = L.id + '.' + c.id;
       c.cid = cid; c.lg0 = L.id; CL[cid] = c; CLUBS.push(cid);
-      c.p.forEach((r, i) => { PS[cid + '.' + i] = { no: r[0], name: r[1], pos: r[2], nat: r[3], by: r[4], sk: r[5], sn: r[6] || shortName(r[1]) }; });
+      c.p.forEach((r, i) => { PS[cid + '.' + i] = { no: r[0], name: r[1], pos: r[2], nat: r[3], by: r[4], sk: r[5], sn: r[6] || shortName(r[1]), p2: (FM.POS2 || {})[r[1]] }; });
     }
   }
   for (const L of FM.leagues) for (const c of L.clubs) if (c.ref && CL[c.ref]) CL[c.ref].lg0 = L.id;
@@ -90,6 +90,11 @@ const NEARP = {
   RW: { RM: 1, LW: .9, ST: .86, CF: .86, AM: .86, LM: .85, RWB: .8 }, LW: { LM: 1, RW: .9, ST: .86, CF: .86, AM: .86, RM: .85, LWB: .8 },
   CF: { ST: 1, AM: .92, RW: .86, LW: .86 }, ST: { CF: 1, AM: .9, RW: .86, LW: .86 },
 };
+// secondary positions (次位置): from fm/data/<era>/pos2.js (FM.POS2, name → [positions]); a defensive midfielder can always play centre midfield.
+// Playing a secondary position costs nothing; positions near a secondary one cost what they would from it.
+const DEF2 = { DM: ['CM'] };
+const pos2Of = p => [...new Set([...(p.p2 || []), ...(DEF2[p.pos] || [])])].filter(x => x !== p.pos);
+function fitP(pid, slot) { const p = ps(pid); let f = fitPos(p.pos, slot); for (const q of pos2Of(p)) f = Math.max(f, fitPos(q, slot)); return f; }
 function fitPos(nat, slot) {
   if (nat === slot) return 1;
   if (nat === 'GK' || slot === 'GK') return .3;
@@ -398,7 +403,7 @@ function mkYouth(cid, pos, sk) {
   (ROS[cid] = ROS[cid] || []).push(pid);
   return pid;
 }
-function newPl(cid, sk, ct, no) { return { c: cid, no, sk, cond: 100, fm: [], inj: 0, injn: '', sus: 0, w: wageFor(sk, CL[cid] ? G.clubs[cid]?.lg || CL[cid].lg0 : 'eng3'), ct, list: 0, s: newStats() }; }
+function newPl(cid, sk, ct, no) { return { c: cid, no, sk, cond: 100, fm: [], inj: 0, injn: '', lin: 0, arw: rArw(), sus: 0, w: wageFor(sk, CL[cid] ? G.clubs[cid]?.lg || CL[cid].lg0 : 'eng3'), ct, list: 0, s: newStats() }; }
 function fillYouth(cid, min, gap = 4) {
   // thinly documented clubs (fewer than 8 known players): base the level on club reputation, not on the few names we have
   const ros = roster(cid), rs = clamp(Math.round(28 + (G.clubs[cid]?.rep ?? CL[cid].rep) * .6), 40, 76);
@@ -413,12 +418,22 @@ function fillYouth(cid, min, gap = 4) {
 }
 
 /* ---------- lineup selection (AI and the user's 自動排陣) ---------- */
-function avail(pid) { const d = pd(pid); return !d.inj && !d.sus; }
+function avail(pid) { const d = pd(pid); return !d.inj && !d.sus; }   // a light injury (d.lin) can still play
+/* form arrows (like the classic console game): 0 ↓ 下 · 1 ↘ 中下 · 2 → 平 · 3 ↗ 中上 · 4 ↑ 上 — ability ×ARWF */
+const ARWF = [.94, .97, 1, 1.03, 1.06], ARWN = ['下', '中下', '平', '中上', '上'], ARWI = ['↓', '↘', '→', '↗', '↑'];
+function rArw() { const r = R(); return r < .1 ? 0 : r < .3 ? 1 : r < .7 ? 2 : r < .9 ? 3 : 4; }
+const arwOf = pid => pd(pid).arw ?? 2;
+// each day an arrow may move one step, drifting towards what recent match ratings suggest
+function driftArw(pid) {
+  const d = pd(pid); if (d.arw == null) d.arw = 2;
+  if (R() > .2) return;
+  const f = form(pid), tgt = f ? clamp(Math.round(2 + (f - 6.6) * 1.4), 0, 4) : 2;
+  d.arw = clamp(d.arw + (R() < .6 && tgt !== d.arw ? Math.sign(tgt - d.arw) : R() < .5 ? -1 : 1), 0, 4);
+}
 function effOf(pid, slot, cond) {
   const d = pd(pid), c = cond ?? d.cond;
   const cf = c >= 92 ? 1 : clamp(.78 + .22 * (c - 40) / 52, .7, 1);
-  const f = form(pid), ff = f ? clamp(1 + (f - 6.6) * .02, .96, 1.04) : 1;
-  return d.sk * fitPos(ps(pid).pos, slot) * cf * ff;
+  return d.sk * fitP(pid, slot) * cf * ARWF[d.arw ?? 2] * (d.lin ? .92 : 1);
 }
 function autoPick(cid) {
   const c = G.clubs[cid], slots = FORMS[c.form];
@@ -833,6 +848,8 @@ function nextDay() {
     const p = G.pl[pid]; if (p.c === 'ret') continue;
     p.cond = Math.min(100, p.cond + (rec[p.c] || 7));
     if (p.inj > 0 && --p.inj === 0) { p.injn = ''; if (isUser(p.c)) mail(`${ps(pid).sn} 傷癒復出`, `${esc(ps(pid).name)} 已經完全康復，可以上陣。`); }
+    if (p.lin > 0 && --p.lin === 0 && !p.inj) p.injn = '';
+    driftArw(pid);
   }
   if (wday(d) === 1) { weekly(); training(); }
   if (inWindow(d)) { aiMarket(); aiOffers(); }
@@ -850,7 +867,7 @@ function training() {
       const d = pd(pid), a = ageOf(pid);
       if (a <= 23 && R() < .035 * g) d.sk = Math.min(97, d.sk + 1);
       else if (a >= 31 && R() < .03 / g) d.sk = Math.max(25, d.sk - 1);
-      if (c.tr.int === 2 && R() < .004) { d.inj = ri(3, 12); d.injn = '訓練受傷'; if (isUser(cid)) mail(`${ps(pid).sn} 訓練受傷`, `${esc(ps(pid).name)} 喺高強度訓練中受傷，要休息 ${d.inj} 日。`); }
+      if (c.tr.int === 2 && R() < .004) { d.injn = '訓練受傷'; if (R() < .6) { d.lin = ri(3, 8); if (isUser(cid)) mail(`${ps(pid).sn} 訓練輕傷`, `${esc(ps(pid).name)} 喺高強度訓練中受咗輕傷，${d.lin} 日內仲可以上陣，但會影響表現，亦有機會傷勢加重。`); } else { d.inj = ri(5, 14); if (isUser(cid)) mail(`${ps(pid).sn} 訓練受傷`, `${esc(ps(pid).name)} 喺高強度訓練中重傷，要休息 ${d.inj} 日。`); } }
     }
   }
 }
@@ -918,14 +935,14 @@ function groupsDone(comp) {
 /* ---------- save / load (compact) ---------- */
 const SKEY = s => 'xifm-fm-' + s;
 function pack() {
-  const pl = {}; for (const pid in G.pl) { const d = G.pl[pid]; if (d.c === 'ret') continue; const st = d.s; pl[pid] = [d.c, d.no, d.sk, Math.round(d.cond), d.fm.join('|'), d.inj, d.injn, d.sus, d.w, d.ct, d.list, st.ap, st.gl, st.as, st.yc, st.rc, st.mom, Math.round(st.rt * 10)]; }
+  const pl = {}; for (const pid in G.pl) { const d = G.pl[pid]; if (d.c === 'ret') continue; const st = d.s; pl[pid] = [d.c, d.no, d.sk, Math.round(d.cond), d.fm.join('|'), d.inj, d.injn, d.sus, d.w, d.ct, d.list, st.ap, st.gl, st.as, st.yc, st.rc, st.mom, Math.round(st.rt * 10), d.arw ?? 2, d.lin || 0]; }
   const fx = G.fx.map(f => [f.i, f.d, f.c, f.r, f.h, f.a, f.hg, f.ag, f.ko || 0, f.n || 0, f.g ?? -1, f.ph ?? -1, f.pa ?? -1, f.et || 0, f.att || 0, f.sc || 0]);
   return JSON.stringify(Object.assign({}, G, { pl, fx, packed: 1 }));
 }
 function unpack(str) {
   const g = JSON.parse(str);
   const pl = {};
-  for (const pid in g.pl) { const a = g.pl[pid]; pl[pid] = { c: a[0], no: a[1], sk: a[2], cond: a[3], fm: a[4] ? a[4].split('|').map(Number) : [], inj: a[5], injn: a[6], sus: a[7], w: a[8], ct: a[9], list: a[10], s: { ap: a[11], gl: a[12], as: a[13], yc: a[14], rc: a[15], mom: a[16], rt: a[17] / 10 } }; }
+  for (const pid in g.pl) { const a = g.pl[pid]; pl[pid] = { c: a[0], no: a[1], sk: a[2], cond: a[3], fm: a[4] ? a[4].split('|').map(Number) : [], inj: a[5], injn: a[6], sus: a[7], w: a[8], ct: a[9], list: a[10], s: { ap: a[11], gl: a[12], as: a[13], yc: a[14], rc: a[15], mom: a[16], rt: a[17] / 10 }, arw: a[18] ?? 2, lin: a[19] || 0 }; }
   g.fx = g.fx.map(a => { const f = { i: a[0], d: a[1], c: a[2], r: a[3], h: a[4], a: a[5], hg: a[6], ag: a[7] }; if (a[8]) f.ko = a[8]; if (a[9]) f.n = 1; if (a[10] >= 0) f.g = a[10]; if (a[11] >= 0) { f.ph = a[11]; f.pa = a[12]; } if (a[13]) f.et = 1; if (a[14]) f.att = a[14]; if (a[15]) f.sc = a[15]; return f; });
   g.pl = pl; delete g.packed;
   G = g; reindex(); reindexFx(); ALLP = null;
