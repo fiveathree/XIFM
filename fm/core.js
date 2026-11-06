@@ -501,10 +501,10 @@ function weekly() {
 }
 
 /* ---------- transfers ---------- */
-function transfer(pid, to, fee, wage, years) {
+function transfer(pid, to, fee, wage, years, paid = fee) {
   const d = pd(pid), from = d.c;
-  if (G.clubs[from]) fin(from, 'tin', fee);
-  if (G.clubs[to]) fin(to, 'tout', -fee);
+  if (G.clubs[from]) fin(from, 'tin', paid);
+  if (G.clubs[to]) fin(to, 'tout', -paid);
   movePlayer(pid, to);
   d.w = wage || wageFor(d.sk, G.clubs[to]?.lg || 'eng3');
   d.ct = G.season + (years || ri(2, 4));
@@ -519,8 +519,22 @@ function transfer(pid, to, fee, wage, years) {
 function askingPrice(pid) {
   const d = pd(pid), cid = d.c; if (cid === 'free') return 0;
   const ros = roster(cid).map(p => pd(p).sk).sort((a, b) => b - a);
-  const key = d.sk >= (ros[10] ?? 0);
-  return roundMoney(valueOf(pid) * (key ? 1.35 : 1) * (d.list ? .85 : 1) * (ageOf(pid) > 31 ? .9 : 1));
+  const rank = ros.indexOf(d.sk), a = ageOf(pid), left = d.ct - G.season;
+  const star = rank <= 2 ? 1.8 : rank <= 10 ? 1.4 : 1;                 // top three / first eleven
+  const young = a <= 21 ? 1.35 : a <= 23 ? 1.15 : a > 31 ? .9 : 1;
+  const ct = left >= 3 ? 1.15 : left <= 1 ? .85 : 1;
+  return roundMoney(valueOf(pid) * star * young * ct * (d.list ? .8 : 1));
+}
+/* does the player want to join? +: bigger club, more football, wants out (listed / contract running down / older)
+   −: leaving a big club or a starting place for the bench. Tiers: 3 好想去 · 2 願意考慮 · 1 唔太想 (wants more pay) · 0 唔會去 */
+const WILLN = ['唔會去', '唔太想', '願意考慮', '好想去'];
+function willing(pid, buyer) {
+  const d = pd(pid); if (d.c === 'free') return 3;
+  const top11 = cid => roster(cid).map(p => pd(p).sk).sort((a, b) => b - a)[10] ?? 0;
+  const startsNow = d.sk >= top11(d.c), startsThere = d.sk >= top11(buyer) - 2;
+  let s = (G.clubs[buyer].rep - G.clubs[d.c].rep) * .045 + (startsNow ? 0 : .6) + (startsThere ? .3 : -.6)
+    + (d.list ? .7 : 0) + (d.ct - G.season <= 1 ? .35 : 0) + (ageOf(pid) >= 30 ? .2 : 0) + ((hsh(pid + '>' + buyer) % 61) - 30) / 100;
+  return s >= .8 ? 3 : s >= 0 ? 2 : s >= -.8 ? 1 : 0;
 }
 function wageDemand(pid, buyer) {
   const d = pd(pid), from = d.c;
@@ -623,29 +637,43 @@ function acceptOffer(id) {
 }
 
 /* ---------- user bids & contracts ---------- */
-function userBid(pid, fee) {
+/* a bid can be paid in instalments (n = 1, 2 or 3 yearly payments: 1/n now, the rest at the start of each later season; the seller counts later money at 92%)
+   and can include one of your players (the seller values him at his value, less if they don't need him; he must be willing to go) */
+function swapWorth(spid, seller) {
+  if (!spid) return 0; const l = lineOf(ps(spid).pos), need = lineAvg(seller)[l] < pd(spid).sk;
+  return roundMoney(valueOf(spid) * (need ? 1 : .65));
+}
+function userBid(pid, fee, n = 1, spid = null) {
   const me = G.mgr.cid, d = pd(pid);
+  if (d.c !== 'free' && willing(pid, me) === 0) return { ok: false, msg: `${ps(pid).sn} 表示唔想加盟 ${clubName(me)}，出幾多都冇用。` };
+  if (spid && (pd(spid).c !== me)) spid = null;
+  if (spid && willing(spid, d.c) === 0) return { ok: false, msg: `${ps(spid).sn} 唔肯去 ${clubName(d.c)}，交換傾唔成。` };
   if (!inWindow(G.day)) return { ok: false, msg: '轉會截止日（3 月 28 日）已過，要等到 7 月 1 日轉會市場重開。' };
   if (d.c === me) return { ok: false, msg: '佢已經係你嘅球員。' };
   if (refusesMove(pid, me)) return { ok: false, msg: `${ps(pid).sn} 表示唔會考慮加盟低級別聯賽球會。` };
   if (d.c === 'free') return { ok: true, fee: 0, msg: '自由球員，可以直接傾合約。' };
-  if (!G.inf && fee > G.clubs[me].cash) return { ok: false, msg: `球會只有 ${money(G.clubs[me].cash)}，唔夠錢。` };
-  const ask = askingPrice(pid);
-  if (fee >= ask) return { ok: true, fee, msg: `${clubName(d.c)} 接受你 ${money(fee)} 嘅出價，可以同球員傾合約。` };
-  if (fee >= ask * .75) return { ok: false, counter: ask, msg: `${clubName(d.c)} 拒絕，佢哋要 ${money(ask)} 先肯放人。` };
+  const now = Math.round(fee / n);
+  if (!G.inf && now > G.clubs[me].cash) return { ok: false, msg: `球會只有 ${money(G.clubs[me].cash)}，唔夠錢${n > 1 ? `俾頭期 ${money(now)}` : ''}。` };
+  const ask = askingPrice(pid), sw = swapWorth(spid, d.c), eff = now + (fee - now) * .92 + sw;
+  const what = `${money(fee)}${n > 1 ? `（分 ${n} 年）` : ''}${spid ? ` + ${ps(spid).sn}` : ''}`;
+  if (eff >= ask) return { ok: true, fee, n, spid, msg: `${clubName(d.c)} 接受 ${what}，可以同球員傾合約。` };
+  const need = roundMoney(Math.max(0, ask - sw) / (n > 1 ? (1 / n + (1 - 1 / n) * .92) : 1));
+  if (eff >= ask * .75) return { ok: false, counter: need, msg: `${clubName(d.c)} 拒絕 ${what}${spid ? `（佢哋當 ${ps(spid).sn} 值 ${money(sw)}）` : ''}，要${spid || n > 1 ? '轉會費' : ''} ${money(need)} 先肯放人。` };
   return { ok: false, msg: `${clubName(d.c)} 一口拒絕：「${money(fee)}？唔使諗。」` };
 }
 function contractTalk(pid, wage, years) {
-  const me = G.mgr.cid, dem = wageDemand(pid, me);
+  const me = G.mgr.cid, wl = willing(pid, me), dem = roundMoney(wageDemand(pid, me) * [1, 1.25, 1, .95][wl]);
   if (years < 1 || years > 5) return { ok: false, msg: '合約年期要 1 至 5 年。' };
   const want = dem * (ageOf(pid) >= 30 && years >= 3 ? .92 : 1);
   if (wage >= want * (.95 + R() * .08)) return { ok: true, msg: `${ps(pid).sn} 接受 ${money(wage)}／週、${years} 年合約。` };
   return { ok: false, dem, msg: `${ps(pid).sn} 想要大約 ${money(dem)}／週。` };
 }
-function completeSigning(pid, fee, wage, years) {
-  const me = G.mgr.cid;
-  transfer(pid, me, fee, wage, years);
-  mail(`簽入 ${ps(pid).sn}`, `${esc(ps(pid).name)} 正式加盟，轉會費 ${money(fee)}，週薪 ${money(wage)}，合約至 ${G.season + years} 年 6 月。`);
+function completeSigning(pid, fee, wage, years, n = 1, spid = null) {
+  const me = G.mgr.cid, seller = pd(pid).c, now = Math.round(fee / n);
+  transfer(pid, me, fee, wage, years, now);
+  for (let k = 1; k < n; k++) (G.inst = G.inst || []).push({ from: me, to: seller, amt: Math.round((fee - now) / (n - 1)), d: CAL.start + off(G.season + k), pid });
+  if (spid && pd(spid).c === me && G.clubs[seller]) transfer(spid, seller, 0);
+  mail(`簽入 ${ps(pid).sn}`, `${esc(ps(pid).name)} 正式加盟，轉會費 ${money(fee)}${n > 1 ? `（今日付 ${money(now)}，其餘 ${n - 1} 期喺之後每季開季時付）` : ''}${spid ? `，${esc(ps(spid).name)} 作為交換轉投 ${esc(clubName(seller))}` : ''}，週薪 ${money(wage)}，合約至 ${G.season + years} 年 6 月。`);
 }
 function renewContract(pid, wage, years) {
   const d = pd(pid), dem = Math.max(d.w, roundMoney(wageFor(d.sk, G.clubs[d.c].lg) * 1.05 / 10) * 10);
@@ -860,6 +888,7 @@ function nextDay() {
     if (p.lin > 0 && --p.lin === 0 && !p.inj) p.injn = '';
     driftArw(pid);
   }
+  if (G.inst && G.inst.length) G.inst = G.inst.filter(x => { if (x.d > d) return true; fin(x.from, 'tout', -x.amt); fin(x.to, 'tin', x.amt); if (isUser(x.from)) mail('轉會分期付款', `已付 ${esc(clubName(x.to))} ${money(x.amt)}（${esc(ps(x.pid).sn)} 轉會費分期）。`); return false; });
   if (wday(d) === 1) { weekly(); training(); }
   if (inWindow(d)) { aiMarket(); aiOffers(); }
   for (const id in G.comp) { const c = G.comp[id]; if (c.t !== 'L') maybeDraw(c, d); }

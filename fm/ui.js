@@ -339,7 +339,9 @@ function drawPlayer() {
     else act = `<div class="row"><button class="btn" data-act="list">${d.list ? '取消放售' : '放售'}</button><button class="btn" data-act="pstep" data-a="renew">續約</button><button class="btn r" data-act="pstep" data-a="rel">解約</button></div>`;
   } else {
     if (P.step === 'ct') act = `<div class="row">週薪 £<input class="inp num" id="pw" value="${P.wage ?? wageDemand(pid, myCid())}" style="width:100px" inputmode="numeric"> 年期 <select class="inp" id="py">${[1, 2, 3, 4, 5].map(y => opt(y, y + ' 年', P.yrs)).join('')}</select><button class="btn y" data-act="offerct">提出合約</button><button class="btn" data-act="pstep" data-a="">取消</button></div>`;
-    else act = `<div class="row">轉會費 £<input class="inp num" id="pf" value="${P.fee ?? (d.c === 'free' ? 0 : valueOf(pid))}" style="width:120px" inputmode="numeric" ${d.c === 'free' ? 'disabled' : ''}><button class="btn y" data-act="bid">${d.c === 'free' ? '傾合約' : '出價'}</button>${P.counter ? `<button class="btn" data-act="bidc">出 ${money(P.counter)}</button>` : ''}</div>`;
+    else { const wl = myCid() ? willing(pid, myCid()) : 2, mine2 = roster(myCid()).filter(x => x !== pid).sort((a, b) => pd(b).sk - pd(a).sk);
+      act = `<div class="row"><span class="mute">球員意願</span><span class="tag wl${wl}">${WILLN[wl]}</span>${info('睇球會大細、會唔會有正選、合約剩幾耐、有冇放售、年紀等等。「唔會去」出幾多都冇用；「唔太想」會要求高啲人工；「好想去」人工可以少少。')}${d.c !== 'free' ? `<span class="mute">賣方心目中約 ${money(askingPrice(pid))}</span>${info('後生、正選主力、合約仲長嘅球員，球會會要溢價先肯放。')}` : ''}</div>
+      <div class="row">轉會費 £<input class="inp num" id="pf" value="${P.fee ?? (d.c === 'free' ? 0 : valueOf(pid))}" style="width:120px" inputmode="numeric" ${d.c === 'free' ? 'disabled' : ''}>${d.c !== 'free' ? `<select class="inp" id="pn" aria-label="付款">${[[1, '一次過'], [2, '分 2 年'], [3, '分 3 年']].map(([v, t]) => opt(v, t, P.n || 1)).join('')}</select><select class="inp" id="psw" aria-label="加球員交換" style="max-width:200px"><option value="">唔加球員</option>${mine2.map(x => `<option value="${x}" ${x === P.swap ? 'selected' : ''}>+ ${esc(ps(x).sn)} · ${ps(x).pos} · ${pd(x).sk} · ${money(valueOf(x))}</option>`).join('')}</select>${info('分期：今日只付第一期，其餘喺之後每季開季時自動付；賣方會當遲收嘅錢少少折扣，所以總數要多啲。加球員：將你一個球員一齊交換，賣方需要嗰個位置會計足身價，唔需要就打折；嗰個球員自己都要肯去。')}` : ''}<button class="btn y" data-act="bid">${d.c === 'free' ? '傾合約' : '出價'}</button>${P.counter ? `<button class="btn" data-act="bidc">出 ${money(P.counter)}</button>` : ''}</div>`; }
   }
   modal(`${esc(p.name)}`, `<div class="pf">${d.c !== 'free' && d.c !== 'ret' ? badgeSVG(d.c, 64) : ''}<div><div class="D" style="font-size:20px">${esc(clubName(d.c))}</div><div class="mute">${POSN[p.pos]}（${p.pos}）${pos2Of(p).length ? `，次位置 ${pos2Of(p).map(q => `${POSN[q]}（${q}）`).join('、')}` : ''} · ${ageOf(pid)} 歲 · ${esc(natName(p.nat))} · #${d.no || '—'}</div><div>${pTags(pid)}</div></div><div class="gcard g-${GRADE(d.sk)} pfc"><span class="r">${d.sk}</span><span class="g">${GRADE(d.sk)}</span></div></div>
     <dl class="kv kv2"><dt>身價</dt><dd>${money(valueOf(pid))}</dd><dt>週薪</dt><dd>${money(d.w)}</dd><dt>合約至</dt><dd>${d.c === 'free' ? '—' : d.ct + ' 年 6 月'}</dd><dt>體能</dt><dd>${Math.round(d.cond)}${cbar(d.cond)}</dd><dt>表現</dt><dd>${form(pid) ? form(pid).toFixed(1) : '–'}</dd><dt>傷病</dt><dd>${d.inj ? `${esc(d.injn)}（${d.inj} 日）` : '冇'}</dd></dl>
@@ -816,7 +818,14 @@ function afterAdvance() { MT = MT && MT.f.hg == null ? MT : null; save(); if (us
 function advance() {
   if (BUSY) return;
   if (userFxToday()) return openMatch();
+  const m0 = G.mail.filter(m => !m.rd).length, o0 = G.off.length;
   MT = null; nextDay(); afterAdvance();
+  // feedback: the date in the top bar flashes and a toast names the new day (and anything that arrived)
+  if (!userFxToday()) {
+    const nm = G.mail.filter(m => !m.rd).length - m0, no = G.off.length - o0;
+    toast(`📅 ${fdate(G.day)}${nm > 0 ? ` · ${nm} 封新郵件` : ''}${no > 0 ? ` · ${no} 個新報價` : ''}`);
+    const t = $('#top .tinfo .club small.num'); if (t) { t.classList.remove('dayflash'); void t.offsetWidth; t.classList.add('dayflash'); }
+  }
 }
 async function untilMatch() {
   if (BUSY) return;
@@ -885,9 +894,9 @@ const ACT = {
   list: () => { const d = pd(UI.pm.pid); d.list = d.list ? 0 : 1; save(); drawPlayer(); render(); },
   release: () => { const m = releasePlayer(UI.pm.pid); save(); closeModal(); render(); toast(m); },
   renew: () => { const P = UI.pm, w = +$('#pw').value, y = +$('#py').value; P.wage = w; P.yrs = y; const r = renewContract(P.pid, w, y); P.msg = r.msg; if (r.ok) { P.step = null; save(); render(); } drawPlayer(); },
-  bid: () => { const P = UI.pm, fee = Math.max(0, Math.round(+$('#pf').value || 0)); P.fee = fee; const r = userBid(P.pid, fee); P.msg = r.msg; P.counter = r.counter; if (r.ok) { P.fee = r.fee; P.step = 'ct'; } drawPlayer(); },
-  bidc: () => { const P = UI.pm; $('#pf').value = P.counter; ACT.bid(); },
-  offerct: () => { const P = UI.pm, w = +$('#pw').value, y = +$('#py').value; P.wage = w; P.yrs = y; if (!G.inf && myClub().cash < P.fee) { P.msg = '資金唔夠'; return drawPlayer(); } const r = contractTalk(P.pid, w, y); P.msg = r.msg; if (r.ok) { completeSigning(P.pid, P.fee, w, y); save(); closeModal(); render(); toast(`簽入 ${ps(P.pid).sn}！`); return; } drawPlayer(); },
+  bid: () => { const P = UI.pm, fee = Math.max(0, Math.round(+$('#pf').value || 0)); P.fee = fee; P.n = +($('#pn')?.value || 1); P.swap = $('#psw')?.value || null; const r = userBid(P.pid, fee, P.n, P.swap); P.msg = r.msg; P.counter = r.counter; if (r.ok) { P.fee = r.fee; P.step = 'ct'; } drawPlayer(); },
+  bidc: () => { const P = UI.pm, v = P.counter; $('#pf').value = v; ACT.bid(); },
+  offerct: () => { const P = UI.pm, w = +$('#pw').value, y = +$('#py').value; P.wage = w; P.yrs = y; if (!G.inf && myClub().cash < Math.round(P.fee / (P.n || 1))) { P.msg = '資金唔夠'; return drawPlayer(); } if (P.swap && pd(P.swap).c !== myCid()) P.swap = null; const r = contractTalk(P.pid, w, y); P.msg = r.msg; if (r.ok) { completeSigning(P.pid, P.fee, w, y, P.n || 1, P.swap); save(); closeModal(); render(); toast(`簽入 ${ps(P.pid).sn}！`); return; } drawPlayer(); },
   // match
   mstart: startLive,
   mquick: () => { MT.M = newMatch(MT.f, false); runToEnd(MT.M); MT.phase = 'ft'; save(); render(); },
