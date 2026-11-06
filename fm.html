@@ -227,6 +227,20 @@ a.nb{text-decoration:none;color:inherit;margin-top:auto}
 .pact{margin-top:auto;display:flex;flex-direction:column;gap:6px;border-top:1px solid #2b5bb5;padding-top:8px}
 .msg{margin:0;color:var(--sel);font-weight:700}
 .pitchp .pb{padding:0;overflow:hidden}
+/* squad: list · pitch simulation · formation list, drag & drop */
+.sqg{grid-template-columns:minmax(0,1.45fr) minmax(0,1fr) 124px}
+.pitchwrap{height:100%;display:flex;justify-content:center;align-items:flex-start}
+.pitchwrap .pitchv{height:100%;width:auto;max-width:100%;margin:0}
+.sqg .shirt i{width:34px;height:32px;font-size:15px}
+.shirt.dg{pointer-events:auto;cursor:grab;touch-action:none;user-select:none}
+.shirt.dg.dragging{opacity:.35}
+.shirt .sp{font:800 10px/1 var(--f-disp);color:var(--sel);background:rgba(0,10,40,.75);padding:1px 4px}
+.shirt.dropon i,.shirt.selp i{outline:3px solid var(--sel);outline-offset:2px}
+tr.dropon td{background:var(--sel)!important;color:var(--selInk)}
+tr[data-k]{user-select:none}
+.dghost{position:fixed;z-index:99;transform:translate(-50%,-140%);background:var(--sel);color:var(--selInk);font:800 15px/1 var(--f-disp);padding:6px 10px;pointer-events:none;white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.5)}
+.flist{display:flex;flex-direction:column;gap:2px}
+.flist .nb{padding:4px 8px;font-family:var(--f-disp);font-size:15px}
 /* (i) info popover: hover on desktop, tap on phone; fixed size */
 .ib{width:18px;height:18px;border-radius:50%;border:1px solid #9cc0ff;background:#0b2a66;color:#cfe0ff;font:italic 700 12px/1 Georgia,serif;padding:0;display:inline-grid;place-items:center;vertical-align:middle;margin-left:4px;flex:none;text-transform:none;letter-spacing:0}
 #tip{position:fixed;z-index:95;width:260px;height:150px;overflow:auto;background:#0b2559;border:1px solid var(--sel);padding:10px 12px;font:500 13px/1.6 var(--f-body);color:var(--ink);box-shadow:0 6px 24px rgba(0,0,0,.55)}
@@ -265,6 +279,12 @@ a.nb{text-decoration:none;color:inherit;margin-top:auto}
   .m-stack .mlive .feed,.m-stack .feed{max-height:320px;overflow:auto}
   .dl{display:none}
   .cbar,.t-ne{display:none}
+  .m-stack .pitchwrap{height:auto}
+  .m-stack .pitchwrap .pitchv{width:100%;height:auto}
+  .flist{flex-direction:row;flex-wrap:wrap}
+  .flist .nb{flex:1 1 28%}
+  .sqg>.pan:first-child{order:2}
+  .sqg>.fpan{order:1}
   td,th{padding-left:4px;padding-right:4px}
   td.nm{max-width:118px}
 }

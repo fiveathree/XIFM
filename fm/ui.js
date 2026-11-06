@@ -65,6 +65,7 @@ function rNav() {
 function rTick() { const t = G.news.length ? G.news.slice(0, 15).join('　◆　') : '歡迎嚟到 XI 經理 2002'; const sp = $('#tick span'); if (sp.textContent !== t) sp.textContent = t; }
 function render() {
   if (!G) return;
+  regCustom();
   if (!myCid() && NEEDCLUB.has(SCR)) SCR = 'board';
   rTop(); rNav(); rTick();
   (SCREENS[SCR] || SCREENS.home)(ARG);
@@ -141,9 +142,29 @@ function pTags(pid) {
   if (d.c !== 'free' && d.ct <= G.season) t.push('<span class="tag t-ex">約滿</span>');
   return t.join('');
 }
-function shirtsHTML(cid, xi, formName) {
+function shirtsHTML(cid, xi, formName, drag) {
   const col = CL[cid].col, slots = FORMS[formName];
-  return xi.map((pid, i) => { const [pos, x, y] = slots[i]; return `<div class="shirt" style="left:${x}%;top:${y}%"><i style="background:${col[0]};color:${col[1]}">${pid ? pd(pid).no || '' : ''}</i><span class="${pid && fitPos(ps(pid).pos, pos) < .85 ? 'bad' : ''}">${pid ? esc(ps(pid).sn) : pos}</span></div>`; }).join('');
+  return xi.map((pid, i) => { const [pos, x, y] = slots[i]; return `<div class="shirt ${drag ? 'dg' : ''} ${drag && UI.sel === 'x' + i ? 'selp' : ''}" ${drag ? `data-i="${i}"` : ''} style="left:${x}%;top:${y}%">${drag ? `<b class="sp">${pos}</b>` : ''}<i style="background:${col[0]};color:${col[1]}">${pid ? pd(pid).no || '' : ''}</i><span class="${pid && fitPos(ps(pid).pos, pos) < .85 ? 'bad' : ''}">${pid ? esc(ps(pid).sn) : pos}</span></div>`; }).join('');
+}
+/* custom formation: dragging a shirt to an empty spot copies the formation into club.cust, registered as FORMS['C:'+cid] */
+const CUSTK = cid => 'C:' + cid;
+const isCust = f => f.startsWith('C:');
+const fname = f => isCust(f) ? '自訂' : f;
+const FLIST = () => Object.keys(FORMS).filter(k => !isCust(k));
+const formOpts = cur => FLIST().map(f => opt(f, f, cur)).join('') + (myClub().cust ? opt(CUSTK(myCid()), '自訂', cur) : '');
+function regCustom() { for (const cid in G.clubs) { const c = G.clubs[cid]; if (c.cust) FORMS[CUSTK(cid)] = c.cust; if (isCust(c.form) && !FORMS[c.form]) c.form = '4-4-2'; } }
+function slotAt(x, y) { if (y >= 86) return 'GK'; if (y >= 64) return x < 25 ? 'LB' : x > 75 ? 'RB' : 'CD'; if (y >= 55) return x < 22 ? 'LM' : x > 78 ? 'RM' : 'DM'; if (y >= 40) return x < 22 ? 'LM' : x > 78 ? 'RM' : 'CM'; if (y >= 27) return x < 20 ? 'LM' : x > 80 ? 'RM' : 'AM'; return 'ST'; }
+function moveSlot(i, x, y) {
+  const c = myClub(), k = CUSTK(myCid());
+  c.cust = FORMS[c.form].map(s => [...s]); c.form = k;
+  c.cust[i] = [slotAt(x, y), Math.round(x), Math.round(y)]; FORMS[k] = c.cust;
+}
+function loadPlan(i) {
+  const c = myClub(), p = c.plans[i], mine = new Set(roster(myCid()));
+  if (p.cust) c.cust = p.cust.map(s => [...s]);
+  c.form = isCust(p.form) ? CUSTK(myCid()) : p.form; regCustom();
+  c.xi = p.xi.map(x => mine.has(x) ? x : null);
+  c.sb = p.sb.filter(x => mine.has(x) && !c.xi.includes(x));
 }
 const PITCHV = `<svg viewBox="0 0 68 100" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="rgba(255,255,255,.6)" stroke-width=".4"><rect x="2" y="2" width="64" height="96"/><line x1="2" y1="50" x2="66" y2="50"/><circle cx="34" cy="50" r="9"/><rect x="14" y="2" width="40" height="16"/><rect x="14" y="82" width="40" height="16"/><rect x="25" y="2" width="18" height="6"/><rect x="25" y="92" width="18" height="6"/></g></svg>`;
 SCREENS.squad = () => {
@@ -152,21 +173,64 @@ SCREENS.squad = () => {
   const res = roster(cid).filter(p => !inXI.has(p) && !inSB.has(p)).sort((a, b) => lineOf(ps(a).pos).localeCompare(lineOf(ps(b).pos)) || pd(b).sk - pd(a).sk);
   const row = (k, pid, slot) => {
     const sel = UI.sel === k ? 'sel' : '';
-    if (!pid) return `<tr class="click ${sel}" data-act="sq" data-k="${k}"><td class="n hm">—</td><td class="n">${slot || ''}</td><td colspan="7" class="mute">（空位，撳一下再撳一個球員）</td></tr>`;
+    if (!pid) return `<tr class="click ${sel}" data-act="sq" data-k="${k}"><td class="n hm">—</td><td class="n">${slot || ''}</td><td colspan="6" class="mute">（空位，撳一下再撳一個球員）</td></tr>`;
     const d = pd(pid), p = ps(pid), bad = slot && fitPos(p.pos, slot) < .85;
-    return `<tr class="click ${sel}" data-act="sq" data-k="${k}"><td class="n hm">${d.no || ''}</td><td class="n ${bad ? 'pbad' : ''}" title="${esc(POSN[p.pos])}">${slot || p.pos}</td><td class="nm">${pl(pid)}${slot && slot !== p.pos ? ` <span class="mute">(${p.pos})</span>` : ''}</td><td>${pTags(pid)}</td><td class="n hm">${ageOf(pid)}</td><td>${Math.round(d.cond)}${cbar(d.cond)}</td><td class="n hm">${form(pid) ? form(pid).toFixed(1) : '–'}</td><td class="n">${d.sk}</td>
+    return `<tr class="click ${sel}" data-act="sq" data-k="${k}"><td class="n hm">${d.no || ''}</td><td class="n ${bad ? 'pbad' : ''}" title="${esc(POSN[p.pos])}">${slot || p.pos}</td><td class="nm">${pl(pid)}${slot && slot !== p.pos ? ` <span class="mute">(${p.pos})</span>` : ''}</td><td>${pTags(pid)}</td><td>${Math.round(d.cond)}${cbar(d.cond)}</td><td class="n hm">${form(pid) ? form(pid).toFixed(1) : '–'}</td><td class="n">${d.sk}</td>
       <td class="hm"><select data-ch="ord" data-a="${pid}" aria-label="個人指令">${Object.entries(ORDERS).map(([v, t]) => opt(v, t, c.ord[pid] || 'n')).join('')}</select></td></tr>`;
   };
-  const probs = lineupProblems(cid);
-  main(`${hdr('陣容', `<select class="inp" data-ch="form" aria-label="陣式">${Object.keys(FORMS).map(f => opt(f, f, c.form)).join('')}</select><button class="btn" data-act="autopick">自動排陣</button>${info('撳一行揀球員，再撳另一行就對調（正選、後備、預備組之間都得）。紅色位置＝唔係本位，會扣表現。個人指令會影響比賽：盤扭、傳中、遠射、前插、留守、盯人。')}${probs.length ? `<span class="bad">${esc(probs.slice(0, 2).join('；'))}</span>` : ''}`)}
-  <div class="cols c2 m-stack" style="grid-template-columns:minmax(0,1.9fr) minmax(0,1fr)">
-    ${pan(`球員名單 <span class="r">${roster(cid).length} 人</span>`, `<table><thead><tr><th class="n hm">#</th><th class="n">位置</th><th>球員</th><th>狀態</th><th class="n hm">歲</th><th>體能</th><th class="n hm">表現</th><th class="n">能力</th><th class="hm">指令</th></tr></thead><tbody>
-      <tr class="sec"><td colspan="9">正選</td></tr>${slots.map((s, i) => row('x' + i, c.xi[i], s[0])).join('')}
-      <tr class="sec"><td colspan="9">後備</td></tr>${[0, 1, 2, 3, 4].map(i => row('b' + i, c.sb[i], '')).join('')}
-      <tr class="sec"><td colspan="9">預備組</td></tr>${res.map(p => row('r' + p, p, '')).join('')}</tbody></table>`)}
-    ${pan(c.form, `<div class="pitchv">${PITCHV}${shirtsHTML(cid, c.xi, c.form)}</div>`, { t: 1, cls: 'hm' })}
+  const probs = lineupProblems(cid), plans = c.plans || [], cur = c.plan ?? 0;
+  main(`${hdr('陣容', `${[0, 1, 2].map(i => `<button class="chip" data-act="plan" data-a="${i}" aria-pressed="${cur === i}">方案 ${'ABC'[i]}${plans[i] ? '' : '（空）'}</button>`).join('')}<button class="btn sm" data-act="plansave">存入方案 ${'ABC'[cur]}</button><button class="btn" data-act="autopick">自動排陣</button>${info('拖住球場上嘅球衣：放喺另一件球衣上面就對調兩個球員，放喺空位就移動嗰個位置（變自訂陣式）。用滑鼠亦可以由左邊名單拖人入球場。撳一個再撳另一個都可以對調。紅色＝唔係本位，會扣表現。方案 A／B／C：撳「存入」記低陣式同陣容，之後一撳就換返。')}${probs.length ? `<span class="bad">${esc(probs.slice(0, 2).join('；'))}</span>` : ''}`)}
+  <div class="cols m-stack sqg">
+    ${pan(`球員名單 <span class="r">${roster(cid).length} 人</span>`, `<table><thead><tr><th class="n hm">#</th><th class="n">位置</th><th>球員</th><th>狀態</th><th>體能</th><th class="n hm">表現</th><th class="n">能力</th><th class="hm">指令</th></tr></thead><tbody>
+      <tr class="sec"><td colspan="8">正選</td></tr>${slots.map((s, i) => row('x' + i, c.xi[i], s[0])).join('')}
+      <tr class="sec"><td colspan="8">後備</td></tr>${[0, 1, 2, 3, 4].map(i => row('b' + i, c.sb[i], '')).join('')}
+      <tr class="sec"><td colspan="8">預備組</td></tr>${res.map(p => row('r' + p, p, '')).join('')}</tbody></table>`)}
+    ${pan(`球場模擬 <span class="r">${fname(c.form)}</span>`, `<div class="pitchwrap"><div class="pitchv" id="sqp">${PITCHV}${shirtsHTML(cid, c.xi, c.form, true)}</div></div>`, { t: 1 })}
+    ${pan('陣式', `<div class="flist">${FLIST().map(f => `<button class="nb" data-act="pform" data-a="${f}" aria-current="${c.form === f}">${f}</button>`).join('')}${c.cust ? `<button class="nb" data-act="pform" data-a="${CUSTK(cid)}" aria-current="${isCust(c.form)}">自訂</button>` : ''}</div>`, { t: 1, cls: 'fpan' })}
   </div>`);
 };
+
+/* ---------- squad drag & drop (pointer events: shirts on any device, list rows with a mouse) ---------- */
+let DRG = null, NOCLICK = false;
+function dropTarget(e) {
+  DRG.g.hidden = true; const el = document.elementFromPoint(e.clientX, e.clientY); DRG.g.hidden = false;
+  if (!el) return null;
+  const sh = el.closest('#sqp .shirt[data-i]'); if (sh && 'x' + sh.dataset.i !== DRG.src) return { k: 'x' + sh.dataset.i, el: sh };
+  const row = el.closest('tr[data-k]'); if (row && row.dataset.k !== DRG.src) return { k: row.dataset.k, el: row };
+  const p = el.closest('#sqp');
+  if (p && DRG.sh) { const r = p.getBoundingClientRect(); return { move: [clamp((e.clientX - r.left) / r.width * 100, 5, 95), clamp((e.clientY - r.top) / r.height * 100, 5, 95)] }; }
+  return null;
+}
+function endDrag() { if (!DRG) return; DRG.g?.remove(); DRG.el.classList.remove('dragging'); $$('.dropon').forEach(x => x.classList.remove('dropon')); DRG = null; }
+document.addEventListener('pointerdown', e => {
+  if (SCR !== 'squad' || DRG) return;
+  if (e.target.closest('select,input,button')) return;
+  const sh = e.target.closest('#sqp .shirt[data-i]'), row = !sh && e.pointerType === 'mouse' && e.button === 0 && e.target.closest('tr[data-k]');
+  if (!sh && !row) return;
+  DRG = { src: sh ? 'x' + sh.dataset.i : row.dataset.k, sh: !!sh, el: sh || row, x0: e.clientX, y0: e.clientY, id: e.pointerId, on: false };
+  if (sh) { e.preventDefault(); sh.setPointerCapture(e.pointerId); }
+});
+document.addEventListener('pointermove', e => {
+  if (!DRG || e.pointerId !== DRG.id) return;
+  if (!DRG.on) {
+    if (Math.hypot(e.clientX - DRG.x0, e.clientY - DRG.y0) < 6) return;
+    DRG.on = true; const pid = sqGet(myClub(), DRG.src);
+    DRG.g = Object.assign(document.createElement('div'), { className: 'dghost', textContent: pid ? ps(pid).sn : '空位' });
+    document.body.appendChild(DRG.g); DRG.el.classList.add('dragging');
+  }
+  DRG.g.style.left = e.clientX + 'px'; DRG.g.style.top = e.clientY + 'px';
+  const t = dropTarget(e); $$('.dropon').forEach(x => x.classList.remove('dropon')); if (t && t.el) t.el.classList.add('dropon');
+});
+document.addEventListener('pointerup', e => {
+  if (!DRG || e.pointerId !== DRG.id) return;
+  const d = DRG, t = d.on ? dropTarget(e) : null; endDrag();
+  if (!d.on) { if (d.sh) ACT.sq({ dataset: { k: d.src } }); return; } // a tap on a shirt = select / swap
+  NOCLICK = true; setTimeout(() => { NOCLICK = false; }, 0);
+  if (!t) return;
+  if (t.k) sqSwap(d.src, t.k); else moveSlot(+d.src.slice(1), ...t.move);
+  UI.sel = null; save(); render();
+});
+document.addEventListener('pointercancel', endDrag);
 
 /* ---------- 戰術 ---------- */
 const STYLEN = { ment: '心態', pass: '傳球', tempo: '節奏', mark: '防守方式', trap: '越位陷阱' };
@@ -176,10 +240,10 @@ SCREENS.tactics = () => {
   main(`${hdr('戰術', info('陣式同打法會影響每分鐘嘅進攻、防守同控球計算。比賽中途都可以改。'))}
   <div class="cols c2 m-stack">
     <div class="cols" style="grid-template-rows:auto minmax(0,1fr)">
-      ${pan('陣式', `<div class="row">${Object.keys(FORMS).map(k => `<button class="chip" data-act="tform" data-a="${k}" aria-pressed="${k === f}">${k}</button>`).join('')}</div>${f !== c.form ? `<div class="row" style="margin-top:8px"><button class="btn y" data-act="setform" data-a="${f}">用 ${f}</button><span class="note">而家用緊 ${c.form}</span></div>` : ''}`)}
+      ${pan('陣式', `<div class="row">${[...FLIST(), ...(c.cust ? [CUSTK(cid)] : [])].map(k => `<button class="chip" data-act="tform" data-a="${k}" aria-pressed="${k === f}">${fname(k)}</button>`).join('')}</div>${f !== c.form ? `<div class="row" style="margin-top:8px"><button class="btn y" data-act="setform" data-a="${f}">用 ${fname(f)}</button><span class="note">而家用緊 ${fname(c.form)}</span></div>` : ''}`)}
       ${pan('打法', `<table><tbody>${Object.entries(STYLE).map(([k, v]) => `<tr><td style="width:120px">${STYLEN[k]} ${info(STYLEI[k])}</td><td><div class="row">${v.map((t, i) => `<button class="chip" data-act="sty" data-a="${k}:${i}" aria-pressed="${c.sty[k] === i}">${t}</button>`).join('')}</div></td></tr>`).join('')}</tbody></table>`)}
     </div>
-    ${pan(f, `<div class="pitchv">${PITCHV}${shirtsHTML(cid, f === c.form ? c.xi : Array(11).fill(null), f)}</div>`, { t: 1 })}
+    ${pan(fname(f), `<div class="pitchv">${PITCHV}${shirtsHTML(cid, f === c.form ? c.xi : Array(11).fill(null), f)}</div>`, { t: 1 })}
   </div>`);
 };
 
@@ -476,11 +540,11 @@ function mPre() {
   const ven = f.n ? (rd?.ven || '中立場') : CL[f.h].stadium;
   main(`<div class="mtop"><div class="tm" style="text-align:right">${esc(clubName(f.h))}</div><div><div class="sc">v</div><div class="mn">${esc(compName(f.c))} · ${roundName(f)}</div></div><div class="tm">${esc(clubName(f.a))}</div></div>
   <div class="row"><span class="mute">${fdate(f.d)} · ${esc(ven)}</span><span style="margin-left:auto"></span>
-    <select class="inp" data-ch="form" aria-label="陣式">${Object.keys(FORMS).map(k => opt(k, k, c.form)).join('')}</select>
+    <select class="inp" data-ch="form" aria-label="陣式">${formOpts(c.form)}</select>
     <select class="inp" data-ch="ment" aria-label="心態">${STYLE.ment.map((t, i) => opt(i, '心態：' + t, c.sty.ment)).join('')}</select>
     <button class="btn" data-go="squad">調整陣容</button><button class="btn" data-act="mquick">快速結果</button><button class="btn y" data-act="mstart">開波 ▶</button></div>
   ${probs.length ? `<p class="bad" style="margin:0">⚠ ${esc(probs.join('；'))}（開波時會自動補位）</p>` : ''}
-  <div class="cols c2 m-stack" style="grid-template-columns:1fr 1fr">${pan(esc(clubName(f.h)) + ' · ' + G.clubs[f.h].form, lineupList(f.h))}${pan(esc(clubName(f.a)) + ' · ' + G.clubs[f.a].form, lineupList(f.a), { t: 1 })}</div>`);
+  <div class="cols c2 m-stack" style="grid-template-columns:1fr 1fr">${pan(esc(clubName(f.h)) + ' · ' + fname(G.clubs[f.h].form), lineupList(f.h))}${pan(esc(clubName(f.a)) + ' · ' + fname(G.clubs[f.a].form), lineupList(f.a), { t: 1 })}</div>`);
 }
 const SPD = [350, 175, 88];
 function startLive() { MT.M = newMatch(MT.f, true); MT.phase = 'live'; MT.pos = {}; MT.nev = 0; render(); runLive(); }
@@ -572,7 +636,7 @@ function subPanel() {
   const M = MT.M, S = M[M.u], rt = p => (6 + (M.rt[p] || 0)).toFixed(1);
   modal(`換人 · 戰術（已換 ${S.subs}/3）`, `<div class="cols c2" style="flex:none"><div><div class="lbl">場上 · 先揀要換走嘅球員</div><table><tbody>${S.on.map(o => o.pid ? `<tr class="click ${MT.sel === o.pid ? 'sel' : ''}" data-act="msel" data-a="${o.pid}"><td class="n">${o.slot}</td><td class="nm">${esc(ps(o.pid).sn)}</td><td>${Math.round(pd(o.pid).cond)}${cbar(pd(o.pid).cond)}</td><td class="n">${rt(o.pid)}</td></tr>` : `<tr><td class="n">${o.slot}</td><td colspan="3" class="bad">冇人</td></tr>`).join('')}</tbody></table></div>
     <div><div class="lbl">後備 · 再揀換入</div><table><tbody>${S.bench.map(p => `<tr class="click" data-act="msubin" data-a="${p}"><td class="n">${ps(p).pos}</td><td class="nm">${esc(ps(p).sn)}</td><td class="n">${pd(p).sk}</td></tr>`).join('') || '<tr><td class="mute">冇後備</td></tr>'}</tbody></table>
-    <div class="lbl" style="margin-top:10px">陣式</div><select class="inp" data-ch="mform">${Object.keys(FORMS).map(k => opt(k, k, S.form)).join('')}</select>
+    <div class="lbl" style="margin-top:10px">陣式</div><select class="inp" data-ch="mform">${formOpts(S.form)}</select>
     <div class="lbl" style="margin-top:10px">打法</div>${Object.entries(STYLE).map(([k, v]) => `<div class="row" style="margin-bottom:4px"><span style="width:64px">${STYLEN[k]}</span>${v.map((t, i) => `<button class="chip" data-act="msty" data-a="${k}:${i}" aria-pressed="${S.sty[k] === i}">${t}</button>`).join('')}</div>`).join('')}</div></div>`, 'tall');
 }
 function mFt() {
@@ -622,6 +686,9 @@ const ACT = {
   autopick: () => { autoPick(myCid()); save(); render(); toast('已自動排陣'); },
   sq: el => { const k = el.dataset.k; if (!UI.sel) UI.sel = k; else if (UI.sel === k) UI.sel = null; else { sqSwap(UI.sel, k); UI.sel = null; save(); } render(); },
   tform: el => { UI.tf = el.dataset.a; render(); },
+  pform: el => { myClub().form = el.dataset.a; save(); render(); },
+  plan: el => { const c = myClub(), i = +el.dataset.a; c.plan = i; if (c.plans && c.plans[i]) { loadPlan(i); toast(`已換到方案 ${'ABC'[i]}`); } save(); render(); },
+  plansave: () => { const c = myClub(), i = c.plan ?? 0; c.plans = c.plans || [null, null, null]; c.plans[i] = { form: c.form, cust: c.cust ? c.cust.map(s => [...s]) : null, xi: [...c.xi], sb: [...c.sb] }; save(); render(); toast(`已存入方案 ${'ABC'[i]}`); },
   setform: el => { myClub().form = el.dataset.a; UI.tf = null; save(); render(); toast('陣式已更改，記得睇吓陣容位置'); },
   sty: el => { const [k, v] = el.dataset.a.split(':'); myClub().sty[k] = +v; save(); render(); },
   trint: el => { myClub().tr.int = +el.dataset.a; save(); render(); },
@@ -680,6 +747,7 @@ const CH = {
   mform: el => { userForm(MT.M, el.value); MT.pos = {}; subPanel(); },
 };
 document.addEventListener('click', e => {
+  if (NOCLICK) return;
   const tipB = e.target.closest('.ib'); if (tipB) { e.preventDefault(); if (TIP && !TIP.hidden && TIP.dataset.for === tipB.dataset.tip) hideTip(); else showTip(tipB); return; }
   if (!e.target.closest('#tip')) hideTip();
   if (e.target.id === 'modal') { if (!MT || !MT.M || !MT.M.pause) closeModal(); return; }
