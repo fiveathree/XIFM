@@ -15,6 +15,8 @@ Football-manager × gacha web game. UI language is Cantonese (Traditional Chines
 | `favicon.svg` | Standalone copy of the favicon (the page embeds it inline as a data URI in `<head>`). |
 | `README.md` | Player-facing description (Cantonese). |
 | `tools/check-data.js` | Data / card-ID stability check (see below). Not loaded by the game. |
+| `fm.html`, `fm/` | **經理生涯模式 (career mode, work in progress).** Separate page and save. Start with [`fm/PLAN.md`](fm/PLAN.md): what is done, architecture, and the ordered to-do list. Data format: `fm/DATA_SPEC.md`. |
+| `tools/fm-check-data.js`, `tools/fm-sim.js`, `tools/fm-sim-season.js` | Career-mode data validator and headless season simulator. |
 
 No build step, no dependencies, no framework. Plain DOM + template strings. Only external resource is Google Fonts (Saira Condensed, Noto Sans TC).
 
