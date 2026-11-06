@@ -435,6 +435,15 @@ function effOf(pid, slot, cond) {
   const cf = c >= 92 ? 1 : clamp(.78 + .22 * (c - 40) / 52, .7, 1);
   return d.sk * fitP(pid, slot) * cf * ARWF[d.arw ?? 2] * (d.lin ? .92 : 1);
 }
+/* captain and set-piece takers: club.sp = { cap, cl, cr, fkl, fks, pk } (player ids; missing or unavailable → best on the pitch).
+   attrs: 4 傳球, 5 射門, 6 頭球, 7 控球 */
+const SPR = { cap: '隊長', cl: '左角球', cr: '右角球', fkl: '長罰球', fks: '短罰球', pk: '十二碼' };
+const SPW = {
+  cap: p => pd(p).sk + clamp(ageOf(p) - 22, 0, 10) * 1.5,
+  cl: p => attrs(p)[4] * 2 + attrs(p)[7], cr: p => attrs(p)[4] * 2 + attrs(p)[7], fkl: p => attrs(p)[4] * 2 + attrs(p)[7],
+  fks: p => attrs(p)[5] * 1.5 + attrs(p)[4] + attrs(p)[7] * .5, pk: p => attrs(p)[5] * 2 + attrs(p)[7],
+};
+function bestFor(role, pids) { const ok = pids.filter(p => p && ps(p).pos !== 'GK'); return ok.sort((a, b) => SPW[role](b) - SPW[role](a))[0] || null; }
 function autoPick(cid) {
   const c = G.clubs[cid], slots = FORMS[c.form];
   const pool = roster(cid).filter(avail);

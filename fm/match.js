@@ -12,7 +12,7 @@ function buildSide(cid, key) {
   const slots = FORMS[c.form];
   const on = c.xi.map((pid, i) => ({ pid: pid && avail(pid) ? pid : null, slot: slots[i][0], x: slots[i][1], y: slots[i][2] }));
   const used = new Set(on.map(o => o.pid).filter(Boolean));
-  return { cid, key, on, bench: c.sb.filter(p => p && avail(p) && !used.has(p)), subs: 0, form: c.form, sty: { ...c.sty }, ord: { ...c.ord },
+  return { cid, key, on, sp: { ...(c.sp || {}) }, bench: c.sb.filter(p => p && avail(p) && !used.has(p)), subs: 0, form: c.form, sty: { ...c.sty }, ord: { ...c.ord },
     g: 0, sh: 0, sot: 0, co: 0, fo: 0, yc: 0, rc: 0, pos: 0, susStart: roster(cid).filter(p => pd(p).sus > 0) };
 }
 // user lineup with an injured/suspended player: replace with the best available, keep the rest
@@ -43,7 +43,7 @@ function sideRatings(S, M) {
     L[slotLine(o.slot)].push(effOf(o.pid, o.slot));
     const od = S.ord[o.pid]; if (od === 'fw') fw++; if (od === 'hd') hd++;
   }
-  const av = a => a.length ? sum(a) / a.length : 35;
+  const capF = S.on.some(o => o.pid && o.pid === taker(S, 'cap')) ? 1.01 : 1, av = a => (a.length ? sum(a) / a.length : 35) * capF;
   const gk = L.G[0] ?? 25, d = av(L.D), m = av(L.M), a = L.A.length ? av(L.A) : m * .85;
   const nD = L.D.length, nM = L.M.length, nA = L.A.length;
   const st = S.sty, tr = G.clubs[S.cid].tr.foc;
@@ -70,7 +70,7 @@ function step(M) {
   const hAtt = R() < ph;
   const S = hAtt ? H : A, O = hAtt ? A : H, rs = hAtt ? rh : ra, ro = hAtt ? ra : rh;
   S.pos++;
-  let p = .15 * clamp(rs.att / Math.max(20, ro.def), .6, 1.7) ** 2 * (rs.t + ro.t) / 2;
+  let p = .138 * clamp(rs.att / Math.max(20, ro.def), .6, 1.7) ** 2 * (rs.t + ro.t) / 2;
   if (O.sty.trap && rs.pace > 72 && R() < .25) p *= 1.25;
   p = clamp(p, .03, .34);
   M.ball = [hAtt ? 70 + R() * 20 : 10 + R() * 20, 15 + R() * 70];
@@ -78,6 +78,29 @@ function step(M) {
   for (const [X, Y] of [[H, A], [A, H]]) if (R() < .11 * (X.sty.mark ? 1.2 : 1) * (X.sty.tempo === 2 ? 1.1 : 1)) foul(M, X, Y);
   for (const S2 of [H, A]) wear(M, S2);
   if (M.k % 6 === 0) for (const S2 of [H, A]) aiSubs(M, S2);
+}
+// the chosen taker if on the pitch, else the best one on the pitch
+function taker(S, role) { const on = S.on.map(o => o.pid).filter(Boolean); return S.sp && on.includes(S.sp[role]) ? S.sp[role] : bestFor(role, on); }
+function aimer(S, not) { const c = S.on.filter(o => o.pid && o.pid !== not && o.slot !== 'GK'); return c.length ? wpick(c, c.map(o => (attrs(o.pid)[6] / 70) ** 3 * (['CD', 'ST', 'CF'].includes(o.slot) ? 1.6 : 1))) : null; }
+// a corner: the left or right taker swings it in, someone attacks it in the air
+function corner(M, S, O) {
+  S.co++;
+  const tk = taker(S, R() < .5 ? 'cl' : 'cr'), tg = tk && aimer(S, tk); if (!tg) return;
+  const gko = O.on.find(o => o.slot === 'GK' && o.pid), gq = gko ? attrs(gko.pid)[3] : 40;
+  const p = .022 * (attrs(tk)[4] / 72) ** 2 * (attrs(tg.pid)[6] / 72) ** 2 * clamp(70 / gq, .8, 1.25);
+  if (R() < .3) { S.sh++; if (R() < p / .3) { S.sot++; goal(M, S, O, tg.pid, tk, 'co'); } else ev(M, 'miss', S.key, tg.pid, null, 'hd'); }
+}
+// a free kick within range: short = a shot by the short free-kick taker, long = a ball into the box
+function freeKick(M, S, O) {
+  const gko = O.on.find(o => o.slot === 'GK' && o.pid), gq = gko ? (attrs(gko.pid)[0] + attrs(gko.pid)[1]) / 2 : 40;
+  if (R() < .5) {
+    const tk = taker(S, 'fks'); if (!tk) return; const a = attrs(tk); S.sh++;
+    if (R() > .42) return ev(M, 'miss', S.key, tk, null, 'fk');
+    S.sot++; if (R() < clamp(.13 * ((a[5] + a[4]) / 2 / Math.max(30, gq)) ** 2, .04, .3)) goal(M, S, O, tk, null, 'fk'); else ev(M, 'save', S.key, tk, gko && gko.pid, 'fk');
+  } else {
+    const tk = taker(S, 'fkl'), tg = tk && aimer(S, tk); if (!tg) return;
+    if (R() < .02 * (attrs(tk)[4] / 72) ** 2 * (attrs(tg.pid)[6] / 72) ** 2) { S.sh++; S.sot++; goal(M, S, O, tg.pid, tk, 'fkh'); }
+  }
 }
 function attack(M, S, O, rs, ro) {
   const ordW = o => S.ord[o.pid] === 'ls' ? 1.5 : S.ord[o.pid] === 'fw' ? 1.25 : S.ord[o.pid] === 'hd' ? .5 : 1;
@@ -98,15 +121,15 @@ function attack(M, S, O, rs, ro) {
   if (dribble && R() < .3) { ev(M, 'tackle', S.key, sh.pid, null); return; }
   const onT = longShot ? .34 : header ? .4 : .45;
   if (R() > onT) {
-    if (R() < .35) S.co++;
     ev(M, 'miss', S.key, sh.pid, null, longShot ? 'ls' : header ? 'hd' : '');
+    if (R() < .35) corner(M, S, O);
     return;
   }
   S.sot++;
   const base = longShot ? .14 : header ? .3 : dribble ? .4 : .34;
   const pg = clamp(base * clamp(q / Math.max(25, gq), .7, 1.4) ** 1.1, .06, .6);
   if (R() < pg) goal(M, S, O, sh.pid, as ? as.pid : null, longShot ? 'ls' : header ? 'hd' : dribble ? 'dr' : '');
-  else { if (gko) rate(M, gko.pid, .15); if (R() < .3) S.co++; ev(M, 'save', S.key, sh.pid, gko && gko.pid, longShot ? 'ls' : header ? 'hd' : ''); }
+  else { if (gko) rate(M, gko.pid, .15); ev(M, 'save', S.key, sh.pid, gko && gko.pid, longShot ? 'ls' : header ? 'hd' : ''); if (R() < .3) corner(M, S, O); }
 }
 function goal(M, S, O, scorer, assist, kind) {
   S.g++;
@@ -123,9 +146,10 @@ function foul(M, X, Y) {
   if (!f) return;
   const pid = f.pid;
   if (['CD', 'RB', 'LB', 'GK'].includes(f.slot) && R() < .045) { // penalty
-    const tk = Y.on.filter(o => o.pid).sort((a, b) => attrs(b.pid)[5] - attrs(a.pid)[5])[0];
-    if (tk) { Y.sh++; Y.sot++; if (R() < .76) goal(M, Y, X, tk.pid, null, 'pen'); else { const gk = X.on.find(o => o.slot === 'GK' && o.pid); if (gk) rate(M, gk.pid, .8); ev(M, 'pmiss', Y.key, tk.pid, gk && gk.pid); } }
+    const tk = taker(Y, 'pk');
+    if (tk) { Y.sh++; Y.sot++; if (R() < clamp(.6 + (attrs(tk)[5] + attrs(tk)[7] - 140) * .004, .62, .88)) goal(M, Y, X, tk, null, 'pen'); else { const gk = X.on.find(o => o.slot === 'GK' && o.pid); if (gk) rate(M, gk.pid, .8); ev(M, 'pmiss', Y.key, tk, gk && gk.pid); } }
   }
+  else if (R() < .09) freeKick(M, Y, X);
   if (R() < .004) return card(M, X, f, 'rc');
   if (R() < .13) { if (M.yc[pid]) return card(M, X, f, 'rc2'); M.yc[pid] = 1; X.yc++; rate(M, pid, -.4); ev(M, 'yc', X.key, pid); }
 }

@@ -147,8 +147,8 @@ function pTags(pid) {
   return t.join('');
 }
 function shirtsHTML(cid, xi, formName, drag) {
-  const col = CL[cid].col, slots = FORMS[formName];
-  return xi.map((pid, i) => { const [pos, x, y] = slots[i]; return `<div class="shirt ${drag ? 'dg' : ''} ${drag && UI.sel === 'x' + i ? 'selp' : ''}" ${drag ? `data-i="${i}"` : ''} style="left:${x}%;top:${y}%">${drag ? `<b class="sp">${pos}</b>` : ''}<i style="background:${col[0]};color:${col[1]}">${pid ? pd(pid).no || '' : ''}</i><span class="${pid && fitP(pid, pos) < .85 ? 'bad' : ''}">${pid ? esc(ps(pid).sn) : pos}</span>${drag && pid ? `<em class="rt ${fitP(pid, pos) < 1 ? 'down' : ''}" title="${fitP(pid, pos) < 1 ? `本位能力 ${pd(pid).sk}` : '能力'}">${Math.round(pd(pid).sk * fitP(pid, pos))}</em>` : ''}</div>`; }).join('');
+  const col = CL[cid].col, slots = FORMS[formName], sp = G.clubs[cid].sp || {}, cap = xi.includes(sp.cap) ? sp.cap : bestFor('cap', xi.filter(Boolean));
+  return xi.map((pid, i) => { const [pos, x, y] = slots[i]; return `<div class="shirt ${drag ? 'dg' : ''} ${drag && UI.sel === 'x' + i ? 'selp' : ''}" ${drag ? `data-i="${i}"` : ''} style="left:${x}%;top:${y}%">${drag ? `<b class="sp">${pos}</b>` : ''}<i style="background:${col[0]};color:${col[1]}">${pid ? pd(pid).no || '' : ''}</i>${pid && pid === cap ? '<b class="capb" title="隊長">C</b>' : ''}<span class="${pid && fitP(pid, pos) < .85 ? 'bad' : ''}">${pid ? esc(ps(pid).sn) : pos}</span>${drag && pid ? `<em class="rt ${fitP(pid, pos) < 1 ? 'down' : ''}" title="${fitP(pid, pos) < 1 ? `本位能力 ${pd(pid).sk}` : '能力'}">${Math.round(pd(pid).sk * fitP(pid, pos))}</em>` : ''}</div>`; }).join('');
 }
 /* custom formation: dragging a shirt to an empty spot copies the formation into club.cust, registered as FORMS['C:'+cid] */
 const CUSTK = cid => 'C:' + cid;
@@ -249,6 +249,7 @@ SCREENS.tactics = () => {
   <div class="cols c2 m-stack">
     <div class="cols" style="grid-template-rows:auto minmax(0,1fr)">
       ${pan('陣式', `<div class="row">${[...FLIST(), ...(c.cust ? [CUSTK(cid)] : [])].map(k => `<button class="chip" data-act="tform" data-a="${k}" aria-pressed="${k === f}">${fname(k)}</button>`).join('')}</div>${f !== c.form ? `<div class="row" style="margin-top:8px"><button class="btn y" data-act="setform" data-a="${f}">用 ${fname(f)}</button><span class="note">而家用緊 ${fname(c.form)}</span></div>` : ''}`)}
+      ${pan(`隊長 · 定位球 ${info('揀隊長同各種定位球主罰。揀「自動」或者揀咗嘅人唔喺場上，就由場上最適合嘅人負責。隊長喺場會令全隊表現略為提升。角球同長罰球睇傳球同控球，短罰球（直接射門）睇射門同傳球，十二碼睇射門同控球。')}`, `<table class="spt"><tbody>${Object.entries(SPR).map(([k, t]) => { const ros = roster(cid).filter(p => ps(p).pos !== 'GK').sort((a, b) => SPW[k](b) - SPW[k](a)), cur = (c.sp || {})[k], auto = bestFor(k, c.xi.filter(Boolean)); return `<tr><td style="width:90px">${t}</td><td><select class="inp" data-ch="sp" data-a="${k}" aria-label="${t}"><option value="">自動${auto ? `（${esc(ps(auto).sn)}）` : ''}</option>${ros.map(p => `<option value="${p}" ${p === cur ? 'selected' : ''}>${esc(ps(p).sn)} · ${ps(p).pos} · ${Math.round(k === 'cap' ? pd(p).sk : k === 'pk' ? attrs(p)[5] : k === 'fks' ? (attrs(p)[5] + attrs(p)[4]) / 2 : attrs(p)[4])}</option>`).join('')}</select></td></tr>`; }).join('')}</tbody></table>`)}
       ${pan('打法', `<table><tbody>${Object.entries(STYLE).map(([k, v]) => `<tr><td style="width:120px">${STYLEN[k]} ${info(STYLEI[k])}</td><td><div class="row">${v.map((t, i) => `<button class="chip" data-act="sty" data-a="${k}:${i}" aria-pressed="${c.sty[k] === i}">${t}</button>`).join('')}</div></td></tr>`).join('')}</tbody></table>`)}
     </div>
     ${pan(fname(f), `<div class="pitchv">${PITCHV}${shirtsHTML(cid, f === c.form ? c.xi : Array(11).fill(null), f)}</div>`, { t: 1 })}
@@ -279,6 +280,22 @@ SCREENS.staff = () => {
 };
 
 /* ---------- 球員搜尋 ---------- */
+// search table columns: [header, sort key, default direction (1 up, -1 down)]
+const POSORD = Object.keys(POSN);
+const SRCOL = {
+  name: ['球員', r => ps(r[0]).name, 1], club: ['球會', r => clubName(pd(r[0]).c), 1], age: ['歲', r => ageOf(r[0]), 1], pos: ['位', r => POSORD.indexOf(ps(r[0]).pos), 1],
+  sk: ['能力', r => pd(r[0]).sk, -1], val: ['身價', r => r[1], -1], w: ['週薪', r => pd(r[0]).w, -1], st: ['狀態', r => (pd(r[0]).inj ? -20 : pd(r[0]).lin ? -10 : 0) + (pd(r[0]).arw ?? 2), -1],
+};
+const SRCLS = { name: '', club: 'hm', age: 'n', pos: 'n', sk: 'n', val: 'n', w: 'n hm', st: 'hm' };
+function srHead() { const f = UI.sr, k = SRCOL[f.sort] ? f.sort : 'sk', dir = f.dir || SRCOL[k][2]; return Object.entries(SRCOL).map(([c, [t]]) => `<th class="${SRCLS[c]} srt ${c === k ? 'on' : ''}" data-act="srs" data-a="${c}" title="撳一下排序，再撳反轉">${t}${c === k ? (dir > 0 ? ' ▲' : ' ▼') : ''}</th>`).join(''); }
+// a club's current squad (live: transfers, injuries, suspensions), from any club name in the search table
+function clubPanel(cid) {
+  const c = G.clubs[cid], ros = [...roster(cid)].sort((a, b) => POSORD.indexOf(ps(a).pos) - POSORD.indexOf(ps(b).pos) || pd(b).sk - pd(a).sk);
+  const moves = G.tlog.filter(x => x.to === cid || x.from === cid).slice(0, 6);
+  modal(esc(clubName(cid)), `<div class="row"><span class="mute">${esc(LG[c.lg] ? LG[c.lg].name : '')}</span><span class="mute">球場 ${esc(CL[cid].stadium)}</span><span class="mute">${ros.length} 人</span><span class="mute">傷 ${ros.filter(p => pd(p).inj || pd(p).lin).length} · 停賽 ${ros.filter(p => pd(p).sus).length}</span></div>
+    <table><thead><tr><th class="n">#</th><th class="n">位</th><th>球員</th><th class="n">歲</th><th class="n">能力</th><th class="n hm">身價</th><th>狀態</th></tr></thead><tbody>${ros.map(p => `<tr class="click" data-pl="${p}"><td class="n">${pd(p).no || ''}</td><td class="n">${ps(p).pos}</td><td class="nm">${esc(ps(p).name)}</td><td class="n">${ageOf(p)}</td><td class="n">${pd(p).sk}</td><td class="n hm">${money(valueOf(p))}</td><td>${pTags(p)}</td></tr>`).join('')}</tbody></table>
+    ${moves.length ? `<div class="lbl">最近轉會</div><table><tbody>${moves.map(x => `<tr><td class="n">${fdate(x.d, 's')}</td><td class="nm">${esc(ps(x.pid).sn)}</td><td>${x.to === cid ? `由 ${esc(clubName(x.from))} 加盟` : `去 ${esc(clubName(x.to))}`}</td><td class="n">${x.fee ? money(x.fee) : '自由'}</td></tr>`).join('')}</tbody></table>` : ''}`, 'tall');
+}
 function searchRows() {
   const f = UI.sr, q = f.q.trim().toLowerCase(), maxA = +f.age || 99, maxV = +f.val * 1e6 || Infinity, me = myCid();
   const out = [];
@@ -292,9 +309,9 @@ function searchRows() {
     const v = valueOf(pid); if (v > maxV) continue;
     out.push([pid, v]);
   }
-  const k = f.sort;
-  out.sort((a, b) => k === 'val' ? b[1] - a[1] : k === 'age' ? ageOf(a[0]) - ageOf(b[0]) : k === 'name' ? ps(a[0]).name.localeCompare(ps(b[0]).name) : pd(b[0]).sk - pd(a[0]).sk);
-  return [out.length, out.slice(0, 200).map(([pid, v]) => { const d = pd(pid); return `<tr class="click" data-pl="${pid}"><td class="nm">${esc(ps(pid).name)}</td><td class="nm hm">${esc(clubName(d.c))}</td><td class="n">${ageOf(pid)}</td><td class="n">${ps(pid).pos}</td><td class="n">${d.sk}</td><td class="n">${money(v)}</td><td class="n hm">${money(d.w)}</td><td class="hm">${pTags(pid)}</td></tr>`; }).join('')];
+  const k = SRCOL[f.sort] ? f.sort : 'sk', dir = f.dir || SRCOL[k][2], key = SRCOL[k][1];
+  out.sort((a, b) => { const x = key(a), y = key(b); return (typeof x === 'string' ? x.localeCompare(y) : x - y) * dir || pd(b[0]).sk - pd(a[0]).sk; });
+  return [out.length, out.slice(0, 200).map(([pid, v]) => { const d = pd(pid); return `<tr class="click" data-pl="${pid}"><td class="nm">${esc(ps(pid).name)}</td><td class="nm hm">${d.c !== 'free' ? `<button class="lnk" data-act="clubv" data-a="${d.c}" title="睇 ${esc(clubName(d.c))} 而家嘅陣容">${esc(clubName(d.c))}</button>` : esc(clubName(d.c))}</td><td class="n">${ageOf(pid)}</td><td class="n">${ps(pid).pos}</td><td class="n">${d.sk}</td><td class="n">${money(v)}</td><td class="n hm">${money(d.w)}</td><td class="hm">${pTags(pid)}</td></tr>`; }).join('')];
 }
 SCREENS.search = () => {
   const f = UI.sr, [n, rows] = searchRows();
@@ -305,8 +322,8 @@ SCREENS.search = () => {
     <select class="inp" data-ch="sr" data-a="lg" aria-label="聯賽">${opt('', '全部聯賽', f.lg)}${PLG().map(l => opt(l, LG[l].name, f.lg)).join('')}${opt('eur', '歐洲球會', f.lg)}${opt('free', '自由球員', f.lg)}</select>
     <input class="inp num" data-in="sr" data-a="age" placeholder="最大年齡" value="${esc(f.age)}" inputmode="numeric" style="width:90px">
     <input class="inp num" data-in="sr" data-a="val" placeholder="身價上限 £m" value="${esc(f.val)}" inputmode="decimal" style="width:110px">
-    <select class="inp" data-ch="sr" data-a="sort" aria-label="排序">${[['sk', '按能力'], ['val', '按身價'], ['age', '按年齡'], ['name', '按名']].map(([v, t]) => opt(v, t, f.sort)).join('')}</select></div>
-  ${pan('結果', `<table><thead><tr><th>球員</th><th class="hm">球會</th><th class="n">歲</th><th class="n">位</th><th class="n">能力</th><th class="n">身價</th><th class="n hm">週薪</th><th class="hm">狀態</th></tr></thead><tbody id="srt">${rows}</tbody></table>`, { st: 'flex:1' })}`);
+</div>
+  ${pan('結果', `<table><thead><tr>${srHead()}</tr></thead><tbody id="srt">${rows}</tbody></table>`, { st: 'flex:1' })}`);
 };
 
 /* ---------- player profile modal ---------- */
@@ -571,9 +588,9 @@ const nm = pid => pid ? ps(pid).sn : '';
 function evText(e, M) {
   const t = e.s ? clubShort(M[e.s].cid) : '', x = e.x;
   switch (e.t) {
-    case 'goal': return `⚽ 入球！${nm(e.p)}（${t}）${x === 'pen' ? '射入十二碼' : x === 'hd' ? '頭槌頂入' : x === 'ls' ? '遠射破網' : x === 'dr' ? '連過幾人後射入' : '起腳破網'}${e.p2 ? `，${nm(e.p2)} 助攻` : ''}`;
-    case 'miss': return `${nm(e.p)}（${t}）${x === 'ls' ? '遠射高出' : x === 'hd' ? '頭槌頂高' : '射門偏出'}`;
-    case 'save': return `${nm(e.p2) || '門將'} 撲出 ${nm(e.p)}（${t}）嘅${x === 'hd' ? '頭槌' : x === 'ls' ? '遠射' : '射門'}`;
+    case 'goal': return `⚽ 入球！${nm(e.p)}（${t}）${x === 'pen' ? '射入十二碼' : x === 'co' ? '角球頂入' : x === 'fk' ? '罰球直接射入' : x === 'fkh' ? '罰球傳中頂入' : x === 'hd' ? '頭槌頂入' : x === 'ls' ? '遠射破網' : x === 'dr' ? '連過幾人後射入' : '起腳破網'}${e.p2 ? `，${nm(e.p2)} 助攻` : ''}`;
+    case 'miss': return `${nm(e.p)}（${t}）${x === 'ls' ? '遠射高出' : x === 'fk' ? '罰球射偏' : x === 'hd' ? '頭槌頂高' : '射門偏出'}`;
+    case 'save': return `${nm(e.p2) || '門將'} 撲出 ${nm(e.p)}（${t}）嘅${x === 'hd' ? '頭槌' : x === 'ls' ? '遠射' : x === 'fk' ? '罰球' : '射門'}`;
     case 'tackle': return `${nm(e.p)}（${t}）想盤過對手，被斷波`;
     case 'yc': return `🟨 ${nm(e.p)}（${t}）黃牌`;
     case 'rc': return `🟥 ${nm(e.p)}（${t}）直接紅牌離場`;
@@ -839,6 +856,8 @@ const ACT = {
   staffup: el => { const c = myClub(), k = el.dataset.a, cost = (c.st[k] + 1) ** 2 * 5e4; if (!G.inf && c.cash < cost) return toast('資金唔夠'); fin(myCid(), 'staff', -cost); c.st[k]++; save(); render(); toast(`${STAFFN[k][0]} 升到 ${c.st[k]} 級`); },
   mktab: el => { UI.mk = el.dataset.a; render(); },
   accept: el => { toast(acceptOffer(+el.dataset.a)); save(); render(); },
+  srs: el => { const f = UI.sr, k = el.dataset.a; f.dir = f.sort === k ? -(f.dir || SRCOL[k][2]) : SRCOL[k][2]; f.sort = k; render(); },
+  clubv: el => clubPanel(el.dataset.a),
   cofopen: el => cofPanel(+el.dataset.a),
   cof: el => { const id = +el.dataset.a, ask = Math.max(0, Math.round(+$('#cofv').value || 0)); const r = counterOffer(id, ask); save(); if (r.gone) { closeModal(); toast(r.msg); render(); } else { cofPanel(id, r.msg); render(); } },
   cofacc: el => { closeModal(); toast(acceptOffer(+el.dataset.a)); save(); render(); },
@@ -885,6 +904,7 @@ const ACT = {
   mdone: () => { cancelAnimationFrame(MT.raf); playToday(); MT = null; save(); go('home'); },
 };
 const CH = {
+  sp: el => { const c = myClub(); c.sp = c.sp || {}; if (el.value) c.sp[el.dataset.a] = el.value; else delete c.sp[el.dataset.a]; save(); render(); },
   ord: el => { const c = myClub(); if (el.value === 'n') delete c.ord[el.dataset.a]; else c.ord[el.dataset.a] = el.value; save(); },
   form: el => { myClub().form = el.value; save(); render(); },
   ment: el => { myClub().sty.ment = +el.value; save(); },
