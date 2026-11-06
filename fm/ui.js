@@ -208,7 +208,7 @@ document.addEventListener('pointerdown', e => {
   const sh = e.target.closest('#sqp .shirt[data-i]'), row = !sh && e.pointerType === 'mouse' && e.button === 0 && e.target.closest('tr[data-k]');
   if (!sh && !row) return;
   DRG = { src: sh ? 'x' + sh.dataset.i : row.dataset.k, sh: !!sh, el: sh || row, x0: e.clientX, y0: e.clientY, id: e.pointerId, on: false };
-  if (sh) { e.preventDefault(); sh.setPointerCapture(e.pointerId); }
+  if (sh) { e.preventDefault(); try { sh.setPointerCapture(e.pointerId); } catch (x) { } }
 });
 document.addEventListener('pointermove', e => {
   if (!DRG || e.pointerId !== DRG.id) return;
