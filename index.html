@@ -1533,6 +1533,7 @@ function cardHTML(c,o={}){
   ${o.badge||''}</div>`;
 }
 function toast(t){const el=$('#toast');el.textContent=t;el.hidden=false;el.style.opacity=1;clearTimeout(toast.t);toast.t=setTimeout(()=>{el.style.opacity=0;setTimeout(()=>el.hidden=true,300)},1800)}
+const nf=n=>(+n||0).toLocaleString('en-US');
 function setCoins(){$('#coinv').textContent=S.inf?'∞':S.coins.toLocaleString()}
 function owned(){return Object.keys(S.owned).filter(k=>S.owned[k]>0&&BYID[k]).map(k=>BYID[k])}
 const LVMAX=5,BENCH=7,MAXSUB=5;
@@ -1824,7 +1825,7 @@ function rGacha(){
   $('#view').innerHTML=`
   <section class="banner">
     <div class="fan">${fan.map((c,k)=>cardHTML(c).replace('class="card','style="--rot:'+(-10+k*10)+'deg;--ty:'+(k===1?-10:6)+'px" class="card')).join('')}</div>
-    <div class="lbl" style="color:#ffd9f7">全明星卡池 · ${CARDS.length} 張卡</div>
+    <div class="lbl" style="color:#ffd9f7">全明星卡池 · ${nf(CARDS.length)} 張卡</div>
     <h3>歷代球星<br>全部抽得到</h3>
     <p>同一球員唔同時期係唔同卡：新秀年、巔峰年、晚年各有評分。UR 係歷史級巔峰傳奇，評分突破 100，每位傳奇只得一張 UR。</p>
     <div class="pullbtns">
@@ -1833,7 +1834,7 @@ function rGacha(){
     </div>
   </section>
   <div class="rates">${RATES.map(([g,p])=>`<div class="rate"><b style="color:${{UR:'#ffb8f5',SSR:'#ffd666',SR:'#b98aff',R:'#73a6ff',C:'#aab3c5'}[g]}">${g}</b><span>${p}% · ${g==='UR'?'101+':g==='SSR'?'90–100':g==='SR'?'80–89':g==='R'?'70–79':'50–69'}</span></div>`).join('')}</div>
-  <p class="hint" style="margin-top:12px">十連抽保底一張 SR 或以上。抽到重複卡會留低：喺卡冊撳張卡可以用嚟升級（最多 Lv${LVMAX}，每級評分 +1），或者賣返做金幣（C 10 · R 30 · SR 120 · SSR 500 · UR 3000）。踢比賽贏波就有金幣。</p>
+  <p class="hint" style="margin-top:12px">十連抽保底一張 SR 或以上。抽到重複卡會留低：喺卡冊撳張卡可以用嚟升級（最多 Lv${LVMAX}，每級評分 +1），或者賣返做金幣（C 10 · R 30 · SR 120 · SSR 500 · UR 3,000）。踢比賽贏波就有金幣。</p>
   <div class="panel" style="margin-top:16px">
     <div class="lbl" style="margin-bottom:10px">UR 傳奇名單（${ur.length}）</div>
     <div class="row" style="font-size:11px;gap:10px">${ur.map(c=>cardHTML(c,{dim:!S.owned[c.id]})).join('')}</div>
@@ -1849,7 +1850,7 @@ function rAlbum(){
   const spare=own.reduce((t,c)=>t+S.owned[c.id]-1,0),spareV=own.reduce((t,c)=>t+(S.owned[c.id]-1)*DUPV[c.g],0);
   $('#view').innerHTML=`
   <h2>卡冊</h2>
-  <div class="prog"><span>已收集 <b>${own.length}</b> / ${CARDS.length}</span>${byG.map(([g,a,b])=>`<span>${g} <b>${a}</b>/${b}</span>`).join('')}<span>重複卡 <b>${spare}</b></span></div>
+  <div class="prog"><span>已收集 <b>${nf(own.length)}</b> / ${nf(CARDS.length)}</span>${byG.map(([g,a,b])=>`<span>${g} <b>${nf(a)}</b>/${nf(b)}</span>`).join('')}<span>重複卡 <b>${nf(spare)}</b></span></div>
   ${spare?`<div class="row" style="margin-bottom:12px"><button class="btn" id="sellall">賣晒所有重複卡 · +${spareV.toLocaleString()} 金幣</button><span class="hint">撳卡可以逐張升級或者賣</span></div>`:''}
   <div class="row" style="margin-bottom:10px">
     ${['ALL',...GRADES].map(g=>`<button class="chip" data-g="${g}" aria-pressed="${AF.g===g}">${g==='ALL'?'全部':g}</button>`).join('')}
@@ -1890,7 +1891,7 @@ function upHTML(c){
     <div class="row" style="justify-content:space-between"><span class="lbl">升級 · Lv ${l} / ${LVMAX}</span><span class="hint">重複卡 ${spare} 張</span></div>
     <div class="lvbar">${Array.from({length:LVMAX},(_,k)=>`<i class="${k<l?'on':''}"></i>`).join('')}</div>
     <div class="row">${l<LVMAX?`<button class="btn pri" id="upg" ${spare<need?'disabled':''}>升到 Lv${l+1} · 評分 ${R(c)}→${R(c)+1}</button><span class="hint">要 ${need} 張重複 + ${S.inf?'免費':cost.toLocaleString()+' 金幣'}</span>`:`<span class="hint">已經升到最高級</span>`}</div>
-    <div class="row" style="margin-top:8px"><button class="btn" id="sell1" ${spare<1?'disabled':''}>賣 1 張重複 · +${DUPV[c.g]}</button></div>
+    <div class="row" style="margin-top:8px"><button class="btn" id="sell1" ${spare<1?'disabled':''}>賣 1 張重複 · +${nf(DUPV[c.g])}</button></div>
   </div>`;
 }
 function upgrade(id){
@@ -2066,7 +2067,7 @@ function reward(us,them,mult){
   const res=us>them?'W':us===them?'D':'L';
   const c=Math.round(({W:300,D:120,L:60}[res]+us*20)*mult);
   S.coins+=c;S.stats[res.toLowerCase()]++;save();setCoins();
-  return{res,c,txt:`${res==='W'?'贏波':res==='D'?'和波':'輸波'} · +${c} 金幣`};
+  return{res,c,txt:`${res==='W'?'贏波':res==='D'?'和波':'輸波'} · +${nf(c)} 金幣`};
 }
 
 /* ---------- LEAGUE ---------- */
@@ -2108,7 +2109,7 @@ function nextRound(){
     L.log.unshift({r:L.round+1,opp:L.teams[oi].n,home,us:usg,them,res:r.res});
     L.round++;
     let extra='';
-    if(L.round>=L.rounds.length){const pos=standings(L).findIndex(t=>t.u)+1;const b=[0,3000,1800,1200,800,500,300,200,100,50][pos]||50;const mult={easy:.5,pro:1,world:2}[L.diff];const bonus=Math.round(b*mult);S.coins+=bonus;L.done={pos,bonus};extra=` · 季尾第 ${pos} 名 +${bonus}`}
+    if(L.round>=L.rounds.length){const pos=standings(L).findIndex(t=>t.u)+1;const b=[0,3000,1800,1200,800,500,300,200,100,50][pos]||50;const mult={easy:.5,pro:1,world:2}[L.diff];const bonus=Math.round(b*mult);S.coins+=bonus;L.done={pos,bonus};extra=` · 季尾第 ${pos} 名 +${nf(bonus)}`}
     save();setCoins();
     return r.txt+extra;
   });
@@ -2158,7 +2159,7 @@ function rLeague(){
         <div class="row"><button class="btn pri" id="lnext">開波 · 第 ${L.round+1} 輪</button><button class="btn" onclick="go('squad')">調整陣容</button></div>`}
       else next=`<p class="hint">第 ${L.round+1} 輪你輪空。</p><button class="btn pri" id="lnext">模擬本輪</button>`;
     }else{
-      next=`<div style="font-family:var(--f-disp);font-size:30px;font-weight:800;color:var(--amber)">賽季完結 · 第 ${L.done?.pos||st.findIndex(t=>t.u)+1} 名</div><p class="hint">季尾獎金 +${L.done?.bonus||0} 金幣</p>`;
+      next=`<div style="font-family:var(--f-disp);font-size:30px;font-weight:800;color:var(--amber)">賽季完結 · 第 ${L.done?.pos||st.findIndex(t=>t.u)+1} 名</div><p class="hint">季尾獎金 +${nf(L.done?.bonus)} 金幣</p>`;
     }
     $('#view').innerHTML=`${segHTML()}<div class="row" style="justify-content:space-between;margin-bottom:12px"><div><h2>${LEAGUES[L.k].n}</h2><p class="sub" style="margin:0">${DIFF[L.diff].n}難度 · 第 ${Math.min(L.round+1,L.rounds.length)} / ${L.rounds.length} 輪</p></div>
     <span class="row"><button class="btn ${fin?'pri':''}" id="lnew">${fin?'新賽季':'放棄聯賽'}</button></span></div>
@@ -2216,7 +2217,7 @@ function cupAdvance(C){
 function cupEnd(C,stage){
   const prize=Math.round(CUPPZ[stage]*{easy:.5,pro:1,world:2}[C.diff]*(CUPS[C.k].m||1));
   S.coins+=prize;C.done={stage,prize};
-  return ` · ${stageTxt(stage)} +${prize}`;
+  return ` · ${stageTxt(stage)} +${nf(prize)}`;
 }
 function cupNext(){
   const C=S.cup;const cur=C.br[C.br.length-1];
@@ -2257,7 +2258,7 @@ function rCup(){
       next=`<div class="nextm"><div><div class="t">${esc(S.team)}</div><div class="o">總評 ${T.ovr}</div></div><div class="vs">VS</div><div><div class="t">${nm(oi)}</div><div class="o">評分 ${C.teams[oi].o+DIFF[C.diff].o}</div></div></div>
       <div class="row"><button class="btn pri" id="cnext">開波 · ${RNAME[cur.length*2]}</button><button class="btn" onclick="go('squad')">調整陣容</button></div>`;
     }else{
-      next=`<div style="font-family:var(--f-disp);font-size:30px;font-weight:800;color:var(--amber)">${stageTxt(C.done.stage)}</div><p class="hint">冠軍：${nm(C.champ)} · 獎金 +${C.done.prize} 金幣</p>`;
+      next=`<div style="font-family:var(--f-disp);font-size:30px;font-weight:800;color:var(--amber)">${stageTxt(C.done.stage)}</div><p class="hint">冠軍：${nm(C.champ)} · 獎金 +${nf(C.done.prize)} 金幣</p>`;
     }
     const tie=t=>`<div class="tie">${[[t.a,t.ga,t.pa],[t.b,t.gb,t.pb]].map(([i,g,p])=>`<div class="${t.w==null?'':t.w===i?'w':''} ${i===0?'me':''}"><span>${nm(i)}</span><b>${t.w==null?'':g+(p!=null?` (${p})`:'')}</b></div>`).join('')}</div>`;
     $('#view').innerHTML=`${segHTML()}<div class="row" style="justify-content:space-between;margin-bottom:12px"><div><h2>${CUPS[C.k].n}</h2><p class="sub" style="margin:0">${DIFF[C.diff].n}難度 · ${C.done?'已完結':RNAME[cur.length*2]}</p></div>
