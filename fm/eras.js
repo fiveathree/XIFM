@@ -18,6 +18,11 @@ FM.ERAS = {
       ['Bayern Munich', 'Roma', 'Basel', 'CFR Cluj'], ['Chelsea', 'Marseille', 'Spartak Moscow', 'Žilina'], ['Real Madrid', 'AC Milan', 'Ajax', 'Auxerre'], ['Shakhtar Donetsk', 'Arsenal', 'Braga', 'Partizan']],
     ueEng: ['Liverpool', 'Aston Villa', 'Manchester City'],
   },
+  1994: {
+    n: '1994/95', d: '亞倫舒利亞同薩頓帶布力般流浪封王；簡東拿飛踢球迷；阿積士不敗奪歐聯；AC 米蘭、祖記、拿玻里時代。（英超 22 隊、蘇超 10 隊；歐聯用 32 隊抽籤。）',
+    dir: 'fm/data/1994/', files: ERA_FILES,
+    ueEng: ['Newcastle United', 'Aston Villa', 'Blackburn Rovers'],
+  },
   1998: {
     n: '1998/99', d: '曼聯三冠王；拉素同祖記爭霸意甲；巴塞有菲高、李華度；施丹、朗拿度、巴治奧當打。（當年歐聯只有 24 隊，遊戲用 32 隊抽籤。）',
     dir: 'fm/data/1998/', files: ERA_FILES,

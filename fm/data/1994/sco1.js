@@ -1,0 +1,76 @@
+FM.addLeague({
+  id:"sco1", country:"SCO", name:"蘇超", ename:"Premier Division", tier:1,
+  clubs:[
+    {id:"ran", name:"Rangers", short:"RAN", country:"SCO", stadium:"Ibrox Stadium", cap:50444,
+     col:["#1B458F","#FFFFFF"], rep:84, bank:10,
+     p:[
+       [0,"Andy Goram","GK","SCO",1964,84],
+       [0,"David Robertson","LB","SCO",1968,76],
+       [0,"Richard Gough","CD","SCO",1962,82],
+       [0,"Basile Boli","CD","FRA",1967,78],
+       [0,"Dave McPherson","CD","SCO",1964,72],
+       [0,"Stuart McCall","CM","SCO",1964,78],
+       [0,"Ian Ferguson","CM","SCO",1967,76],
+       [0,"Alexei Mikhailichenko","CM","UKR",1963,74],
+       [0,"Ian Durrant","AM","SCO",1966,74],
+       [0,"Brian Laudrup","RM","DEN",1969,88],
+       [0,"Pieter Huistra","LM","NED",1967,74],
+       [0,"Charlie Miller","AM","SCO",1976,70],
+       [0,"Mark Hateley","ST","ENG",1961,80],
+       [0,"Gordon Durie","ST","SCO",1965,76],
+     ]},
+    {id:"cel", name:"Celtic", short:"CEL", country:"SCO", stadium:"Celtic Park", cap:60832,
+     col:["#018749","#FFFFFF"], rep:76, bank:6,
+     p:[
+       [0,"Pat Bonner","GK","IRL",1960,72],
+       [0,"Gordon Marshall","GK","SCO",1964,72],
+       [0,"Tom Boyd","LB","SCO",1965,74],
+       [0,"Tony Mowbray","CD","ENG",1963,72],
+       [0,"Paul McStay","CM","SCO",1964,80],
+       [0,"John Collins","CM","SCO",1968,78],
+       [0,"Brian O'Neil","CM","SCO",1972,72],
+       [0,"Pierre van Hooijdonk","ST","NED",1969,78],
+       [0,"Andy Walker","ST","SCO",1965,72],
+       [0,"Simon Donnelly","ST","SCO",1974,68],
+     ]},
+    {id:"mot", name:"Motherwell", short:"MOT", country:"SCO", stadium:"Fir Park", cap:13742,
+     col:["#FDB913","#8B1E3F"], rep:58, bank:1,
+     p:[
+       [0,"Tommy Coyne","ST","IRL",1962,72],
+     ]},
+    {id:"hib", name:"Hibernian", short:"HIB", country:"SCO", stadium:"Easter Road", cap:17500,
+     col:["#006F3C","#FFFFFF"], rep:60, bank:2,
+     p:[
+       [0,"Jim Leighton","GK","SCO",1958,72],
+       [0,"Keith Wright","ST","SCO",1965,68],
+       [0,"Darren Jackson","ST","SCO",1966,70],
+     ]},
+    {id:"fal", name:"Falkirk", short:"FAL", country:"SCO", stadium:"Brockville Park", cap:12000,
+     col:["#0B1A3A","#FFFFFF"], rep:50, bank:1,
+     p:[
+     ]},
+    {id:"hea", name:"Heart of Midlothian", short:"HEA", country:"SCO", stadium:"Tynecastle", cap:18008,
+     col:["#7A1C2E","#FFFFFF"], rep:60, bank:2,
+     p:[
+       [0,"John Robertson","ST","SCO",1964,72],
+     ]},
+    {id:"kil", name:"Kilmarnock", short:"KIL", country:"SCO", stadium:"Rugby Park", cap:18128,
+     col:["#004C99","#FFFFFF"], rep:52, bank:1,
+     p:[
+     ]},
+    {id:"par", name:"Partick Thistle", short:"PAR", country:"SCO", stadium:"Firhill Stadium", cap:10102,
+     col:["#FFD700","#E2001A"], rep:48, bank:1,
+     p:[
+     ]},
+    {id:"abe", name:"Aberdeen", short:"ABE", country:"SCO", stadium:"Pittodrie", cap:22199,
+     col:["#E2001A","#FFFFFF"], rep:62, bank:2,
+     p:[
+       [0,"Eoin Jess","AM","SCO",1970,74],
+       [0,"Billy Dodds","ST","SCO",1969,72],
+     ]},
+    {id:"dunu", name:"Dundee United", short:"DUU", country:"SCO", stadium:"Tannadice Park", cap:14209,
+     col:["#F58220","#000000"], rep:54, bank:1,
+     p:[
+     ]},
+  ]
+});

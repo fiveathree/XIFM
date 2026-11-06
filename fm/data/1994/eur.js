@@ -1,0 +1,118 @@
+FM.addLeague({
+  id:"eur", country:"EUR", name:"歐洲球會", ename:"European clubs", tier:5,
+  clubs:[
+    {id:"spm", name:"Spartak Moscow", short:"SPM", country:"RUS", stadium:"Luzhniki Stadium", cap:84745,
+     col:["#E2001A","#FFFFFF"], rep:78, bank:5,
+     p:[
+       [0,"Stanislav Cherchesov","GK","RUS",1963,80],
+       [0,"Viktor Onopko","CD","RUS",1969,78],
+       [0,"Yuri Nikiforov","CD","RUS",1970,76],
+       [0,"Ilya Tsymbalar","CM","UKR",1969,76],
+       [0,"Dmitri Alenichev","AM","RUS",1972,76],
+       [0,"Andrei Tikhonov","LM","RUS",1970,74],
+     ]},
+    {id:"dyk", name:"Dynamo Kyiv", short:"DYK", country:"UKR", stadium:"Lobanovskyi Dynamo Stadium", cap:16873,
+     col:["#FFFFFF","#0057B8"], rep:72, bank:3,
+     p:[
+       [0,"Oleksandr Shovkovskyi","GK","UKR",1975,70],
+       [0,"Oleh Luzhnyi","RB","UKR",1968,74],
+       [0,"Serhiy Rebrov","ST","UKR",1974,76],
+       [0,"Andriy Shevchenko","ST","UKR",1976,74],
+     ]},
+    {id:"ste", name:"Steaua București", short:"STE", country:"ROU", stadium:"Stadionul Ghencea", cap:28365,
+     col:["#C8102E","#0060A9"], rep:70, bank:2,
+     p:[
+       [0,"Bogdan Stelea","GK","ROU",1967,76],
+       [0,"Daniel Prodan","LB","ROU",1972,76],
+       [0,"Constantin Gâlcă","CM","ROU",1972,76],
+       [0,"Marius Lăcătuș","ST","ROU",1964,76],
+       [0,"Ion Vlădoiu","ST","ROU",1968,74],
+       [0,"Adrian Ilie","ST","ROU",1974,74],
+     ]},
+    {id:"haj", name:"Hajduk Split", short:"HAJ", country:"CRO", stadium:"Stadion Poljud", cap:35000,
+     col:["#FFFFFF","#0060A9"], rep:66, bank:2,
+     p:[
+     ]},
+    {id:"leg", name:"Legia Warsaw", short:"LEG", country:"POL", stadium:"Stadion Wojska Polskiego", cap:13628,
+     col:["#00A040","#FFFFFF"], rep:62, bank:2,
+     p:[
+     ]},
+    {id:"sal", name:"Casino Salzburg", short:"SAL", country:"AUT", stadium:"Lehener Stadion", cap:12000,
+     col:["#FFFFFF","#6A0DAD"], rep:66, bank:3,
+     p:[
+       [0,"Otto Konrad","GK","AUT",1964,74],
+       [0,"Wolfgang Feiersinger","CD","AUT",1965,74],
+       [0,"Adi Hütter","CM","AUT",1970,74],
+       [0,"Nikola Jurčević","AM","CRO",1966,76],
+       [0,"Heimo Pfeifenberger","ST","AUT",1966,74],
+     ]},
+    {id:"aek", name:"AEK Athens", short:"AEK", country:"GRE", stadium:"Nikos Goumas Stadium", cap:27729,
+     col:["#FFD700","#000000"], rep:66, bank:2,
+     p:[
+       [0,"Ilias Atmatsidis","GK","GRE",1969,74],
+       [0,"Toni Savevski","AM","MKD",1963,74],
+     ]},
+    {id:"pao", name:"Panathinaikos", short:"PAO", country:"GRE", stadium:"Apostolos Nikolaidis Stadium", cap:16620,
+     col:["#007A33","#FFFFFF"], rep:70, bank:3,
+     p:[
+       [0,"Józef Wandzik","GK","POL",1963,76],
+       [0,"Krzysztof Warzycha","ST","POL",1964,80],
+       [0,"Dimitris Saravakos","ST","GRE",1961,76],
+     ]},
+    {id:"oly", name:"Olympiacos", short:"OLY", country:"GRE", stadium:"Georgios Karaiskakis Stadium", cap:33000,
+     col:["#E2001A","#FFFFFF"], rep:66, bank:3,
+     p:[
+       [0,"Predrag Đorđević","RM","YUG",1972,74],
+     ]},
+    {id:"ifk", name:"IFK Göteborg", short:"IFK", country:"SWE", stadium:"Ullevi", cap:43000,
+     col:["#0060A9","#FFFFFF"], rep:66, bank:2,
+     p:[
+       [0,"Thomas Ravelli","GK","SWE",1959,76],
+       [0,"Pontus Kåmark","CD","SWE",1969,74],
+       [0,"Jesper Blomqvist","LM","SWE",1974,76],
+     ]},
+    {id:"ros", name:"Rosenborg", short:"ROS", country:"NOR", stadium:"Lerkendal Stadion", cap:21166,
+     col:["#FFFFFF","#000000"], rep:64, bank:2,
+     p:[
+       [0,"Bent Skammelsrud","CM","NOR",1966,74],
+       [0,"Roar Strand","CM","NOR",1970,72],
+       [0,"Harald Brattbakk","ST","NOR",1971,74],
+     ]},
+    {id:"bif", name:"Brøndby", short:"BIF", country:"DEN", stadium:"Brøndby Stadium", cap:29000,
+     col:["#FFD700","#0060A9"], rep:62, bank:2,
+     p:[
+       [0,"Mogens Krogh","GK","DEN",1963,74],
+       [0,"Kim Vilfort","CM","DEN",1962,74],
+     ]},
+    {id:"gcz", name:"Grasshoppers", short:"GCZ", country:"SUI", stadium:"Hardturm", cap:17666,
+     col:["#0060A9","#FFFFFF"], rep:64, bank:2,
+     p:[
+       [0,"Murat Yakin","CD","SUI",1974,74],
+     ]},
+    {id:"spa", name:"Sparta Prague", short:"SPA", country:"CZE", stadium:"Stadion Letná", cap:20854,
+     col:["#A6192E","#FFFFFF"], rep:66, bank:2,
+     p:[
+       [0,"Petr Kouba","GK","CZE",1969,76],
+       [0,"Pavel Nedvěd","LM","CZE",1972,76],
+       [0,"Horst Siegl","ST","CZE",1969,74],
+     ]},
+    {id:"lev", name:"Levski Sofia", short:"LEV", country:"BUL", stadium:"Georgi Asparuhov Stadium", cap:29200,
+     col:["#0060A9","#FFFFFF"], rep:58, bank:1,
+     p:[
+     ]},
+    {id:"csk", name:"CSKA Moscow", short:"CSK", country:"RUS", stadium:"Dynamo Stadium", cap:36540,
+     col:["#C8102E","#0060A9"], rep:60, bank:2,
+     p:[
+     ]},
+    {id:"mha", name:"Maccabi Haifa", short:"MHA", country:"ISR", stadium:"Kiryat Eliezer Stadium", cap:14002,
+     col:["#00A040","#FFFFFF"], rep:58, bank:2,
+     p:[
+       [0,"Haim Revivo","AM","ISR",1972,74],
+     ]},
+    {id:"fak", name:"Austria Wien", short:"FAK", country:"AUT", stadium:"Franz Horr Stadium", cap:11800,
+     col:["#6A0DAD","#FFFFFF"], rep:60, bank:2,
+     p:[
+       [0,"Andreas Ogris","ST","AUT",1964,72],
+     ]},
+  ]
+});
