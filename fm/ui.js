@@ -290,7 +290,8 @@ function searchRows() {
 }
 SCREENS.search = () => {
   const f = UI.sr, [n, rows] = searchRows();
-  main(`${hdr('球員搜尋', `<span class="mute" id="srn">${n.toLocaleString()} 人${n > 200 ? '（顯示頭 200）' : ''}</span>`)}
+  const mc = G.clubs[G.mgr.cid];
+  main(`${hdr('球員搜尋', `${mc ? `<span class="tag t-ls" style="margin-right:8px">資金 ${G.inf ? '∞' : money(mc.cash)}</span>` : ''}<span class="mute" id="srn">${n.toLocaleString()} 人${n > 200 ? '（顯示頭 200）' : ''}</span>`)}
   <div class="row"><input class="inp" data-in="sr" data-a="q" placeholder="姓名或球會" value="${esc(f.q)}" style="flex:1 1 160px">
     <select class="inp" data-ch="sr" data-a="pos" aria-label="位置">${opt('', '全部位置', f.pos)}${[['G', '門將'], ['D', '後衛'], ['M', '中場'], ['A', '前鋒']].map(([v, t]) => opt(v, t, f.pos)).join('')}${Object.entries(POSN).map(([v, t]) => opt(v, v + ' ' + t, f.pos)).join('')}</select>
     <select class="inp" data-ch="sr" data-a="lg" aria-label="聯賽">${opt('', '全部聯賽', f.lg)}${PLG().map(l => opt(l, LG[l].name, f.lg)).join('')}${opt('eur', '歐洲球會', f.lg)}${opt('free', '自由球員', f.lg)}</select>
