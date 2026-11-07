@@ -842,15 +842,22 @@ async function untilMatch() {
   if (BUSY) return;
   if (userFxToday()) return openMatch();
   BUSY = true; MT = null; toast('推進緊日子…');
-  const o0 = G.off.length, j0 = G.jobs.length, cid0 = G.mgr.cid;
+  // runs straight to match day; only a job offer or losing your job stops it early.
+  // Transfer offers no longer stop it: they wait in 轉會市場 and the toast says how many came in.
+  const seen = new Set(G.off.map(o => o.id)), j0 = G.jobs.length, cid0 = G.mgr.cid, m0 = G.mail.filter(m => !m.rd).length;
+  let got = 0;
   try {
-    for (let k = 0; k < 60; k++) {
+    for (let k = 0; k < 150; k++) {
       nextDay();
-      if (userFxToday() || G.off.length > o0 || G.jobs.length > j0 || G.mgr.cid !== cid0) break;
+      for (const o of G.off) if (!seen.has(o.id)) { seen.add(o.id); got++; }
+      if (userFxToday() || G.jobs.length > j0 || G.mgr.cid !== cid0) break;
       if (k % 4 === 3) await new Promise(r => setTimeout(r, 0));
     }
   } finally { BUSY = false; }
+  const fx = userFxToday(), nm = G.mail.filter(m => !m.rd).length - m0, live = G.off.length;
   afterAdvance();
+  if (!fx) toast(`📅 ${fdate(G.day)}${nm > 0 ? ` · ${nm} 封新郵件` : ''}`);
+  else if (got) setTimeout(() => toast(`途中收到 ${got} 個轉會報價${live ? `，仲有 ${live} 個未覆（喺「轉會市場」頁）` : ''}`), 1200);
 }
 
 /* =====================================================================
