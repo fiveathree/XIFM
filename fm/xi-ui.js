@@ -7,7 +7,7 @@
    ===================================================================== */
 const XPITCH = `<svg viewBox="0 0 68 100" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="rgba(255,255,255,.55)" stroke-width=".35"><rect x="2" y="2" width="64" height="96"/><line x1="2" y1="50" x2="66" y2="50"/><circle cx="34" cy="50" r="9.15"/><rect x="13.8" y="2" width="40.4" height="16.5"/><rect x="24.8" y="2" width="18.4" height="5.5"/><rect x="13.8" y="81.5" width="40.4" height="16.5"/><rect x="24.8" y="92.5" width="18.4" height="5.5"/><path d="M26.7 18.5 A9.15 9.15 0 0 0 41.3 18.5"/><path d="M26.7 81.5 A9.15 9.15 0 0 1 41.3 81.5"/></g></svg>`;
 function cardHTML(pid, o = {}) {
-  const d = pd(pid), p = ps(pid), g = GRADE(d.sk), lv = o.dim ? 0 : clvOf(pid);
+  const d = pd(pid), p = ps(pid), g = gradeOf(pid), lv = o.dim ? 0 : clvOf(pid);
   const where = (p.leg ? '傳奇 · ' : '') + (d.c === 'free' ? '自由身' : d.c === 'ret' ? '退休' : clubShort(d.c));
   return `<div class="card g-${g} ${o.dim ? 'dim' : ''} ${o.cls || ''}" ${o.open ? `data-pl="${pid}"` : ''} title="${esc(p.name)} · ${esc(clubName(d.c))}">
   <div class="c-top"><span class="c-r">${o.dim ? d.sk : cardR(pid)}</span><span class="c-g">${g}</span></div>
@@ -135,7 +135,7 @@ SCREENS.tactics = () => {
 // card for a legend not pulled yet (or any legend row): same look, data from fm/legends.js
 function legCardHTML(id, o = {}) {
   if (G.pl[id]) return cardHTML(id, o);
-  const L = legendCard(id), g = GRADE(L.sk);
+  const L = legendCard(id), g = gradeP(L.sk, L.pos);
   return `<div class="card g-${g} ${o.dim ? 'dim' : ''}" title="${esc(L.name)} · ${esc(L.meta)}"><div class="c-top"><span class="c-r">${L.sk}</span><span class="c-g">${g}</span></div><div class="c-pos">${L.pos}</div><div class="c-nat">${L.nat}</div><div class="c-name">${esc(L.sn)}</div><div class="c-meta">傳奇 · ${esc(L.meta)}</div></div>`;
 }
 UI.gp = UI.gp || { leg: false, nat: '', line: '', lg: '', young: false };
@@ -149,7 +149,7 @@ SCREENS.gacha = () => {
   const nats = Object.entries(natCnt).filter(([, k]) => k >= (o.leg ? 3 : 10)).sort((a, b) => b[1] - a[1]);
   const rate = (g, p) => (g === 'C' ? p - sc * 1.5 : g === 'SR' ? p + sc * 1.5 : p);
   const cost = k => Math.round(pullCost(k) * mult / 1e3) * 1e3;
-  main(`${hdr('球探抽卡', `<span class="mute">資金 ${G.inf ? '∞' : money(c.cash)} · 已抽 ${G.stats.pulls} 次</span>${info('當代球員：呢個年代全世界嘅球員，抽中其他球會嘅即刻免轉會費加盟。傳奇球星：傳奇十一人入面嘅歷代球星（每人用佢最高峰嗰張卡，27 歲加盟），價錢 3 倍；呢個年代本身已經有嘅球員唔會出現。揀咗國籍、位置、聯賽或者新星（21 歲或以下）就係指定卡池，價錢 1.5 倍；卡池冇某個等級嘅卡，就會變成低一級。抽中自己球員係重複卡，可以喺卡冊幫佢升級。十連抽保底一張 SR 或以上。')}`)}
+  main(`${hdr('球探抽卡', `<span class="mute">資金 ${G.inf ? '∞' : money(c.cash)} · 已抽 ${G.stats.pulls} 次</span>${info('當代球員：呢個年代全世界嘅球員，抽中其他球會嘅即刻免轉會費加盟。傳奇球星：傳奇十一人入面嘅歷代球星（每人用佢最高峰嗰張卡，27 歲加盟），價錢 3 倍；呢個年代本身已經有嘅球員唔會出現。揀咗國籍、位置、聯賽或者新星（21 歲或以下）就係指定卡池，價錢 1.5 倍；卡池冇某個等級嘅卡，就會變成低一級。抽中自己球員係重複卡，可以喺卡冊幫佢升級。十連抽保底一張 SR 或以上。卡牌等級按位置計：門將同後衛能力 +2、防守中場同中場 +1 先至分等級，所以守位都有 UR；傳奇卡池仲專登加咗一批門將、後衛、中場 UR（例如雅辛、保方、巴雷斯、簡拿華路、沙維、恩尼斯達、馬圖斯）。')}`)}
   <div class="cols" style="grid-template-rows:auto auto auto minmax(0,1fr);overflow:auto">
     <div class="row">${chips([['now', '當代球員'], ['leg', '傳奇球星']], o.leg ? 'leg' : 'now', 'gpsrc')}
       <select class="inp" data-ch="gpnat" aria-label="國籍"><option value="">全部國籍</option>${nats.map(([k, m]) => opt(k, `${natName(k)}（${m}）`, o.nat)).join('')}</select>
@@ -190,12 +190,13 @@ SCREENS.album = () => {
   const A = UI.al, leg = A.src === 'leg';
   const all = leg ? legendIds() : Object.keys(G.pl).filter(p => pd(p).c !== 'ret' && !ps(p).yth && !ps(p).leg);
   const skA = p => G.pl[p] ? (leg ? cardR(p) : cardR(p)) : legendRow(p)[3], skB = p => G.pl[p] ? pd(p).sk : legendRow(p)[3];
+  const gradeA = p => G.pl[p] ? gradeOf(p) : gradeP(legendRow(p)[3], legendRow(p)[1]);
   const posA = p => G.pl[p] ? ps(p).pos : legendRow(p)[1], txtA = p => G.pl[p] ? ps(p).name + ' ' + clubName(pd(p).c) : legendRow(p)[0] + ' ' + legendRow(p)[5];
   const own = all.filter(owns), grades = ['UR', 'SSR', 'SR', 'R', 'C'];
-  const byG = grades.map(g => [g, own.filter(p => GRADE(skB(p)) === g).length, all.filter(p => GRADE(skB(p)) === g).length]);
+  const byG = grades.map(g => [g, own.filter(p => gradeA(p) === g).length, all.filter(p => gradeA(p) === g).length]);
   const spare = own.reduce((t, p) => t + owns(p) - 1, 0), spareV = own.reduce((t, p) => t + (owns(p) - 1) * (G.pl[p] ? dupValue(p) : 0), 0);
   const q = A.q.toLowerCase();
-  const list = (A.all ? all : own).filter(p => (A.g === 'ALL' || GRADE(skB(p)) === A.g) && (A.l === 'ALL' || LINE[posA(p)] === A.l) && (!q || txtA(p).toLowerCase().includes(q))).sort((a, b) => skA(b) - skA(a));
+  const list = (A.all ? all : own).filter(p => (A.g === 'ALL' || gradeA(p) === A.g) && (A.l === 'ALL' || LINE[posA(p)] === A.l) && (!q || txtA(p).toLowerCase().includes(q))).sort((a, b) => skA(b) - skA(a));
   main(`${hdr('卡冊', info('收集咗嘅卡：球探抽過、或者曾經喺你球隊嘅球員。撳「顯示未收集」睇晒呢個年代所有球員（灰色）。撳卡睇資料：重複卡可以幫自己球員升級（每級 +1 評分），或者賣返做資金。'))}
   <div class="cols" style="grid-template-rows:auto auto auto minmax(0,1fr)">
     <div class="row">${chips([['now', '當代球員'], ['leg', '傳奇球星']], leg ? 'leg' : 'now', 'alsrc')}</div>

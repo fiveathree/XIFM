@@ -16,8 +16,8 @@ function cardsInit() {   // old saves: the squad counts as collected
   if (G.mgr.cid) for (const p of roster(G.mgr.cid)) { if (!G.cards[p]) G.cards[p] = 1; if (typeof skTrack === 'function') skTrack(p); }
 }
 const DUPF = { C: .1, R: .3, SR: 1.2, SSR: 5, UR: 30 }, UPF = { C: .2, R: .4, SR: 1, SSR: 3, UR: 10 };
-const dupValue = pid => Math.round(pullCost(1) * DUPF[GRADE(pd(pid).sk)] / 1e3) * 1e3;
-function upInfo(pid) { const l = clvOf(pid), need = l + 1; return { l, need, spare: owns(pid) - 1, cost: Math.round(pullCost(1) * UPF[GRADE(pd(pid).sk)] * need / 1e3) * 1e3 }; }
+const dupValue = pid => Math.round(pullCost(1) * DUPF[gradeOf(pid)] / 1e3) * 1e3;
+function upInfo(pid) { const l = clvOf(pid), need = l + 1; return { l, need, spare: owns(pid) - 1, cost: Math.round(pullCost(1) * UPF[gradeOf(pid)] * need / 1e3) * 1e3 }; }
 function cardUpgrade(pid) {
   const u = upInfo(pid), me = G.mgr.cid;
   if (u.l >= CLVMAX) return '已經升到最高級';

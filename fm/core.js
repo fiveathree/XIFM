@@ -162,6 +162,10 @@ function money(x) {
   return s + (a >= 1e6 ? '£' + (a / 1e6).toFixed(a >= 1e7 ? 1 : 2) + 'm' : a >= 1e3 ? '£' + Math.round(a / 1e3) + 'k' : '£' + Math.round(a));
 }
 const GRADE = sk => sk >= 90 ? 'UR' : sk >= 85 ? 'SSR' : sk >= 77 ? 'SR' : sk >= 68 ? 'R' : 'C';
+// card grade by position: keepers and defenders rate lower on the same scale, so they get +2, central midfielders +1
+const GBON = { GK: 2, CD: 2, RB: 2, LB: 2, RWB: 2, LWB: 2, DM: 1, CM: 1 };
+const gradeP = (sk, pos) => GRADE(sk + (GBON[pos] || 0));
+const gradeOf = pid => gradeP(pd(pid).sk, ps(pid).pos);
 function newStats() { return { ap: 0, gl: 0, as: 0, yc: 0, rc: 0, mom: 0, rt: 0 }; }
 const form = pid => { const f = pd(pid).fm; return f.length ? sum(f) / f.length : 0; };
 
@@ -730,11 +734,11 @@ const pullCost = n => { const c = PULLCOST[G.clubs[G.mgr.cid].lg] || 2e5; return
 // returns grade → candidate ids; legend ids are 'L<index>' (made into players the first time they are pulled, fm/xi.js)
 function gachaPool(o = {}) {
   const pool = { UR: [], SSR: [], SR: [], R: [], C: [] }, ok = (pos, nat) => (!o.nat || nat === o.nat) && (!o.line || lineOf(pos) === o.line);
-  if (o.leg) { for (const id of legendIds()) { const L = legendRow(id), d = G.pl[id]; if (d && d.c === 'ret') continue; if (!ok(L[1], L[2])) continue; pool[GRADE(d ? d.sk : L[3])].push(id); } return pool; }
+  if (o.leg) { for (const id of legendIds()) { const L = legendRow(id), d = G.pl[id]; if (d && d.c === 'ret') continue; if (!ok(L[1], L[2])) continue; pool[gradeP(d ? d.sk : L[3], L[1])].push(id); } return pool; }
   for (const pid in G.pl) {
     const d = G.pl[pid]; if (d.c === 'ret' || ps(pid).yth || ps(pid).leg) continue;
     if (!ok(ps(pid).pos, ps(pid).nat) || (o.lg && G.clubs[d.c]?.lg !== o.lg) || (o.young && ageOf(pid) > 21)) continue;
-    pool[GRADE(d.sk)].push(pid);
+    pool[gradeOf(pid)].push(pid);
   }
   return pool;
 }
