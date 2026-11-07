@@ -15,7 +15,7 @@ function cardHTML(pid, o = {}) {
   <div class="c-name">${esc(p.sn)}</div><div class="c-meta">${ageOf(pid)}歲 · ${esc(where)}</div>${o.count > 1 ? `<span class="cnt">×${o.count}</span>` : ''}${o.badge || ''}</div>`;
 }
 // formation y (0 = opponent goal, 100 = own goal) → place on the board, leaving room for the cards at both ends
-const YB = y => 7 + y * .84, YU = t => (t - 7) / .84;
+const YB = y => 3.5 + y * .92, YU = t => (t - 3.5) / .92;
 const stCol = v => v >= 85 ? 'var(--win)' : v >= 65 ? 'var(--amber)' : 'var(--loss)';
 const sbarX = v => `<i class="sbar"><b style="width:${Math.round(v)}%;background:${stCol(v)}"></b></i>`;
 
@@ -34,15 +34,15 @@ function slotX(cid, xi, form, i, ch, cap, drag) {
   const pid = xi[i], [pos, x, y] = FORMS[form][i];
   const f = pid ? fitP(pid, pos) : 1, eff = pid ? Math.round(cardR(pid) * f) + (ch[pid] || 0) : 0, e = f >= 1 ? 'e1' : f >= .9 ? 'e2' : 'e3';
   const out = pid && !avail(pid) ? (pd(pid).inj ? '傷' : '停賽') : '';
-  return `<div class="slot ${drag && UI.sel === 'x' + i ? 'selp' : ''}" ${drag ? `data-i="${i}"` : ''} style="left:${x}%;top:${YB(y)}%">
-    ${pid ? `<div style="position:relative">${cardHTML(pid, { cls: out ? 'inj' : '' })}${ch[pid] ? `<span class="chem" title="默契 +${ch[pid]}（同國籍隊友）">+${ch[pid]}</span>` : ''}${pid === cap ? '<span class="capx" title="隊長">C</span>' : ''}</div>` : `<div class="empty"><span><b>+</b><br>${pos}</span></div>`}
+  return `<div class="slot ${drag && UI.sel === 'x' + i ? 'selp' : ''}" ${drag ? `data-i="${i}"` : ''} style="left:${x}%;top:${YB(y)}%${y >= 86 ? ';transform:translate(-50%,-36%)' : ''}">
+    ${pid ? `<div style="position:relative">${cardHTML(pid, { cls: out ? 'inj' : '' })}${ch[pid] ? `<span class="chem" title="默契 +${ch[pid]}（同國籍隊友）">+${ch[pid]}</span>` : ''}${pid === cap ? '<span class="capx" title="隊長">C</span>' : ''}<span class="snm">${esc(ps(pid).sn)}</span></div>` : `<div class="empty"><span><b>+</b><br>${pos}</span></div>`}
     <span class="stag">${pos}${pid ? (out ? ` <span class="e3">${out}</span>` : ` <span class="${e}" title="${f < 1 ? `踢${esc(POSN[pos])}：本位 ${cardR(pid)} × ${Math.round(f * 100)}%` : '本位'}${ch[pid] ? ` + 默契 ${ch[pid]}` : ''}">${eff}</span>`) : ''}</span>${pid && !out && pd(pid).cond < 100 ? sbarX(pd(pid).cond) : ''}</div>`;
 }
 function benchX(c, i) {
   const pid = c.sb[i], sel = UI.sel === 'b' + i ? 'selp' : '';
   if (!pid) return `<button class="bslot ${sel}" data-k="b${i}" aria-label="後備 ${i + 1}"><div class="empty"><b>+</b></div><span class="stag">SUB</span></button>`;
   const out = !avail(pid);
-  return `<button class="bslot ${sel}" data-k="b${i}">${cardHTML(pid, { cls: out ? 'inj' : '' })}<span class="stag">${out ? `<span class="e3">${pd(pid).inj ? '傷' : '停賽'}</span>` : `${ps(pid).pos} ${cardR(pid)}`}</span>${out ? '' : sbarX(pd(pid).cond)}</button>`;
+  return `<button class="bslot ${sel}" data-k="b${i}"><div style="position:relative">${cardHTML(pid, { cls: out ? 'inj' : '' })}<span class="snm">${esc(ps(pid).sn)}</span></div><span class="stag">${out ? `<span class="e3">${pd(pid).inj ? '傷' : '停賽'}</span>` : `${ps(pid).pos} ${cardR(pid)}`}</span>${out ? '' : sbarX(pd(pid).cond)}</button>`;
 }
 function pitemX(pid, k) {
   const d = pd(pid), p = ps(pid);

@@ -508,7 +508,7 @@ function transfer(pid, to, fee, wage, years, paid = fee) {
   if (G.clubs[to]) fin(to, 'tout', -paid);
   movePlayer(pid, to);
   if (isUser(to)) { G.cards = G.cards || {}; if (!G.cards[pid]) G.cards[pid] = 1; }   // your players go into the album (fm/xi.js)
-  if (isUser(to)) G.clubs[to].coh = clamp((G.clubs[to].coh ?? 60) - 3, 0, 100);   // a new face: cohesion dips (fm/life.js)
+  if (isUser(to)) { const k = G.clubs[to].coh ?? 60; G.clubs[to].coh = Math.max(Math.min(k, 45), k - 3); }   // a new face: cohesion dips, but signings alone never push it below 45 (fm/life.js)
   d.w = wage || wageFor(d.sk, G.clubs[to]?.lg || 'eng3');
   d.ct = G.season + (years || ri(2, 4));
   d.no = squadNo(to);

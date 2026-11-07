@@ -31,8 +31,11 @@
 .xpitch{container-type:size;position:relative;height:100%;aspect-ratio:68/100;max-width:100%;border-radius:12px;overflow:hidden;background:repeating-linear-gradient(180deg,var(--turf) 0 10%,var(--turf2) 10% 20%);box-shadow:0 0 0 2px #0e3c22 inset,0 10px 30px rgba(0,0,0,.4);touch-action:none;flex:1;min-height:0}
 .xpitch svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 .slot{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:2px;touch-action:none;cursor:grab;z-index:2}
-.slot .card,.slot .empty,.slot .sbar{font-size:1.4cqh}
-.slot .stag{font-size:max(10px,1.5cqh)}
+.slot .card,.slot .empty,.slot .sbar{font-size:1.2cqh}
+.slot .stag{font-size:max(11px,1.6cqh)}
+/* readable name under each card (the name printed on a small card is too small) */
+.snm{position:absolute;left:50%;bottom:.15em;transform:translateX(-50%);z-index:2;font:800 max(13px,1.9cqh)/1.25 var(--f-disp);letter-spacing:.02em;color:#fff;background:rgba(0,10,40,.85);padding:0 6px;border-radius:4px;white-space:nowrap;max-width:11em;overflow:hidden;text-overflow:ellipsis;pointer-events:none}
+.bslot .snm{font-size:13px;max-width:155%}
 .slot.dragging,.bslot.dragging{opacity:.35}
 .slot.dropon .card,.slot.dropon .empty,.slot.selp .card,.slot.selp .empty,.bslot.dropon .card,.bslot.dropon .empty,.bslot.selp .card,.bslot.selp .empty{outline:3px solid var(--sel);outline-offset:2px}
 .empty{width:7.2em;aspect-ratio:5/7;border-radius:.7em;border:2px dashed rgba(255,255,255,.55);display:grid;place-items:center;font-family:var(--f-disp);font-weight:800;color:rgba(255,255,255,.85);background:rgba(0,0,0,.15)}
@@ -44,7 +47,7 @@
 .sbar{display:block;width:7.2em;height:3px;border-radius:2px;background:rgba(0,0,0,.45);overflow:hidden}.sbar b{display:block;height:100%}
 .brow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;width:100%}
 .bslot{background:none;border:0;padding:0;display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0;cursor:grab;touch-action:none;color:inherit}
-.bslot .card,.bslot .empty{font-size:7px}.bslot .stag{font-size:11px;max-width:100%;overflow:hidden}
+.bslot .card,.bslot .empty{font-size:8.5px}.bslot .stag{font-size:11px;max-width:100%;overflow:hidden}
 .xstats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
 .xstat{background:var(--night2);padding:6px;text-align:center}
 .xstat .v{font-family:var(--f-disp);font-weight:800;font-size:26px;line-height:1;font-variant-numeric:tabular-nums}
