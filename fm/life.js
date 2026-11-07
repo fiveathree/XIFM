@@ -327,6 +327,7 @@ function injuryToll(pid, days, physio) {
 // end of season: playing time decides how much a young player (23 or under next season) grows
 function playBonus(pid, a, share) {
   if (a > 23 || pd(pid).c === 'free') return 0;
-  if (pd(pid).yt) share = Math.max(share, .4);   // the youth team plays its own games: counts as regular football
+  const yap = (G.clubs[pd(pid).c]?.yap || {})[pid] || 0;   // U18 / U21 / youth cup games count as football too
+  if (pd(pid).yt || yap >= 15) share = Math.max(share, .4); else if (yap >= 8) share = Math.max(share, .2);
   return share >= .6 ? 2 : share >= .35 ? 1 : share < .1 ? -1 : 0;
 }

@@ -54,7 +54,8 @@ SCREENS.squad = () => {
   const cid = myCid(), c = myClub(), T = teamEval(cid), cap = taker(T.S, 'cap');
   const inXI = new Set(c.xi.filter(Boolean)), inSB = new Set(c.sb);
   const yts = roster(cid).filter(inYouth).length;
-  const res = roster(cid).filter(p => !inXI.has(p) && !inSB.has(p) && !inYouth(p)).sort((a, b) => POSORD.indexOf(ps(a).pos) - POSORD.indexOf(ps(b).pos) || cardR(b) - cardR(a));
+  const sqf = UI.sqf || '';
+  const res = roster(cid).filter(p => !inXI.has(p) && !inSB.has(p) && !inYouth(p) && (!sqf || (sqf.length === 1 ? lineOf(ps(p).pos) === sqf : ps(p).pos === sqf || pos2P(p).includes(sqf)))).sort((a, b) => POSORD.indexOf(ps(a).pos) - POSORD.indexOf(ps(b).pos) || cardR(b) - cardR(a));
   const probs = lineupProblems(cid), plans = c.plans || [], cur = c.plan ?? 0, tx = xiTac(T.S);
   main(`${hdr('陣容', `${[0, 1, 2].map(i => `<button class="chip" data-act="plan" data-a="${i}" aria-pressed="${cur === i}">方案 ${'ABC'[i]}${plans[i] ? '' : '（空）'}</button>`).join('')}<button class="btn sm" data-act="plansave">存入方案 ${'ABC'[cur]}</button><button class="btn" data-act="autopick">自動排陣</button>${info('拖住張卡：放喺另一張卡上面＝兩個人對調；放喺草地空位＝將嗰個位置移過去（位置跟住變，變自訂陣式）；拖去後備或者右邊名單都得。唔想拖：撳一張卡揀咗佢，再撳另一張對調。卡上面大數字係球員評分（包括卡牌等級），下面標籤係佢喺嗰個位置嘅實際能力：綠色＝本位，黃色＝相近位置扣少少，紅色＝扣得多。黃色圓點係默契加成：正選入面同國籍隊友越多，加 1–2 分。白色 C 係隊長。撳球員個名睇詳細資料。')}${probs.length ? `<span class="bad">${esc(probs.slice(0, 2).join('；'))}</span>` : ''}`)}
   <div class="xsq">
@@ -66,7 +67,7 @@ SCREENS.squad = () => {
       ${pan(`球隊實力 <span class="r">${fname(c.form)}</span>`, `<div class="xstats">${[['總評', T.ovr], ['進攻', T.att], ['中場', T.mid], ['防守', T.def]].map(([k, v]) => `<div class="xstat"><div class="v">${v}</div><div class="k">${k}</div><div class="bar"><i style="width:${clamp((v - 40) / 55 * 100, 0, 100)}%"></i></div></div>`).join('')}</div>
         <p class="note" style="margin:6px 0 0">默契加成 <b style="color:var(--amber)">+${T.chem}</b> · 戰術風格 <b>${c.tac && TACP[c.tac] ? TACP[c.tac].n : '未揀'}</b>${tx && tx.fit ? `（${tx.fit}）` : ''} · 球隊默契 ${Math.round(cohOf(c))}</p>`)}
       ${pan('陣式', `<div class="row">${FLIST().map(f => `<button class="chip" data-act="pform" data-a="${f}" aria-pressed="${c.form === f}">${f}</button>`).join('')}${c.cust ? `<button class="chip" data-act="pform" data-a="${CUSTK(cid)}" aria-pressed="${isCust(c.form)}">自訂</button>` : ''}</div>`)}
-      ${pan(`預備組 <span class="r">${res.length} 人 · 全隊 ${roster(cid).length} 人${yts ? ` · 青年軍 ${yts} 人（喺「合約」升降）` : ''}</span>`, `<div class="plist">${res.map(p => pitemX(p, 'r' + p)).join('') || '<p class="note">冇預備球員。</p>'}</div>`, { st: 'flex:1;min-height:180px' })}
+      ${pan(`預備組 <select class="inp" data-ch="sqf" aria-label="篩選位置" style="font-size:12px;padding:2px 4px">${[['', '全部位置'], ['G', '門將'], ['D', '後衛'], ['M', '中場'], ['A', '前鋒'], ...Object.keys(POSN).map(k => [k, `${k} ${POSN[k]}（包括次位置）`])].map(([v, t]) => opt(v, t, sqf)).join('')}</select> <span class="r">${res.length} 人 · 全隊 ${roster(cid).length} 人${yts ? ` · 青年軍 ${yts} 人（喺「合約」升降）` : ''}</span>`, `<div class="plist">${res.map(p => pitemX(p, 'r' + p)).join('') || '<p class="note">冇預備球員。</p>'}</div>`, { st: 'flex:1;min-height:180px' })}
     </div>
   </div>`);
 };
@@ -285,25 +286,71 @@ Object.assign(ACT, {
 });
 
 /* ---------- 青年軍 (youth academy screen) ---------- */
+UI.yt = UI.yt || { tab: 'list', sel: null };
+function yTable(Y, t, me) {
+  const st = Object.entries(Y[t].tab).map(([c, r]) => ({ c, p: r[0], w: r[1], d: r[2], l: r[3], f: r[4], a: r[5], pts: r[1] * 3 + r[2] })).sort((a, b) => b.pts - a.pts || (b.f - b.a) - (a.f - a.a) || b.f - a.f);
+  return `<table><thead><tr><th class="n">#</th><th>球會</th><th class="n">賽</th><th class="n">勝</th><th class="n">和</th><th class="n">負</th><th class="n">得失</th><th class="n">分</th></tr></thead><tbody>${st.map((x, k) => `<tr class="${x.c === me ? 'me' : ''}"><td class="n">${k + 1}</td><td class="nm">${esc(clubName(x.c))} ${t.toUpperCase()}</td><td class="n">${x.p}</td><td class="n">${x.w}</td><td class="n">${x.d}</td><td class="n">${x.l}</td><td class="n">${x.f - x.a > 0 ? '+' : ''}${x.f - x.a}</td><td class="n">${x.pts}</td></tr>`).join('')}</tbody></table>`;
+}
+const yLog = (log, suf) => log.length ? `<div class="res">${log.map(([d, o, gf, ga, x]) => `<div>${wdl(gf > ga ? 'W' : gf < ga ? 'L' : 'D')}<span class="mute num">${fdate(d, 's')}</span><span>${typeof x === 'string' ? esc(x) + ' · ' : x === true ? '主 · ' : x === false ? '客 · ' : ''}對 ${esc(clubShort(o))} ${suf}</span><b class="num" style="margin-left:auto">${gf} - ${ga}</b></div>`).join('')}</div>` : '<p class="note">未有比賽。</p>';
+function yTeamTab(t) {
+  const c = myClub(), me = myCid(), L = yLine(c, t), slots = FORMS[L.form] || FORMS['4-4-2'], Y = c.yc && c.yc.s === G.season ? c.yc : yNew(c, me);
+  const el = yEligible(me, t), inXI = new Set(L.xi.filter(Boolean)), sel = UI.yt.sel, str = Math.round(yStrength(me, t));
+  const slot = k => {
+    const p = L.xi[k], [pos, x, y] = slots[k], f = p ? fitP(p, pos) : 1, e = f >= 1 ? 'e1' : f >= .9 ? 'e2' : 'e3';
+    return `<div class="slot ${sel === 's' + k ? 'selp' : ''}" data-act="ysl" data-a="s${k}" style="left:${x}%;top:${YB(y)}%${y >= 86 ? ';transform:translate(-50%,-36%)' : ''}">${p ? `<div style="position:relative">${cardHTML(p)}<span class="snm">${esc(ps(p).sn)}</span></div>` : `<div class="empty" title="冇指定球員：由青訓營其他學員頂上（能力約 ${Math.round(yFill(c))}）"><span>青訓生<br>${pos}</span></div>`}<span class="stag">${pos} <span class="${p ? e : 'e2'}">${p ? Math.round(pd(p).sk * f) : Math.round(yFill(c))}</span></span></div>`;
+  };
+  const item = p => `<div class="pitem ${sel === p ? 'selp' : ''}" data-act="ysl" data-a="${p}" style="cursor:pointer">${cardHTML(p)}<div style="min-width:0"><div class="nm">${esc(ps(p).sn)} ${inXI.has(p) ? '<span class="tag t-ls">正選</span>' : ''} ${pd(p).yt ? '' : '<span class="tag t-ex">一隊</span>'}</div><div class="mt">${POSN[ps(p).pos]} · ${ageOf(p)} 歲${potSeen(p) ? ` · 潛力 ${'★'.repeat(potStars(potSeen(p)))}` : ''}</div></div><div class="ef">${pd(p).sk}<small>青年賽 ${(c.yap || {})[p] || 0} 場</small></div></div>`;
+  return `<div class="xsq">
+    <div class="xl"><div class="xpitch">${XPITCH}${slots.map((_, k) => slot(k)).join('')}</div></div>
+    <div class="xr">
+      ${pan(`${YT[t].n} · 陣容 <span class="r">實力 ${str}</span>`, `<div class="row">${FLIST().map(f => `<button class="chip" data-act="yform" data-a="${t}:${f}" aria-pressed="${L.form === f}">${f}</button>`).join('')}</div>
+        <div class="row" style="margin-top:6px"><button class="btn" data-act="yauto" data-a="${t}">自動排陣</button><span class="note">${YT[t].age} 歲或以下嘅球員（青年軍同一隊都得）先可以上陣。撳球場上一個位，再撳下面球員放入去；撳兩個位會對調。</span></div>`)}
+      ${pan(`可以上陣（${el.length} 人）`, `<div class="plist">${el.sort((a, b) => POSORD.indexOf(ps(a).pos) - POSORD.indexOf(ps(b).pos) || pd(b).sk - pd(a).sk).map(item).join('') || '<p class="note">冇合資格球員。</p>'}</div>`)}
+      ${pan(`${YT[t].n} 積分榜`, yTable(Y, t, me))}
+      ${pan('最近賽果', yLog(Y[t].log, t.toUpperCase()))}
+    </div></div>`;
+}
 SCREENS.youth = () => {
-  const c = myClub(), me = myCid(), ys = roster(me).filter(inYouth).sort((a, b) => (potSeen(b) || pd(b).sk) - (potSeen(a) || pd(a).sk));
-  const can = roster(me).filter(p => !inYouth(p) && ageOf(p) <= YTAGE).sort((a, b) => ageOf(a) - ageOf(b));
-  const yr = c.yr || { w: 0, d: 0, l: 0, gf: 0, ga: 0, log: [] }, coach = staffOf(c, 'yth');
-  const ycard = p => { const pv = potSeen(p); return `<div class="ycard">${cardHTML(p, { open: 1 })}<div class="yinfo"><b>${pl(p)}</b><span class="num">${ps(p).pos} · ${ageOf(p)} 歲</span>${pv ? `<span class="ypot" title="青訓教練估計潛力約 ${pv}（教練越好越準）">潛力 ${'★'.repeat(potStars(pv))}${'☆'.repeat(5 - potStars(pv))}</span>` : '<span class="mute">一隊落嚟</span>'}<span class="mute">表現 ${form(p) ? form(p).toFixed(1) : '–'}</span><button class="btn sm" data-act="ctup" data-a="${p}">升一隊</button></div></div>`; };
-  main(`${hdr('青年軍', info(`青訓營每年 7 月 1 日會有 3–5 個 15–17 歲嘅新秀加入。每個新秀都有潛力（★ 越多將來可以去得越高），青訓教練越好，估計越準。青年軍每個星期踢一場青年賽，表現好嘅升得快啲；新秀會慢慢升向佢嘅潛力。青訓設施越高級，新秀越好、成長越快。覺得夠班就撳「升一隊」；一隊 ${YTAGE} 歲或以下嘅球員都可以落青年軍踢波。唔要嘅新秀可以喺「合約」解約。`))}
-  <div class="cols c2 m-stack">
+  const c = myClub(), me = myCid(), tab = UI.yt.tab, Y = c.yc && c.yc.s === G.season ? c.yc : yNew(c, me);
+  const ys = roster(me).filter(inYouth).sort((a, b) => (potSeen(b) || pd(b).sk) - (potSeen(a) || pd(a).sk));
+  const can = roster(me).filter(p => !inYouth(p) && ageOf(p) <= YTAGE).sort((a, b) => ageOf(a) - ageOf(b)), coach = staffOf(c, 'yth');
+  const ycard = p => { const pv = potSeen(p); return `<div class="ycard">${cardHTML(p, { open: 1 })}<div class="yinfo"><b>${pl(p)}</b><span class="num">${ps(p).pos} · ${ageOf(p)} 歲</span>${pv ? `<span class="ypot" title="青訓教練估計潛力約 ${pv}（教練越好越準）">潛力 ${'★'.repeat(potStars(pv))}${'☆'.repeat(5 - potStars(pv))}</span>` : '<span class="mute">一隊落嚟</span>'}<span class="mute">表現 ${form(p) ? form(p).toFixed(1) : '–'} · 青年賽 ${(c.yap || {})[p] || 0} 場</span><button class="btn sm" data-act="ctup" data-a="${p}">升一隊</button></div></div>`; };
+  const cupTxt = Y.cup.won ? '🏆 冠軍' : Y.cup.out ? '已出局' : `下一場：${YCUP.rd[Y.cup.rd]}`;
+  const rec = t => { const r = Y[t].tab[me] || [0, 0, 0, 0]; return `${r[1]} 勝 ${r[2]} 和 ${r[3]} 負`; };
+  let body;
+  if (tab === 'u18' || tab === 'u21') body = yTeamTab(tab);
+  else if (tab === 'cup') body = `<div class="cols c2 m-stack">${pan(`${YCUP.n}（U18）`, `<dl class="kv"><dt>形式</dt><dd>U18 單場淘汰，對手係全國球會嘅 U18，越後越強</dd><dt>今季</dt><dd>${cupTxt}</dd><dt>賽程</dt><dd>${YCUP.rd.map((n, k) => `${n}（第 ${YCUP.wk[k] + 1} 週）`).join('、')}</dd></dl><p class="note">用 U18 陣容出賽。冠軍：球迷人氣 +3、領隊聲望 +1。</p>`)}${pan('盃賽賽果', yLog(Y.cup.log, 'U18'), { t: 1 })}</div>`;
+  else body = `<div class="cols c2 m-stack">
     <div class="cols" style="grid-template-rows:auto auto minmax(0,1fr)">
       ${pan('青訓營', `<dl class="kv"><dt>青訓設施</dt><dd><span class="num" style="color:var(--sel)">${'★'.repeat(yaOf(c))}${'☆'.repeat(5 - yaOf(c))}</span> ${YANAME[yaOf(c)]} ${yaOf(c) < 5 ? `<button class="btn sm" data-act="yaup">升級 · ${money(yaCost(c))}</button>` : ''}</dd>
         <dt>青訓教練</dt><dd>${coach ? `${esc(coach.n)} ${'★'.repeat(coach.lv)}` : '<span class="bad">懸空</span>（去「職員」請）'}</dd>
-        <dt>青年賽戰績</dt><dd>${yr.w} 勝 ${yr.d} 和 ${yr.l} 負 · 入 ${yr.gf} 失 ${yr.ga}</dd><dt>下次新秀</dt><dd>7 月 1 日</dd><dt>人數</dt><dd>${ys.length} 人${ys.length < 5 ? '（少過 5 人踢唔到青年賽）' : ''}</dd></dl>`)}
-      ${pan('最近青年賽', yr.log.length ? `<div class="res">${yr.log.map(([d, o, gf, ga]) => `<div>${wdl(gf > ga ? 'W' : gf < ga ? 'L' : 'D')}<span class="mute num">${fdate(d, 's')}</span><span>對 ${esc(clubShort(o))} U18</span><b class="num" style="margin-left:auto">${gf} - ${ga}</b></div>`).join('')}</div>` : '<p class="note">今季未有青年賽。</p>', { t: 1 })}
+        <dt>U18 聯賽</dt><dd>${rec('u18')}</dd><dt>U21 聯賽</dt><dd>${rec('u21')}</dd><dt>${YCUP.n}</dt><dd>${cupTxt}</dd><dt>下次新秀</dt><dd>7 月 1 日</dd><dt>青年軍人數</dt><dd>${ys.length} 人</dd></dl>`)}
       ${pan(`可以落青年軍嘅一隊球員（${YTAGE} 歲或以下）`, can.length ? `<table><tbody>${can.map(p => `<tr><td class="nm">${pl(p)}</td><td class="n">${ps(p).pos}</td><td class="n">${ageOf(p)}</td><td class="n">${cardR(p)}</td><td><button class="btn sm" data-act="ctdown" data-a="${p}">落青年軍</button></td></tr>`).join('')}</tbody></table>` : '<p class="note">一隊冇 21 歲或以下嘅球員。</p>', { t: 1 })}
     </div>
     ${pan(`青年軍名單 <span class="r">${ys.length} 人</span>`, ys.length ? `<div class="ygrid">${ys.map(ycard).join('')}</div>` : '<p class="note">青年軍冇人。等 7 月 1 日新秀加入，或者將一隊後生仔落青年軍。</p>', { t: 1, st: 'min-height:0' })}
-  </div>`);
+  </div>`;
+  main(`${hdr('青年軍', info(`青訓營每年 7 月 1 日會有 3–5 個 15–17 歲嘅新秀加入，每個都有潛力（★ 越多將來可以去得越高），青訓教練越好估得越準。每個星期 U18 同 U21 各踢一場聯賽（對手係你聯賽其他球會嘅青年隊），U18 仲有${YCUP.n}。U18 / U21 各有自己陣容：18 / 21 歲或以下嘅球員都可以上，包括一隊嘅後生仔（一隊比賽照踢得）。青年賽計上陣時間：一季 15 場或以上，季尾成長當正選計。新秀會慢慢升向佢嘅潛力，表現好升得快啲。覺得夠班就撳「升一隊」。`))}
+  <div class="tabs">${chips([['list', '青訓營'], ['u18', 'U18 聯賽'], ['u21', 'U21 聯賽'], ['cup', YCUP.n]], tab, 'ytab')}</div>
+  ${body}`);
 };
+const ySlotK = x => /^s\d+$/.test(x);
+Object.assign(ACT, {
+  ytab: el => { UI.yt.tab = el.dataset.a; UI.yt.sel = null; render(); },
+  yform: el => { const [t, f] = el.dataset.a.split(':'), L = yLine(myClub(), t); L.form = f; yAuto(myCid(), t, true); save(); render(); },
+  yauto: el => { yAuto(myCid(), el.dataset.a, false); UI.yt.sel = null; save(); render(); toast('已自動排陣'); },
+  ysl: el => {   // tap a slot or a player; a second tap places or swaps
+    const t = UI.yt.tab, L = yLine(myClub(), t), a = el.dataset.a, b = UI.yt.sel;
+    if (!b) { UI.yt.sel = a; return render(); }
+    if (b === a) { UI.yt.sel = null; return render(); }
+    if (ySlotK(a) && ySlotK(b)) { const i = +a.slice(1), j = +b.slice(1); [L.xi[i], L.xi[j]] = [L.xi[j], L.xi[i]]; }
+    else if (ySlotK(a) || ySlotK(b)) { const k = +(ySlotK(a) ? a : b).slice(1), p = ySlotK(a) ? b : a, old = L.xi.indexOf(p); if (old >= 0) L.xi[old] = L.xi[k]; L.xi[k] = p; }
+    else { UI.yt.sel = a; return render(); }
+    UI.yt.sel = null; save(); render();
+  },
+});
 Object.assign(ACT, { yaup: () => { const err = yaUpgrade(); if (err) return toast(err); save(); render(); toast(`青訓設施升到 ${YANAME[yaOf(myClub())]}`); } });
 Object.assign(CH, { gpnat: el => { UI.gp.nat = el.value; render(); }, gplg: el => { UI.gp.lg = el.value; render(); } });
 // condition fields: remember the values; any change disarms the confirm button
 document.addEventListener('change', e => { const id = e.target.id; if (!['ctn', 'cta', 'cty'].includes(id)) return; const U = UI.ct;
   if (id === 'ctn') U.cn = clamp(+e.target.value || 60, 30, 99); if (id === 'cta') U.ca = e.target.value === '' ? '' : clamp(+e.target.value, 15, 45); if (id === 'cty') U.cy = e.target.checked; U.carm = 0; render(); });
+Object.assign(CH, { sqf: el => { UI.sqf = el.value; render(); } });

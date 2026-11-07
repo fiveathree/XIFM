@@ -122,19 +122,66 @@ function youthIntake(cid, n) {
   const best = got.slice().sort((a, b) => potSeen(b) - potSeen(a))[0];
   mail('青訓新秀加入', `${got.length} 個青訓新秀加入咗青年軍：<br>${got.map(p => `${esc(ps(p).name)}（${ps(p).pos} · ${ageOf(p)} 歲 · 能力 ${pd(p).sk} · 潛力 ${'★'.repeat(potStars(potSeen(p)))}）`).join('<br>')}<br>青訓教練最睇好 <b>${esc(ps(best).sn)}</b>。去「青年軍」頁睇。`);
 }
-// weekly youth game and growth
+/* youth competitions for your club: U18 league, U21 league (round robin against the youth sides of your league)
+   and the 青年足總盃 (U18 knockout against clubs of your country). Each team has its own line-up c.yl[t] = { form, xi }.
+   c.yc = { s, wk, u18: { tab, log }, u21: { tab, log }, cup: { rd, out, won, log } }; c.yap = { pid: youth games this season } */
+const YT = { u18: { n: 'U18 聯賽', age: 18, base: 40, k: .15 }, u21: { n: 'U21 聯賽', age: 21, base: 44, k: .17 } };
+const YCUP = { n: '青年足總盃', wk: [8, 14, 20, 26, 32], rd: ['第三圈', '第四圈', '八強', '四強', '決賽'] };
+const yEligible = (cid, t) => roster(cid).filter(p => ageOf(p) <= YT[t].age && !pd(p).inj && !pd(p).sus && !pd(p).xs);
+function yLine(c, t) { c.yl = c.yl || {}; return c.yl[t] = c.yl[t] || { form: '4-4-2', xi: Array(11).fill(null) }; }
+function yAuto(cid, t, keep) {
+  const c = G.clubs[cid], L = yLine(c, t), slots = FORMS[L.form] || FORMS['4-4-2'], el = new Set(yEligible(cid, t));
+  if (!keep) L.xi = Array(11).fill(null);
+  L.xi = slots.map((s, k) => L.xi[k] && el.has(L.xi[k]) ? L.xi[k] : null);
+  const used = new Set(L.xi.filter(Boolean));
+  // best pairs first; a place stays with an unnamed academy kid when nobody named would do better there
+  const fill = yFill(c), pairs = [];
+  for (let k = 0; k < slots.length; k++) if (!L.xi[k]) for (const p of el) if (!used.has(p)) pairs.push([pd(p).sk * fitP(p, slots[k][0]), k, p]);
+  pairs.sort((a, b) => b[0] - a[0]);
+  for (const [v, k, p] of pairs) if (!L.xi[k] && !used.has(p) && v > fill) { L.xi[k] = p; used.add(p); }
+}
+const yFill = c => 34 + yaOf(c) * 2 + c.rep * .12;
+function yStrength(cid, t) {
+  const L = yLine(G.clubs[cid], t), slots = FORMS[L.form] || FORMS['4-4-2'];
+  const c = G.clubs[cid], fill = yFill(c);   // an empty place is taken by an unnamed academy kid
+  return slots.reduce((a, s, k) => a + (L.xi[k] ? pd(L.xi[k]).sk * fitP(L.xi[k], s[0]) : fill), 0) / slots.length;
+}
+const yOpp = (cid, t, extra = 0) => clamp(YT[t].base + G.clubs[cid].rep * YT[t].k + extra + ri(-4, 4), 36, 72);
+const yPois = l => { let k = 0, p = Math.exp(-l), s = p; const u = R(); while (u > s && k < 9) { k++; p *= l / k; s += p; } return k; };
+const yLam = (a, b) => clamp(1.4 * Math.exp((a - b) / 18), .3, 4);
+function yNew(c, me) {
+  const cl = G.lgm[c.lg] || [me], tab = () => Object.fromEntries(cl.map(x => [x, [0, 0, 0, 0, 0, 0]]));
+  return { s: G.season, wk: 0, cl: [...cl], u18: { tab: tab(), log: [] }, u21: { tab: tab(), log: [] }, cup: { rd: 0, out: false, won: false, log: [] } };
+}
+function yRec(T, a, b, ga, gb) { const x = T[a], y = T[b]; if (!x || !y) return; x[0]++; y[0]++; x[4] += ga; x[5] += gb; y[4] += gb; y[5] += ga; if (ga > gb) { x[1]++; y[3]++; } else if (ga < gb) { y[1]++; x[3]++; } else { x[2]++; y[2]++; } }
+function yPlayed(c, t, gf, ga) {   // ratings and youth appearances for the eleven who played
+  c.yap = c.yap || {};
+  for (const p of yLine(c, t).xi.filter(Boolean)) { const d = pd(p); d.fm.push(clamp(6.4 + (gf - ga) * .25 + (R() - .5) * 1.6, 4.5, 9.5)); if (d.fm.length > 5) d.fm.shift(); c.yap[p] = (c.yap[p] || 0) + 1; }
+}
 function youthWeek() {
   const me = G.mgr.cid; if (!me) return;
-  const c = G.clubs[me], ys = roster(me).filter(p => pd(p).yt && !pd(p).inj).sort((a, b) => pd(b).sk - pd(a).sk);
-  if (ys.length >= 5) {
-    const str = sum(ys.slice(0, 11).map(p => pd(p).sk)) / Math.min(11, ys.length) - (11 - Math.min(11, ys.length));
-    const opp = pick(G.lgm[c.lg].filter(x => x !== me)), os = clamp(40 + G.clubs[opp].rep * .15 + ri(-5, 5), 40, 68);
-    const lam = (a, b) => clamp(1.4 * Math.exp((a - b) / 18), .3, 4);
-    const pois = l => { let k = 0, p = Math.exp(-l), s = p; const u = R(); while (u > s && k < 9) { k++; p *= l / k; s += p; } return k; };
-    const gf = pois(lam(str, os)), ga = pois(lam(os, str));
-    const yr = c.yr = c.yr || { w: 0, d: 0, l: 0, gf: 0, ga: 0, log: [] };
-    yr[gf > ga ? 'w' : gf < ga ? 'l' : 'd']++; yr.gf += gf; yr.ga += ga; yr.log.unshift([G.day, opp, gf, ga]); if (yr.log.length > 10) yr.log.length = 10;
-    for (const p of ys.slice(0, 11)) { const d = pd(p); d.fm.push(clamp(6.4 + (gf - ga) * .25 + (R() - .5) * 1.6, 4.5, 9.5)); if (d.fm.length > 5) d.fm.shift(); }
+  const c = G.clubs[me]; if (!c.yc || c.yc.s !== G.season) c.yc = yNew(c, me);
+  const Y = c.yc, wk = Y.wk++, rr = roundRobin(Y.cl.length), rounds = [...rr, ...rr.map(r => r.map(([a, b]) => [b, a]))];
+  for (const t of ['u18', 'u21']) {
+    if (wk < rounds.length) for (const [a, b] of rounds[wk]) {
+      const A = Y.cl[a], B = Y.cl[b];
+      const sa = A === me ? (yAuto(me, t, true), yStrength(me, t)) : yOpp(A, t), sb = B === me ? (yAuto(me, t, true), yStrength(me, t)) : yOpp(B, t);
+      const ga = yPois(yLam(sa + 1, sb)), gb = yPois(yLam(sb, sa + 1));
+      yRec(Y[t].tab, A, B, ga, gb);
+      if (A === me || B === me) { const gf = A === me ? ga : gb, gc = A === me ? gb : ga; Y[t].log.unshift([G.day, A === me ? B : A, gf, gc, A === me]); if (Y[t].log.length > 12) Y[t].log.length = 12; yPlayed(c, t, gf, gc); }
+    }
+  }
+  // cup round
+  const r = YCUP.wk.indexOf(wk);
+  if (r >= 0 && !Y.cup.out && !Y.cup.won && Y.cup.rd === r) {
+    const pool = Object.values(LG).filter(L => L.country === LG[c.lg].country).flatMap(L => G.lgm[L.id] || []).filter(x => x !== me);
+    const opp = pick(pool.length ? pool : Y.cl.filter(x => x !== me)); yAuto(me, 'u18', true);
+    const sm = yStrength(me, 'u18'), so = yOpp(opp, 'u18', r * 2);
+    let gf = yPois(yLam(sm, so)), ga = yPois(yLam(so, sm)), pen = '';
+    if (gf === ga) { const w = R() < .5; pen = w ? '（互射十二碼勝）' : '（互射十二碼負）'; if (w) gf += .1; else ga += .1; }
+    const won = gf > ga; Y.cup.log.unshift([G.day, opp, Math.floor(gf), Math.floor(ga), YCUP.rd[r] + pen]); yPlayed(c, 'u18', gf, ga);
+    if (won) { Y.cup.rd++; if (Y.cup.rd >= YCUP.rd.length) { Y.cup.won = true; c.fans = clamp(fansOf(c) + 3, 1, 100); G.mgr.rep = clamp(G.mgr.rep + 1, 1, 100); (G.trophies = G.trophies || []); mail('青年足總盃冠軍！', `你嘅 U18 喺決賽贏咗 ${esc(clubName(opp))}，捧走${YCUP.n}！球迷人氣 +3。`); } else mail(`${YCUP.n}：晉級${YCUP.rd[Y.cup.rd]}`, `U18 贏咗 ${esc(clubName(opp))} ${Math.floor(gf)}-${Math.floor(ga)}${pen}。`); }
+    else { Y.cup.out = true; mail(`${YCUP.n}：${YCUP.rd[r]}出局`, `U18 輸咗俾 ${esc(clubName(opp))} ${Math.floor(gf)}-${Math.floor(ga)}${pen}。`); }
   }
   // growth: prospects grow towards their potential; everyone in the youth team gets the academy and youth coach
   const ya = yaOf(c), yc = stLv(c, 'yth');
@@ -146,7 +193,7 @@ function youthWeek() {
 // season start: intake for your club, and a youth record reset
 function youthSeason() {
   const me = G.mgr.cid; if (!me) return;
-  const c = G.clubs[me]; c.yr = { w: 0, d: 0, l: 0, gf: 0, ga: 0, log: [] };
+  const c = G.clubs[me]; c.yc = yNew(c, me); c.yap = {};
   for (const p of roster(me)) if (potOf(p) && pd(p).sk > potOf(p)) pd(p).sk = potOf(p);   // nobody outgrows his potential
   youthIntake(me, ri(3, 4) + (yaOf(c) >= 4 ? 1 : 0));
 }
