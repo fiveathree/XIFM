@@ -761,7 +761,7 @@ const ACT = {
   next: advance, until: untilMatch, match: openMatch,
   quit: () => { save(); showStart(); },
   mclose: closeModal,
-  badge: () => { const n = Date.now(); TAPS = n - TAPT < 700 ? TAPS + 1 : 1; TAPT = n; if (TAPS >= 5) { TAPS = 0; cheatBox(); } },
+  badge: () => { const n = Date.now(); TAPS = n - TAPT < 700 ? TAPS + 1 : 1; TAPT = n; if (TAPS >= 5) { TAPS = 0; G.inf = !G.inf; save(); render(); toast(G.inf ? '💰 無限資金已開啟（再連撳 5 下關閉）' : '無限資金已關閉'); } },   // 5 quick taps on the badge, top left
   autopick: () => { autoPick(myCid()); save(); render(); toast('已自動排陣'); },
   sq: el => { const k = el.dataset.k; if (!UI.sel) UI.sel = k; else if (UI.sel === k) UI.sel = null; else { sqSwap(UI.sel, k); UI.sel = null; save(); } render(); },
   tform: el => { UI.tf = el.dataset.a; render(); },

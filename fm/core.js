@@ -404,16 +404,37 @@ function mkYouth(cid, pos, sk) {
   return pid;
 }
 function newPl(cid, sk, ct, no) { return { c: cid, no, sk, cond: 100, fm: [], inj: 0, injn: '', lin: 0, arw: rArw(), sus: 0, w: wageFor(sk, CL[cid] ? G.clubs[cid]?.lg || CL[cid].lg0 : 'eng3'), ct, list: 0, s: newStats() }; }
+// how short a club is in each line; wingers and attacking mids above the three forwards a club needs also cover midfield
+function lineShort(ids) {
+  const cnt = { G: 0, D: 0, M: 0, A: 0 }; ids.forEach(p => cnt[lineOf(ps(p).pos)]++);
+  const spareA = Math.max(0, cnt.A - NEED.A);
+  return { G: NEED.G - cnt.G, D: NEED.D - cnt.D, M: NEED.M - cnt.M - spareA, A: NEED.A - cnt.A };
+}
 function fillYouth(cid, min, gap = 4) {
   // thinly documented clubs (fewer than 8 known players): base the level on club reputation, not on the few names we have
   const ros = roster(cid), rs = clamp(Math.round(28 + (G.clubs[cid]?.rep ?? CL[cid].rep) * .6), 40, 76);
   const avg = ros.length >= 8 ? sum(ros.map(p => pd(p).sk)) / ros.length : (sum(ros.map(p => pd(p).sk)) + (8 - ros.length) * rs) / 8;
-  const cnt = { G: 0, D: 0, M: 0, A: 0 }; ros.forEach(p => cnt[lineOf(ps(p).pos)]++);
   const POSBY = { G: ['GK'], D: ['CD', 'CD', 'RB', 'LB'], M: ['CM', 'RM', 'LM', 'CM', 'DM'], A: ['ST', 'ST', 'RW', 'LW', 'CF'] };
   let guard = 0;
-  while ((roster(cid).length < min || Object.keys(NEED).some(l => cnt[l] < NEED[l])) && guard++ < 40) {
-    const l = Object.keys(NEED).sort((a, b) => (cnt[a] - NEED[a]) - (cnt[b] - NEED[b]))[0];
-    mkYouth(cid, pick(POSBY[l]), clamp(Math.round(avg - gap + ri(-3, 3)), 35, 80)); cnt[l]++;
+  let sh = lineShort(ros);
+  while ((roster(cid).length < min || Object.values(sh).some(v => v > 0)) && guard++ < 40) {
+    const l = Object.keys(NEED).sort((a, b) => sh[b] - sh[a])[0];
+    mkYouth(cid, pick(POSBY[l]), clamp(Math.round(avg - gap + ri(-3, 3)), 35, 80)); sh = lineShort(roster(cid));
+  }
+}
+// old saves: drop stand-in youngsters (青年軍) a club no longer needs
+function trimYouth() {
+  for (const cid of GCL()) {
+    const c = G.clubs[cid], min = isUser(cid) ? 16 : 18;
+    for (const pid of roster(cid).filter(p => ps(p).yth).reverse()) {
+      const rest = roster(cid).filter(p => p !== pid);
+      if (rest.length < min || Object.values(lineShort(rest)).some(v => v > 0)) continue;
+      ROS[cid] = rest; delete G.pl[pid]; delete G.y[pid]; if (G.cards) delete G.cards[pid];
+      c.xi = c.xi.map(p => p === pid ? null : p); c.sb = c.sb.filter(p => p !== pid);
+      if (c.sp) for (const k in c.sp) if (c.sp[k] === pid) delete c.sp[k];
+      if (c.plans) for (const p of c.plans) if (p) { p.xi = p.xi.map(x => x === pid ? null : x); p.sb = p.sb.filter(x => x !== pid); }
+    }
+    if (!isUser(cid) && c.xi.some(p => p === null)) autoPick(cid);
   }
 }
 
@@ -998,7 +1019,7 @@ function unpack(str) {
   for (const pid in g.pl) { const a = g.pl[pid]; pl[pid] = { c: a[0], no: a[1], sk: a[2], cond: a[3], fm: a[4] ? a[4].split('|').map(Number) : [], inj: a[5], injn: a[6], sus: a[7], w: a[8], ct: a[9], list: a[10], s: { ap: a[11], gl: a[12], as: a[13], yc: a[14], rc: a[15], mom: a[16], rt: a[17] / 10 }, arw: a[18] ?? 2, lin: a[19] || 0 }; if (a[20] >= 0) pl[pid].pop = a[20] / 10; if (a[21]) pl[pid].p2x = a[21]; if (a[22]) pl[pid].tf = a[22]; if (a[23]) pl[pid].clv = a[23]; if (a[24]) { const t = JSON.parse(a[24]); pl[pid].skc = { a: t[0], j: t[1] }; if (t[2].length) pl[pid].skh = t[2]; } }
   g.fx = g.fx.map(a => { const f = { i: a[0], d: a[1], c: a[2], r: a[3], h: a[4], a: a[5], hg: a[6], ag: a[7] }; if (a[8]) f.ko = a[8]; if (a[9]) f.n = 1; if (a[10] >= 0) f.g = a[10]; if (a[11] >= 0) { f.ph = a[11]; f.pa = a[12]; } if (a[13]) f.et = 1; if (a[14]) f.att = a[14]; if (a[15]) f.sc = a[15]; return f; });
   g.pl = pl; delete g.packed;
-  G = g; reindex(); reindexFx(); ALLP = null;
+  G = g; reindex(); reindexFx(); ALLP = null; trimYouth();
 }
 function saveGame() {
   try { localStorage.setItem(SKEY(G.slot), pack()); const m = loadMeta(); m[G.slot] = { mgr: G.mgr.name, cid: G.mgr.cid, cn: G.mgr.cid ? clubName(G.mgr.cid) : '', era: G.era || 2001, day: G.day, season: G.season }; localStorage.setItem('xifm-fm-meta', JSON.stringify(m)); return true; }
