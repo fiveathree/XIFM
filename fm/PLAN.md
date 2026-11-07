@@ -136,3 +136,11 @@ FM.addSeason(2002, { clubs: {
 - AI clubs' players can be sold to the user; gacha takes players from any club for free (by design).
 - Top scorers run a bit high (≈45 in all competitions) — tune `POSW` / goal probability in `attack()` if wanted.
 - Performance: ~55 ms per game day in Node; fine for clicking day by day. "直到下場比賽" over a week takes ~0.4 s.
+
+## 6. Club life (fm/life.js + fm/life-ui.js)
+- `fm/life.js` (logic, loaded after match.js; also loaded by tools/fm-sim.js) and `fm/life-ui.js` (screens, loaded after ui.js; ui.js boots on DOMContentLoaded so these are in place).
+- 職員: seven roles in `STAFFR` (coach fit physio gk yth scout pr), levels in `c.st`, named people in `c.staff`, applicants in `c.cand` (refreshed every 28 days). Hiring pays a signing fee (+ half the old one's fee as compensation).
+- 訓練: team building `TEAMB` (cohesion `c.coh`, default 60 = no effect; match factor 1 + (coh − 60)/1500 via `lifeF()` in `sideRatings`), individual training `d.tf` (加操 / 休養 / 學新位置 → learned positions `d.p2x`, used by `fitP`).
+- 傳媒: pre-match press conference (from 3 days before, once per fixture; `pressQs`/`pressApply` → `G.mot` motivation % for that fixture), statements `STATE` every 14 days.
+- 宣傳: fans `c.fans` (default = rep; above rep raises gate/merch/sponsorship), club campaigns `PROMO`, player promotion `PPROMO`, popularity `d.pop` (stars ≥70, superstars ≥85: extra merch, gate, higher wage demands, complain after 3 weeks without a game).
+- Save: player fields 20–22 (pop×10, p2x, tf); club fields are stored as is.

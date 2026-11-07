@@ -52,6 +52,7 @@ function sideRatings(S, M) {
   let def = d * .5 + gk * .25 + m * .25 + (nD - 4) * 1.6 + (nM - 4) * .4 - (st.ment - 1) * 3 - fw * .5 + hd * .6 + st.mark * .8 + st.trap * 1.2 + (tr === 'def' ? 1 : 0);
   let mid = m + (nM - 4) * 1.8 - (nA - 2) * .5 + (st.pass === 0 ? 1.5 : st.pass === 2 ? -1.5 : 0) + (tr === 'tac' ? 1 : 0);
   const reds = S.on.filter(o => !o.pid).length; att -= reds * 2.5; def -= reds * 2.5; mid -= reds * 2;
+  if (typeof lifeF === 'function') { const lf = lifeF(S, M); att *= lf; def *= lf; mid *= lf; }   // cohesion + press-conference motivation (fm/life.js)
   const pace = av(S.on.filter(o => o.pid && lineOf(o.slot) === 'A').map(o => attrs(o.pid)[0]));
   return { att, def, mid, gk, t: [.86, 1, 1.13][st.tempo], pace };
 }

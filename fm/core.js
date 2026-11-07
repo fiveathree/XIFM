@@ -94,7 +94,7 @@ const NEARP = {
 // Playing a secondary position costs nothing; positions near a secondary one cost what they would from it.
 const DEF2 = { DM: ['CM'] };
 const pos2Of = p => [...new Set([...(p.p2 || []), ...(DEF2[p.pos] || [])])].filter(x => x !== p.pos);
-function fitP(pid, slot) { const p = ps(pid); let f = fitPos(p.pos, slot); for (const q of pos2Of(p)) f = Math.max(f, fitPos(q, slot)); return f; }
+function fitP(pid, slot) { const p = ps(pid); let f = fitPos(p.pos, slot); for (const q of pos2Of(p)) f = Math.max(f, fitPos(q, slot)); const d = G && G.pl[pid]; if (d && d.p2x) for (const q of d.p2x.split('|')) if (q) f = Math.max(f, fitPos(q, slot)); return f; }
 function fitPos(nat, slot) {
   if (nat === slot) return 1;
   if (nat === 'GK' || slot === 'GK') return .3;
@@ -483,7 +483,7 @@ function fin(cid, k, v) { const c = G.clubs[cid]; if (!c) return; if (isUser(cid
 function attendance(cid, oppCid, comp) {
   const c = G.clubs[cid], base = DEFPRICE[c.lg] || 18;
   const pos = G.comp[c.lg]?.t === 'L' ? standings(G.comp[c.lg].tab).findIndex(x => x.c === cid) / Math.max(1, G.comp[c.lg].cl.length) : .5;
-  let fill = .32 + c.rep / 150 + (.5 - pos) * .2 + (oppCid ? G.clubs[oppCid].rep / 900 : 0) + (comp && comp !== c.lg ? .08 : 0);
+  let fill = .32 + c.rep / 150 + (.5 - pos) * .2 + (oppCid ? G.clubs[oppCid].rep / 900 : 0) + (comp && comp !== c.lg ? .08 : 0) + (typeof lifeGate === 'function' ? lifeGate(cid) : 0);
   fill *= Math.pow(base / Math.max(1, c.price), .6);
   return Math.round(c.cap * clamp(fill, .12, 1));
 }
@@ -494,8 +494,9 @@ function weekly() {
     const c = G.clubs[cid]; c.fin.w = {};
     fin(cid, 'wage', -(wage[cid] || 0));
     fin(cid, 'staff', -Math.round(sum(Object.values(c.st).map(l => l * l)) * 350 * (TIERF[c.lg] || .7)));
-    fin(cid, 'merch', Math.round(.0034 * c.rep ** 4));
-    fin(cid, 'spon', Math.round(.002 * c.rep ** 4));
+    const lm = typeof lifeMerch === 'function' ? lifeMerch(cid) : { f: 1, star: 0, boost: 0 };   // fans, stars and campaigns (fm/life.js)
+    fin(cid, 'merch', Math.round(.0034 * c.rep ** 4 * lm.f * (1 + lm.boost)) + lm.star);
+    fin(cid, 'spon', Math.round(.002 * c.rep ** 4 * lm.f));
     if (c.build && G.day >= c.build.done) { c.cap += c.build.seats; if (isUser(cid)) mail('球場擴建完成', `新看台已經落成，球場容量增加 ${c.build.seats.toLocaleString()} 個座位，而家係 ${c.cap.toLocaleString()}。`); c.build = null; }
   }
 }
@@ -506,6 +507,7 @@ function transfer(pid, to, fee, wage, years, paid = fee) {
   if (G.clubs[from]) fin(from, 'tin', paid);
   if (G.clubs[to]) fin(to, 'tout', -paid);
   movePlayer(pid, to);
+  if (isUser(to)) G.clubs[to].coh = clamp((G.clubs[to].coh ?? 60) - 3, 0, 100);   // a new face: cohesion dips (fm/life.js)
   d.w = wage || wageFor(d.sk, G.clubs[to]?.lg || 'eng3');
   d.ct = G.season + (years || ri(2, 4));
   d.no = squadNo(to);
@@ -540,7 +542,8 @@ function wageDemand(pid, buyer) {
   const d = pd(pid), from = d.c;
   const base = wageFor(d.sk, G.clubs[buyer].lg);
   const repGap = from !== 'free' ? (G.clubs[from].rep - G.clubs[buyer].rep) / 100 : 0;
-  return Math.max(d.c === buyer ? d.w : 0, roundMoney(base * clamp(1.12 + repGap, .9, 1.7) / 10) * 10 || base);
+  const star = typeof starOf === 'function' && starOf(pid) ? 1 + (popOf(pid) - 65) / 100 : 1;   // stars ask for more
+  return Math.max(d.c === buyer ? d.w : 0, roundMoney(base * clamp(1.12 + repGap, .9, 1.7) * star / 10) * 10 || base);
 }
 function refusesMove(pid, buyer) {
   const d = pd(pid); if (d.c === 'free') return false;
@@ -880,7 +883,7 @@ function nextDay() {
   const d = G.day;
   // recovery & injuries
   const rec = {};
-  for (const cid of GCL()) { const c = G.clubs[cid]; rec[cid] = [7, 6, 4.5][c.tr.int] + c.st.physio * .4; }
+  for (const cid of GCL()) { const c = G.clubs[cid]; rec[cid] = [7, 6, 4.5][c.tr.int] + c.st.physio * .4 + (c.st.fit || 0) * .3; }
   for (const pid in G.pl) {
     const p = G.pl[pid]; if (p.c === 'ret') continue;
     p.cond = Math.min(100, p.cond + (rec[p.c] || 7));
@@ -889,7 +892,7 @@ function nextDay() {
     driftArw(pid);
   }
   if (G.inst && G.inst.length) G.inst = G.inst.filter(x => { if (x.d > d) return true; fin(x.from, 'tout', -x.amt); fin(x.to, 'tin', x.amt); if (isUser(x.from)) mail('轉會分期付款', `已付 ${esc(clubName(x.to))} ${money(x.amt)}（${esc(ps(x.pid).sn)} 轉會費分期）。`); return false; });
-  if (wday(d) === 1) { weekly(); training(); }
+  if (wday(d) === 1) { weekly(); training(); if (typeof lifeWeekly === 'function') lifeWeekly(); }
   if (inWindow(d)) { aiMarket(); aiOffers(); }
   for (const id in G.comp) { const c = G.comp[id]; if (c.t !== 'L') maybeDraw(c, d); }
   for (const j of G.jobs) if (j.exp < d) G.jobs = G.jobs.filter(x => x !== j);
@@ -905,7 +908,7 @@ function training() {
       const d = pd(pid), a = ageOf(pid);
       if (a <= 23 && R() < .035 * g) d.sk = Math.min(97, d.sk + 1);
       else if (a >= 31 && R() < .03 / g) d.sk = Math.max(25, d.sk - 1);
-      if (c.tr.int === 2 && R() < .004) { d.injn = '訓練受傷'; if (R() < .6) { d.lin = ri(3, 8); if (isUser(cid)) mail(`${ps(pid).sn} 訓練輕傷`, `${esc(ps(pid).name)} 喺高強度訓練中受咗輕傷，${d.lin} 日內仲可以上陣，但會影響表現，亦有機會傷勢加重。`); } else { d.inj = ri(5, 14); if (isUser(cid)) mail(`${ps(pid).sn} 訓練受傷`, `${esc(ps(pid).name)} 喺高強度訓練中重傷，要休息 ${d.inj} 日。`); } }
+      if (c.tr.int === 2 && R() < .004 * (1 - (c.st.fit || 0) * .12)) { d.injn = '訓練受傷'; if (R() < .6) { d.lin = ri(3, 8); if (isUser(cid)) mail(`${ps(pid).sn} 訓練輕傷`, `${esc(ps(pid).name)} 喺高強度訓練中受咗輕傷，${d.lin} 日內仲可以上陣，但會影響表現，亦有機會傷勢加重。`); } else { d.inj = ri(5, 14); if (isUser(cid)) mail(`${ps(pid).sn} 訓練受傷`, `${esc(ps(pid).name)} 喺高強度訓練中重傷，要休息 ${d.inj} 日。`); } }
     }
   }
 }
@@ -973,14 +976,14 @@ function groupsDone(comp) {
 /* ---------- save / load (compact) ---------- */
 const SKEY = s => 'xifm-fm-' + s;
 function pack() {
-  const pl = {}; for (const pid in G.pl) { const d = G.pl[pid]; if (d.c === 'ret') continue; const st = d.s; pl[pid] = [d.c, d.no, d.sk, Math.round(d.cond), d.fm.join('|'), d.inj, d.injn, d.sus, d.w, d.ct, d.list, st.ap, st.gl, st.as, st.yc, st.rc, st.mom, Math.round(st.rt * 10), d.arw ?? 2, d.lin || 0]; }
+  const pl = {}; for (const pid in G.pl) { const d = G.pl[pid]; if (d.c === 'ret') continue; const st = d.s; pl[pid] = [d.c, d.no, d.sk, Math.round(d.cond), d.fm.join('|'), d.inj, d.injn, d.sus, d.w, d.ct, d.list, st.ap, st.gl, st.as, st.yc, st.rc, st.mom, Math.round(st.rt * 10), d.arw ?? 2, d.lin || 0, d.pop == null ? -1 : Math.round(d.pop * 10), d.p2x || '', d.tf || '']; }
   const fx = G.fx.map(f => [f.i, f.d, f.c, f.r, f.h, f.a, f.hg, f.ag, f.ko || 0, f.n || 0, f.g ?? -1, f.ph ?? -1, f.pa ?? -1, f.et || 0, f.att || 0, f.sc || 0]);
   return JSON.stringify(Object.assign({}, G, { pl, fx, packed: 1 }));
 }
 function unpack(str) {
   const g = JSON.parse(str);
   const pl = {};
-  for (const pid in g.pl) { const a = g.pl[pid]; pl[pid] = { c: a[0], no: a[1], sk: a[2], cond: a[3], fm: a[4] ? a[4].split('|').map(Number) : [], inj: a[5], injn: a[6], sus: a[7], w: a[8], ct: a[9], list: a[10], s: { ap: a[11], gl: a[12], as: a[13], yc: a[14], rc: a[15], mom: a[16], rt: a[17] / 10 }, arw: a[18] ?? 2, lin: a[19] || 0 }; }
+  for (const pid in g.pl) { const a = g.pl[pid]; pl[pid] = { c: a[0], no: a[1], sk: a[2], cond: a[3], fm: a[4] ? a[4].split('|').map(Number) : [], inj: a[5], injn: a[6], sus: a[7], w: a[8], ct: a[9], list: a[10], s: { ap: a[11], gl: a[12], as: a[13], yc: a[14], rc: a[15], mom: a[16], rt: a[17] / 10 }, arw: a[18] ?? 2, lin: a[19] || 0 }; if (a[20] >= 0) pl[pid].pop = a[20] / 10; if (a[21]) pl[pid].p2x = a[21]; if (a[22]) pl[pid].tf = a[22]; }
   g.fx = g.fx.map(a => { const f = { i: a[0], d: a[1], c: a[2], r: a[3], h: a[4], a: a[5], hg: a[6], ag: a[7] }; if (a[8]) f.ko = a[8]; if (a[9]) f.n = 1; if (a[10] >= 0) f.g = a[10]; if (a[11] >= 0) { f.ph = a[11]; f.pa = a[12]; } if (a[13]) f.et = 1; if (a[14]) f.att = a[14]; if (a[15]) f.sc = a[15]; return f; });
   g.pl = pl; delete g.packed;
   G = g; reindex(); reindexFx(); ALLP = null;
