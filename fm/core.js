@@ -165,7 +165,7 @@ const GRADE = sk => sk >= 90 ? 'UR' : sk >= 85 ? 'SSR' : sk >= 77 ? 'SR' : sk >=
 // card grade by position: keepers and defenders rate lower on the same scale, so they get +2, central midfielders +1
 const GBON = { GK: 2, CD: 2, RB: 2, LB: 2, RWB: 2, LWB: 2, DM: 1, CM: 1 };
 const gradeP = (sk, pos) => GRADE(sk + (GBON[pos] || 0));
-const gradeOf = pid => gradeP(pd(pid).sk, ps(pid).pos);
+const gradeOf = pid => { const g = gradeP(pd(pid).sk, ps(pid).pos), y = G.y && G.y[pid]; return y && y.gg && GRANK[y.gg] > GRANK[g] ? y.gg : g; };   // a gacha youngster keeps his pulled grade (fm/xi.js)
 function newStats() { return { ap: 0, gl: 0, as: 0, yc: 0, rc: 0, mom: 0, rt: 0 }; }
 const form = pid => { const f = pd(pid).fm; return f.length ? sum(f) / f.length : 0; };
 
@@ -183,6 +183,8 @@ function movePlayer(pid, to) {
 }
 // squad limit: players beyond it (超額, d.xs) are under contract but cannot play until a place frees up
 const SQMAX = 45;
+// named substitutes by season, as in the Premier League: 5 until 2007/08, 7 from 2008/09, 9 from 2022/23
+const benchN = () => { const y = (typeof G !== 'undefined' && G && G.season) || ERA.y; return y >= 2022 ? 9 : y >= 2008 ? 7 : 5; };
 const activeCount = cid => roster(cid).filter(p => !pd(p).xs).length;
 function fillExtras(cid) {
   for (const p of roster(cid).filter(x => pd(x).xs).sort((a, b) => pd(b).sk - pd(a).sk)) {
@@ -494,8 +496,8 @@ function autoPick(cid) {
   const sb = [];
   const gk = rest.find(p => ps(p).pos === 'GK'); if (gk) sb.push(gk);
   for (const l of ['D', 'M', 'A']) { const p = rest.find(x => !sb.includes(x) && lineOf(ps(x).pos) === l); if (p) sb.push(p); }
-  for (const p of rest) { if (sb.length >= 5) break; if (!sb.includes(p)) sb.push(p); }
-  c.xi = xi; c.sb = sb.slice(0, 5);
+  for (const p of rest) { if (sb.length >= benchN()) break; if (!sb.includes(p)) sb.push(p); }
+  c.xi = xi; c.sb = sb.slice(0, benchN());
 }
 function lineupProblems(cid) {
   const c = G.clubs[cid], out = [];
@@ -743,9 +745,10 @@ function gachaPool(o = {}) {
   return pool;
 }
 const poolSize = p => Object.values(p).reduce((t, a) => t + a.length, 0);
-const poolMult = (o = {}) => (o.leg ? 3 : 1) * (o.nat || o.line || o.lg || o.young ? 1.5 : 1);
+const poolMult = (o = {}) => (o.leg ? 3 : o.yth ? .5 : 1) * (o.nat || o.line || o.lg || o.young ? 1.5 : 1);
 function gachaPull(n, o = {}) {
   const me = G.mgr.cid, cost = Math.round(pullCost(n) * poolMult(o) / 1e3) * 1e3;
+  if (o.yth) { if (!G.inf && G.clubs[me].cash < cost) return { err: `要 ${money(cost)}，球會而家得 ${money(G.clubs[me].cash)}。` }; return youthPull(n, o, cost); }
   const pool = gachaPool(o); if (poolSize(pool) < n) return { err: '呢個卡池人數唔夠，揀闊啲嘅條件。' };
   if (!G.inf && G.clubs[me].cash < cost) return { err: `要 ${money(cost)}，球會而家得 ${money(G.clubs[me].cash)}。` };
   fin(me, 'scout', -cost);

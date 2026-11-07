@@ -63,7 +63,7 @@ SCREENS.squad = () => {
   <div class="xsq">
     <div class="xl">
       <div class="xpitch" id="sqp">${XPITCH}${FORMS[c.form].map((_, i) => slotX(cid, c.xi, c.form, i, T.ch, cap, true)).join('')}</div>
-      <div class="brow">${[0, 1, 2, 3, 4].map(i => benchX(c, i)).join('')}</div>
+      <div class="brow${benchN() > 5 ? ' two' : ''}" style="--bc:${benchN() > 5 ? Math.ceil(benchN() / 2) : 5}">${Array.from({ length: benchN() }, (_, i) => benchX(c, i)).join('')}</div>
     </div>
     <div class="xr">
       ${pan(`球隊實力 <span class="r">${fname(c.form)}</span>`, `<div class="xstats">${[['總評', T.ovr], ['進攻', T.att], ['中場', T.mid], ['防守', T.def]].map(([k, v]) => `<div class="xstat"><div class="v">${v}</div><div class="k">${k}</div><div class="bar"><i style="width:${clamp((v - 40) / 55 * 100, 0, 100)}%"></i></div></div>`).join('')}</div>
@@ -144,7 +144,41 @@ function legCardHTML(id, o = {}) {
 }
 UI.gp = UI.gp || { leg: false, nat: '', line: '', lg: '', young: false };
 const GPLINE = [['', '全部位置'], ['G', '門將'], ['D', '後衛'], ['M', '中場'], ['A', '前鋒']];
+const GPSRC = [['now', '當代球員'], ['leg', '傳奇球星'], ['yth', '青年軍']];
+// a young legend as a card (pulled or not)
+function jCardHTML(j, o = {}) {
+  if (G.pl[j]) return cardHTML(j, o);
+  const L = yLegRow(j), g = gradeP(L[3], L[1]), sn = L[6] || shortName(L[0]);
+  return `<div class="card g-${g} ${o.dim ? 'dim' : ''}" title="${esc(L[0])} · 青年版 · 潛力 ${L[3]}"><div class="c-top"><span class="c-r">?</span><span class="c-g">${g}</span></div><div class="c-pos">${L[1]}</div><div class="c-nat">${L[2]}</div><div class="c-name">${esc(sn)}</div><div class="c-meta">青年版 · 潛力 ${L[3]}</div></div>`;
+}
+function gachaYouth() {
+  const c = myClub(), sc = c.st.scout, o = UI.gp, mult = poolMult(o), lp = yLegPool(o), rp = yRealPool(o), nReal = poolSize(rp);
+  const all = yLegIds().filter(j => { const L = yLegRow(j); return (!o.line || lineOf(L[1]) === o.line) && (!o.nat || L[2] === o.nat); });
+  const top = all.filter(j => gradeP(yLegRow(j)[3], yLegRow(j)[1]) === 'UR').sort((a, b) => yLegRow(b)[3] - yLegRow(a)[3]);
+  const fan = top.filter(j => !G.y[j]).slice(0, 3);
+  const nats = [...new Set(yLegIds().map(j => yLegRow(j)[2]))].map(k => [k, yLegIds().filter(j => yLegRow(j)[2] === k).length]).filter(([, k]) => k >= 3).sort((a, b) => b[1] - a[1]);
+  const rate = (g, p) => (g === 'C' ? p - sc * 1.5 : g === 'SR' ? p + sc * 1.5 : p);
+  const cost = k => Math.round(pullCost(k) * mult / 1e3) * 1e3;
+  const ys = roster(myCid()).filter(inYouth).length;
+  main(`${hdr('球探抽卡', `<span class="mute">資金 ${G.inf ? '∞' : money(c.cash)} · 已抽 ${G.stats.pulls} 次 · 青年軍 ${ys} 人</span>${info(`青年軍卡池：每張卡都係一個 18 歲或以下（U18）嘅球員，抽中直接加入你嘅青年軍（唔使轉會費，週薪好低，唔計一隊 ${SQMAX} 人上限）。有啲係其他球會真實嘅 U18 球員（有真實青年軍資料嘅球季先有，例如 2025/26），其餘係球探搵返嚟嘅新秀；卡牌等級就係佢嘅潛力：UR 潛力 90 或以上，SSR 85–89，SR 78–84，R 70–77，C 60–69；而家能力低，要喺青年軍同一隊慢慢操上去。抽中 SR 或以上，有 ${Math.round(YGLEG * 100)}% 機會係「傳奇青年版」：傳奇球星 16–17 歲嘅樣，潛力就係佢巔峰嘅能力，每個傳奇只得一個。價錢係當代卡池嘅一半；揀國籍或位置就 ×1.5（國籍只影響傳奇青年版同新秀國籍）。十連抽保底一張 SR 或以上。`)}`)}
+  <div class="cols" style="grid-template-rows:auto auto auto minmax(0,1fr);overflow:auto">
+    <div class="row">${chips(GPSRC, 'yth', 'gpsrc')}
+      <select class="inp" data-ch="gpnat" aria-label="國籍"><option value="">全部國籍</option>${nats.map(([k, m]) => opt(k, `${natName(k)}（${m}）`, o.nat)).join('')}</select>
+      ${chips(GPLINE, o.line, 'gpline')}
+      ${o.nat || o.line ? '<button class="btn sm" data-act="gpclear">清除條件</button>' : ''}</div>
+    <section class="banner">
+      <div class="fan">${fan.map((p, k) => jCardHTML(p).replace('class="card', `style="--rot:${-10 + k * 10}deg;--ty:${k === 1 ? -10 : 6}px" class="card`)).join('')}</div>
+      <div class="lbl" style="color:#ffd9f7">青年軍（U18）卡池${o.nat ? ' · ' + esc(natName(o.nat)) : ''}${o.line ? ' · ' + GPLINE.find(x => x[0] === o.line)[1] : ''}${nReal ? ` · 真實 U18 球員 ${nReal.toLocaleString()} 人` : ''} · 傳奇青年版尚餘 ${poolSize(lp)} 個</div>
+      <h3>未來之星<br>直入青年軍</h3>
+      <p>球探走遍全世界搵 U18 天才新秀${nReal ? "，包括各大球會青年軍嘅真實球員" : ""}；運氣好仲會搵到少年時代嘅傳奇球星。${mult !== 1 ? ` 呢個卡池價錢 ×${mult}。` : ''}</p>
+      <div class="pullbtns"><button class="btn y" data-act="pull" data-a="10">十連抽 · ${money(cost(10))}</button><button class="btn" data-act="pull" data-a="1">單抽 · ${money(cost(1))}</button></div>
+    </section>
+    <div class="rates">${GRATES.map(([g, p]) => `<div class="rate"><b style="color:${{ UR: '#ffb8f5', SSR: '#ffd666', SR: '#b98aff', R: '#73a6ff', C: '#aab3c5' }[g]}">${g}</b><span>${rate(g, p).toFixed(1)}% · 潛力 ${YGPOT[g][0]}${g === 'UR' ? '+' : '–' + YGPOT[g][1]}</span></div>`).join('')}</div>
+    ${pan(`傳奇青年版 UR（${top.length}）${info('潛力 90 或以上嘅傳奇青年版。有顏色＝你已經抽到。每個傳奇只可以抽到一次。')}`, `<div class="urrow">${top.map(j => jCardHTML(j, { dim: !G.y[j], open: G.pl[j] ? 1 : 0 })).join('') || '<p class="note">呢個條件冇 UR 傳奇青年版。</p>'}</div>`, { t: 1 })}
+  </div>`);
+}
 SCREENS.gacha = () => {
+  if (UI.gp.yth) return gachaYouth();
   const c = myClub(), sc = c.st.scout, o = UI.gp, pool = gachaPool(o), n = poolSize(pool), mult = poolMult(o);
   const ids = Object.values(pool).flat(), skOf = id => G.pl[id] ? pd(id).sk : legendRow(id)[3];
   const top = ids.slice().sort((a, b) => skOf(b) - skOf(a)).slice(0, 3);
@@ -155,7 +189,7 @@ SCREENS.gacha = () => {
   const cost = k => Math.round(pullCost(k) * mult / 1e3) * 1e3;
   main(`${hdr('球探抽卡', `<span class="mute">資金 ${G.inf ? '∞' : money(c.cash)} · 已抽 ${G.stats.pulls} 次</span>${info('當代球員：呢個年代全世界嘅球員，抽中其他球會嘅即刻免轉會費加盟。傳奇球星：傳奇十一人入面嘅歷代球星（每人用佢最高峰嗰張卡，27 歲加盟），價錢 3 倍；呢個年代本身已經有嘅球員唔會出現。揀咗國籍、位置、聯賽或者新星（21 歲或以下）就係指定卡池，價錢 1.5 倍；卡池冇某個等級嘅卡，就會變成低一級。抽中自己球員係重複卡，可以喺卡冊幫佢升級。十連抽保底一張 SR 或以上。卡牌等級按位置計：門將同後衛能力 +2、防守中場同中場 +1 先至分等級，所以守位都有 UR；傳奇卡池仲專登加咗一批門將、後衛、中場 UR（例如雅辛、保方、巴雷斯、簡拿華路、沙維、恩尼斯達、馬圖斯）。')}`)}
   <div class="cols" style="grid-template-rows:auto auto auto minmax(0,1fr);overflow:auto">
-    <div class="row">${chips([['now', '當代球員'], ['leg', '傳奇球星']], o.leg ? 'leg' : 'now', 'gpsrc')}
+    <div class="row">${chips(GPSRC, o.leg ? 'leg' : 'now', 'gpsrc')}
       <select class="inp" data-ch="gpnat" aria-label="國籍"><option value="">全部國籍</option>${nats.map(([k, m]) => opt(k, `${natName(k)}（${m}）`, o.nat)).join('')}</select>
       ${chips(GPLINE, o.line, 'gpline')}
       ${o.leg ? '' : `<select class="inp" data-ch="gplg" aria-label="聯賽"><option value="">全部聯賽</option>${PLG().map(l => opt(l, LG[l].name, o.lg)).join('')}</select><button class="chip" data-act="gpyoung" aria-pressed="${o.young}">新星（21 歲或以下）</button>`}
@@ -176,7 +210,7 @@ function xPull(n) {
   save(); render();
   let ov = $('#xov'); if (!ov) { ov = Object.assign(document.createElement('div'), { id: 'xov', className: 'xov' }); document.body.appendChild(ov); const fl = Object.assign(document.createElement('div'), { id: 'xflash', className: 'xflash' }); document.body.appendChild(fl); }
   ov.hidden = false;
-  ov.innerHTML = `<div class="pullgrid ${n === 1 ? 'one' : ''}">${r.out.map((o, k) => `<div class="xflip h-${o.g}" data-k="${k}"><div class="in"><div class="back">XI</div>${cardHTML(o.pid, { badge: o.n > 1 ? `<span class="cbadge dup">重複 ×${o.n}</span>` : '<span class="cbadge new">NEW</span>' })}</div><div class="fst ${o.full ? 'bad' : o.dup ? '' : 'good'}">${o.full ? '已簽約 · 球隊滿員，有空位先可以上陣' : o.dup ? '重複卡 · 可以升級' : `由 ${esc(clubShort(o.from))} 加盟`}</div></div>`).join('')}</div>
+  ov.innerHTML = `<div class="pullgrid ${n === 1 ? 'one' : ''}">${r.out.map((o, k) => `<div class="xflip h-${o.g}" data-k="${k}"><div class="in"><div class="back">XI</div>${cardHTML(o.pid, { badge: o.yl ? '<span class="cbadge new">傳奇青年版</span>' : o.n > 1 ? `<span class="cbadge dup">重複 ×${o.n}</span>` : '<span class="cbadge new">NEW</span>' })}</div><div class="fst ${o.full ? 'bad' : o.dup ? '' : 'good'}">${o.from === 'yth' ? (o.yl ? '傳奇青年版 · 加入青年軍' : o.rf ? `由 ${esc(clubShort(o.rf))} 青年軍加盟` : '加入青年軍') : o.full ? '已簽約 · 球隊滿員，有空位先可以上陣' : o.dup ? '重複卡 · 可以升級' : `由 ${esc(clubShort(o.from))} 加盟`}</div></div>`).join('')}</div>
   <div class="ovfoot"><button class="btn" data-x="all">全部翻開</button><button class="btn y" data-x="again">再抽一次</button><button class="btn" data-x="done">完成</button></div>`;
   const flips = [...ov.querySelectorAll('.xflip')], timers = [];
   const reveal = f => { if (f.classList.contains('on')) return; f.classList.add('on'); const g = r.out[+f.dataset.k].g; if (g === 'UR' || g === 'SSR') xFlash(g); };
@@ -224,10 +258,10 @@ function cardPanel(pid) {
 /* ---------- actions ---------- */
 Object.assign(ACT, {
   pull: el => { closeModal(); xPull(+el.dataset.a); },
-  gpsrc: el => { UI.gp = { leg: el.dataset.a === 'leg', nat: '', line: UI.gp.line, lg: '', young: false }; render(); },
+  gpsrc: el => { UI.gp = { leg: el.dataset.a === 'leg', yth: el.dataset.a === 'yth', nat: '', line: UI.gp.line, lg: '', young: false }; render(); },
   gpline: el => { UI.gp.line = el.dataset.a; render(); },
   gpyoung: () => { UI.gp.young = !UI.gp.young; render(); },
-  gpclear: () => { UI.gp = { leg: UI.gp.leg, nat: '', line: '', lg: '', young: false }; render(); },
+  gpclear: () => { UI.gp = { leg: UI.gp.leg, yth: UI.gp.yth, nat: '', line: '', lg: '', young: false }; render(); },
   tacp: el => { setTac(el.dataset.a); save(); render(); toast(`戰術風格：${TACP[el.dataset.a].n}`); },
   alsrc: el => { UI.al.src = el.dataset.a; UI.al.n = 120; render(); },
   alg: el => { UI.al.g = el.dataset.a; UI.al.n = 120; render(); },

@@ -150,7 +150,7 @@ SCREENS.home = () => {
 /* ---------- 陣容 ---------- */
 const sqGet = (c, k) => k[0] === 'x' ? c.xi[+k.slice(1)] || null : k[0] === 'b' ? c.sb[+k.slice(1)] || null : k.slice(1);
 function sqSet(c, k, v) { if (k[0] === 'x') c.xi[+k.slice(1)] = v; else if (k[0] === 'b') c.sb[+k.slice(1)] = v; }
-function sqSwap(a, b) { const c = myClub(), pa = sqGet(c, a), pb = sqGet(c, b); sqSet(c, a, pb); sqSet(c, b, pa); c.sb = c.sb.filter(Boolean).slice(0, 5); }
+function sqSwap(a, b) { const c = myClub(), pa = sqGet(c, a), pb = sqGet(c, b); sqSet(c, a, pb); sqSet(c, b, pa); c.sb = c.sb.filter(Boolean).slice(0, benchN()); }
 function pTags(pid) {
   const d = pd(pid), p = ps(pid), t = [];
   const a = d.arw ?? 2; t.push(`<span class="arw a${a}" title="狀態：${ARWN[a]}">${ARWI[a]}</span>`);

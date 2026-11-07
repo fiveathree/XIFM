@@ -26,7 +26,7 @@ function patchLineup(cid) {
     if (best) used.add(best); return best || null;
   });
   c.sb = c.sb.filter(p => p && avail(p) && !used.has(p));
-  for (const p of roster(cid).filter(x => avail(x) && !used.has(x) && !c.sb.includes(x)).sort((a, b) => pd(b).sk - pd(a).sk)) { if (c.sb.length >= 5) break; c.sb.push(p); }
+  for (const p of roster(cid).filter(x => avail(x) && !used.has(x) && !c.sb.includes(x)).sort((a, b) => pd(b).sk - pd(a).sk)) { if (c.sb.length >= benchN()) break; c.sb.push(p); }
 }
 function newMatch(f, live) {
   const M = { f, live: !!live, h: buildSide(f.h, 'h'), a: buildSide(f.a, 'a'), seg: 0, k: 0, st: [ri(0, 3), ri(1, 5), 0, ri(0, 2)], ev: [], rt: {}, gl: {}, as: {}, yc: {}, app: new Set(), done: false, pause: null, ball: [50, 50], auto: !live };

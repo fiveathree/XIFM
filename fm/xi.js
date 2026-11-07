@@ -269,7 +269,7 @@ function chemMap(pids) {
    Old saves: the first load replaces the made-up prospects who never left the youth team. c.yseed marks it done. */
 function seedYouth(cid) {
   const c = G.clubs[cid], rows = (FM.YOUTH || {})[cid]; if (!rows || c.yseed) return false;
-  for (const p of roster(cid).filter(p => ps(p).pro && !ps(p).real && pd(p).yt)) {   // made-up prospects go
+  for (const p of roster(cid).filter(p => ps(p).pro && !ps(p).real && !ps(p).gacha && pd(p).yt)) {   // made-up prospects go
     ROS[cid] = roster(cid).filter(x => x !== p); delete G.pl[p]; delete G.y[p]; if (G.cards) delete G.cards[p];
     for (const t in c.yl || {}) c.yl[t].xi = c.yl[t].xi.map(x => x === p ? null : x);
   }
@@ -284,4 +284,78 @@ function seedYouth(cid) {
   c.yseed = 1;
   for (const t of ['u18', 'u21']) yAuto(cid, t, false);
   return true;
+}
+
+/* ---------- youth scout pool (球探抽卡 · 青年軍) ----------
+   Each card is a 15–17-year-old who joins your youth team. Most are made-up prospects (the grade is their potential);
+   a few are a legend as a teenager ('J<legend index>', potential = his legend rating), one of each at most.
+   The card grade of a gacha youngster is the pulled grade (G.y[pid].gg) until his ability grade passes it. */
+const YGPOT = { UR: [90, 96], SSR: [85, 89], SR: [78, 84], R: [70, 77], C: [60, 69] };
+const YGLEG = .3;   // chance that an SR / SSR / UR youth card is a young legend (when one is left in the pool)
+const YGNAT = ['ENG', 'ENG', 'ESP', 'ITA', 'GER', 'FRA', 'NED', 'POR', 'SCO'];
+const GRANK = { C: 0, R: 1, SR: 2, SSR: 3, UR: 4 };
+const yLegIds = () => legendIds().map(id => 'J' + id.slice(1));
+const yLegRow = jid => FM.LEGENDS[+jid.slice(1)];
+// young legends left to pull, by grade (o.line / o.nat filter)
+function yLegPool(o = {}) {
+  const pool = { UR: [], SSR: [], SR: [], R: [], C: [] };
+  for (const j of yLegIds()) { const L = yLegRow(j); if (G.y[j]) continue; if ((o.line && lineOf(L[1]) !== o.line) || (o.nat && L[2] !== o.nat)) continue; pool[gradeP(L[3], L[1])].push(j); }
+  return pool;
+}
+function yJoin(pid, me, sk) {
+  G.pl[pid] = newPl(me, sk, G.season + 3, 0); G.pl[pid].yt = 1; G.pl[pid].jd = G.day;
+  G.pl[pid].w = Math.max(150, Math.round(wageFor(sk, G.clubs[me].lg) * .3 / 10) * 10);
+  (ROS[me] = ROS[me] || []).push(pid); if (typeof skTrack === 'function') skTrack(pid);
+}
+function makeYouthCard(g, o, me) {
+  const [lo, hi] = YGPOT[g], pot = ri(lo, hi), nat = o.nat || pick(YGNAT);
+  let pos = pick(YPOS); for (let k = 0; k < 20 && o.line && lineOf(pos) !== o.line; k++) pos = pick(YPOS);
+  const age = ri(15, 17), sk = clamp(pot - ri(22, 32) + (age - 15) * 2, 38, 66);
+  const pid = 'y' + G.nid++, name = youthName(nat);
+  G.y[pid] = { no: 0, name, pos, nat, by: G.season - age, sk, sn: shortName(name), yth: 1, pro: 1, gacha: 1, pot, gg: g };
+  yJoin(pid, me, sk); return pid;
+}
+function makeYoungLegend(j, me) {
+  const L = yLegRow(j), age = ri(16, 17), sk = clamp(L[3] - ri(20, 26), 45, 74);
+  G.y[j] = { no: 0, name: L[0], pos: L[1], nat: L[2], by: G.season - age, sk, sn: L[6] || shortName(L[0]), yth: 1, pro: 1, gacha: 1, yl: 1, pot: Math.min(L[3], 99), gg: gradeP(L[3], L[1]), ls: L[4], lc: L[5] };
+  yJoin(j, me, sk); return j;
+}
+// real youth players of other clubs (fm/data/<era>/youth.js), 18 or under this season, by the grade of their potential
+const potGrade = pot => pot >= 90 ? 'UR' : pot >= 85 ? 'SSR' : pot >= 78 ? 'SR' : pot >= 70 ? 'R' : 'C';
+const YGREAL = .45;   // chance that a youth card is a real youth player of that grade (eras with youth.js)
+function yRealPool(o = {}) {
+  const pool = { UR: [], SSR: [], SR: [], R: [], C: [] }, me = G.mgr.cid, have = new Set(Object.values(G.y).map(y => y.name));
+  for (const [cid, rows] of Object.entries(FM.YOUTH || {})) {
+    if (cid === me || !G.clubs[cid]) continue;
+    rows.forEach(([name, pos, nat, by, sk, pot], k) => {
+      if (G.season - by > 18 || have.has(name) || G.y['yr.' + cid + '.' + k]) return;
+      if ((o.line && lineOf(pos) !== o.line) || (o.nat && nat !== o.nat)) return;
+      pool[potGrade(pot)].push(cid + '|' + k);
+    });
+  }
+  return pool;
+}
+function makeRealYouth(key, me) {
+  const [cid, k] = key.split('|'), [name, pos, nat, by, sk, pot] = FM.YOUTH[cid][+k], pid = 'yr.' + cid + '.' + k;
+  G.y[pid] = { no: 0, name, pos, nat, by, sk, sn: shortName(name), yth: 1, pro: 1, real: 1, gacha: 1, pot, gg: potGrade(pot), yfrom: cid };
+  yJoin(pid, me, sk); return pid;
+}
+function youthPull(n, o, cost) {
+  const me = G.mgr.cid, sc = G.clubs[me].st.scout, out = [], lp = yLegPool(o), rp = yRealPool(o);
+  fin(me, 'scout', -cost);
+  for (let k = 0; k < n; k++) {
+    const r = R() * 100; let acc = 0, g = 'C';
+    for (const [gr, p] of GRATES) { acc += gr === 'C' ? p - sc * 1.5 : gr === 'SR' ? p + sc * 1.5 : p; if (r < acc) { g = gr; break; } }
+    if (n === 10 && k === 9 && !out.some(x => GRANK[x.g] >= 2)) g = R() < .03 ? 'UR' : R() < .23 ? 'SSR' : 'SR';
+    const left = lp[g].filter(j => !G.y[j]);
+    const real = rp[g].filter(x => !out.some(q => q.key === x));
+    let pid, key = null;
+    if (GRANK[g] >= 2 && left.length && R() < YGLEG) pid = makeYoungLegend(pick(left), me);
+    else if (real.length && R() < YGREAL) { key = pick(real); pid = makeRealYouth(key, me); }
+    else pid = makeYouthCard(g, o, me);
+    G.cards = G.cards || {}; G.cards[pid] = (G.cards[pid] || 0) + 1;
+    out.push({ pid, g, from: 'yth', n: 1, yl: !!G.y[pid].yl, key, rf: G.y[pid].yfrom || null });
+  }
+  G.stats.pulls += n;
+  return { out, cost };
 }
