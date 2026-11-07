@@ -507,7 +507,7 @@ function transfer(pid, to, fee, wage, years, paid = fee) {
   if (G.clubs[from]) fin(from, 'tin', paid);
   if (G.clubs[to]) fin(to, 'tout', -paid);
   movePlayer(pid, to);
-  if (isUser(to)) { G.cards = G.cards || {}; if (!G.cards[pid]) G.cards[pid] = 1; }   // your players go into the album (fm/xi.js)
+  if (isUser(to)) { G.cards = G.cards || {}; if (!G.cards[pid]) G.cards[pid] = 1; if (typeof skTrack === 'function') skTrack(pid); }   // your players go into the album (fm/xi.js)
   if (isUser(to)) { const k = G.clubs[to].coh ?? 60; G.clubs[to].coh = Math.max(Math.min(k, 45), k - 3); }   // a new face: cohesion dips, but signings alone never push it below 45 (fm/life.js)
   d.w = wage || wageFor(d.sk, G.clubs[to]?.lg || 'eng3');
   d.ct = G.season + (years || ri(2, 4));
@@ -807,12 +807,18 @@ function rollover() {
   };
   move('eng3', 'eng4', 3, 4, 'po4'); move('eng2', 'eng3', 2, 3, 'po3'); move('eng1', 'eng2', 2, 3, 'po2');
   // players: development, retirement, contracts
-  const ns = s + 1;
+  const ns = s + 1, played = {}, track = [];
+  for (const f of G.fx) if (f.hg != null) { played[f.h] = (played[f.h] || 0) + 1; played[f.a] = (played[f.a] || 0) + 1; }
   for (const pid in G.pl) {
     const d = G.pl[pid]; if (d.c === 'ret') continue;
     const a = ns - ps(pid).by, f = d.fm.length ? sum(d.fm) / d.fm.length : 6.5;
     const dv = a <= 19 ? ri(1, 6) : a <= 22 ? ri(0, 5) : a <= 25 ? ri(-1, 3) : a <= 29 ? ri(-2, 2) : a <= 31 ? ri(-4, 1) : a <= 33 ? ri(-5, 0) : ri(-7, -1);
-    d.sk = clamp(d.sk + dv + (f >= 7.2 ? 1 : 0), 25, 97);
+    const pre = d.sk, pb = typeof playBonus === 'function' ? playBonus(pid, a, (d.s.ap || 0) / Math.max(1, played[d.c] || 0)) : 0, fb = f >= 7.2 ? 1 : 0;
+    d.sk = clamp(d.sk + dv + pb + fb, 25, 97);
+    if (d.skc) {   // ability record (fm/life.js)
+      (d.skh = d.skh || []).push([s, d.skc.a, pre - d.skc.a + d.skc.j, -d.skc.j, dv, pb, fb, d.sk]); if (d.skh.length > 15) d.skh.shift();
+      d.skc = { a: d.sk, j: 0 }; if (isUser(d.c) && d.sk !== d.skh[d.skh.length - 1][1]) track.push(pid);
+    }
     if (a >= 39 || (a >= 34 && R() < .2 + (a - 34) * .15)) { if (d.sk >= 80) news(`${ps(pid).sn} 宣佈退休`); if (isUser(d.c)) mail(`${ps(pid).sn} 退休`, `${esc(ps(pid).name)} 決定掛靴。`); movePlayer(pid, 'ret'); continue; }
     if (d.ct <= s) {
       if (isUser(d.c)) { mail(`${ps(pid).sn} 約滿離隊`, `${esc(ps(pid).name)} 嘅合約已經完結，以自由身離開。`); movePlayer(pid, 'free'); }
@@ -821,6 +827,7 @@ function rollover() {
     if (d.c !== 'free') d.w = Math.max(d.w, Math.round(wageFor(d.sk, G.clubs[d.c].lg) * .9 / 10) * 10);
     d.s = newStats(); d.fm = []; d.cond = 100; d.sus = 0;
   }
+  if (track.length) mail('球員能力變化', '今季完結，你嘅球員能力有以下變化（撳球員睇「能力紀錄」）：<br>' + track.sort((a, b) => (pd(b).sk - pd(b).skh.at(-1)[1]) - (pd(a).sk - pd(a).skh.at(-1)[1])).map(p => { const h = pd(p).skh.at(-1); return `${esc(ps(p).sn)} ${h[1]} → ${h[7]}（${h[7] - h[1] > 0 ? '+' : ''}${h[7] - h[1]}）`; }).join('<br>'));
   // new real players for the new season, if a data patch exists
   const patch = FM.seasons?.[ns] && (FM.seasons[ns].era || 2001) === (G.era || 2001) ? FM.seasons[ns] : null;
   if (patch) for (const [ck, rows] of Object.entries(patch.clubs || {})) rows.forEach((r, i) => { const pid = `s${ns}.${ck}.${i}`; const cid = G.clubs[ck] ? ck : 'free'; G.pl[pid] = newPl(cid, r[5], ns + ri(1, 4), r[0]); (ROS[cid] = ROS[cid] || []).push(pid); });
@@ -913,7 +920,7 @@ function training() {
       const d = pd(pid), a = ageOf(pid);
       if (a <= 23 && R() < .035 * g) d.sk = Math.min(97, d.sk + 1);
       else if (a >= 31 && R() < .03 / g) d.sk = Math.max(25, d.sk - 1);
-      if (c.tr.int === 2 && R() < .004 * (1 - (c.st.fit || 0) * .12)) { d.injn = '訓練受傷'; if (R() < .6) { d.lin = ri(3, 8); if (isUser(cid)) mail(`${ps(pid).sn} 訓練輕傷`, `${esc(ps(pid).name)} 喺高強度訓練中受咗輕傷，${d.lin} 日內仲可以上陣，但會影響表現，亦有機會傷勢加重。`); } else { d.inj = ri(5, 14); if (isUser(cid)) mail(`${ps(pid).sn} 訓練受傷`, `${esc(ps(pid).name)} 喺高強度訓練中重傷，要休息 ${d.inj} 日。`); } }
+      if (c.tr.int === 2 && R() < .004 * (1 - (c.st.fit || 0) * .12)) { d.injn = '訓練受傷'; if (R() < .6) { d.lin = ri(3, 8); if (isUser(cid)) mail(`${ps(pid).sn} 訓練輕傷`, `${esc(ps(pid).name)} 喺高強度訓練中受咗輕傷，${d.lin} 日內仲可以上陣，但會影響表現，亦有機會傷勢加重。`); } else { d.inj = ri(5, 14); if (isUser(cid)) mail(`${ps(pid).sn} 訓練受傷`, `${esc(ps(pid).name)} 喺高強度訓練中重傷，要休息 ${d.inj} 日。`); if (typeof injuryToll === 'function') injuryToll(pid, d.inj, c.st.physio); } }
     }
   }
 }
@@ -981,14 +988,14 @@ function groupsDone(comp) {
 /* ---------- save / load (compact) ---------- */
 const SKEY = s => 'xifm-fm-' + s;
 function pack() {
-  const pl = {}; for (const pid in G.pl) { const d = G.pl[pid]; if (d.c === 'ret') continue; const st = d.s; pl[pid] = [d.c, d.no, d.sk, Math.round(d.cond), d.fm.join('|'), d.inj, d.injn, d.sus, d.w, d.ct, d.list, st.ap, st.gl, st.as, st.yc, st.rc, st.mom, Math.round(st.rt * 10), d.arw ?? 2, d.lin || 0, d.pop == null ? -1 : Math.round(d.pop * 10), d.p2x || '', d.tf || '', d.clv || 0]; }
+  const pl = {}; for (const pid in G.pl) { const d = G.pl[pid]; if (d.c === 'ret') continue; const st = d.s; pl[pid] = [d.c, d.no, d.sk, Math.round(d.cond), d.fm.join('|'), d.inj, d.injn, d.sus, d.w, d.ct, d.list, st.ap, st.gl, st.as, st.yc, st.rc, st.mom, Math.round(st.rt * 10), d.arw ?? 2, d.lin || 0, d.pop == null ? -1 : Math.round(d.pop * 10), d.p2x || '', d.tf || '', d.clv || 0, d.skc ? JSON.stringify([d.skc.a, d.skc.j, d.skh || []]) : '']; }
   const fx = G.fx.map(f => [f.i, f.d, f.c, f.r, f.h, f.a, f.hg, f.ag, f.ko || 0, f.n || 0, f.g ?? -1, f.ph ?? -1, f.pa ?? -1, f.et || 0, f.att || 0, f.sc || 0]);
   return JSON.stringify(Object.assign({}, G, { pl, fx, packed: 1 }));
 }
 function unpack(str) {
   const g = JSON.parse(str);
   const pl = {};
-  for (const pid in g.pl) { const a = g.pl[pid]; pl[pid] = { c: a[0], no: a[1], sk: a[2], cond: a[3], fm: a[4] ? a[4].split('|').map(Number) : [], inj: a[5], injn: a[6], sus: a[7], w: a[8], ct: a[9], list: a[10], s: { ap: a[11], gl: a[12], as: a[13], yc: a[14], rc: a[15], mom: a[16], rt: a[17] / 10 }, arw: a[18] ?? 2, lin: a[19] || 0 }; if (a[20] >= 0) pl[pid].pop = a[20] / 10; if (a[21]) pl[pid].p2x = a[21]; if (a[22]) pl[pid].tf = a[22]; if (a[23]) pl[pid].clv = a[23]; }
+  for (const pid in g.pl) { const a = g.pl[pid]; pl[pid] = { c: a[0], no: a[1], sk: a[2], cond: a[3], fm: a[4] ? a[4].split('|').map(Number) : [], inj: a[5], injn: a[6], sus: a[7], w: a[8], ct: a[9], list: a[10], s: { ap: a[11], gl: a[12], as: a[13], yc: a[14], rc: a[15], mom: a[16], rt: a[17] / 10 }, arw: a[18] ?? 2, lin: a[19] || 0 }; if (a[20] >= 0) pl[pid].pop = a[20] / 10; if (a[21]) pl[pid].p2x = a[21]; if (a[22]) pl[pid].tf = a[22]; if (a[23]) pl[pid].clv = a[23]; if (a[24]) { const t = JSON.parse(a[24]); pl[pid].skc = { a: t[0], j: t[1] }; if (t[2].length) pl[pid].skh = t[2]; } }
   g.fx = g.fx.map(a => { const f = { i: a[0], d: a[1], c: a[2], r: a[3], h: a[4], a: a[5], hg: a[6], ag: a[7] }; if (a[8]) f.ko = a[8]; if (a[9]) f.n = 1; if (a[10] >= 0) f.g = a[10]; if (a[11] >= 0) { f.ph = a[11]; f.pa = a[12]; } if (a[13]) f.et = 1; if (a[14]) f.att = a[14]; if (a[15]) f.sc = a[15]; return f; });
   g.pl = pl; delete g.packed;
   G = g; reindex(); reindexFx(); ALLP = null;

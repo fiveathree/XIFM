@@ -210,3 +210,13 @@ Object.assign(ACT, {
   csell: el => { const v = cardSell(el.dataset.a); if (!v) return; save(); drawPlayer(); render(); toast(`賣咗 1 張重複卡 +${money(v)}`); },
 });
 document.addEventListener('input', e => { if (e.target.id === 'alq') { UI.al.q = e.target.value; UI.al.n = 120; const pos = e.target.selectionStart; render(); const q = $('#alq'); if (q) { q.focus(); q.setSelectionRange(pos, pos); } } });
+
+/* ---------- ability record in the player sheet (fm/life.js: skTrack / injuryToll / playBonus) ---------- */
+const sgn = v => v ? `<span class="${v > 0 ? 'good' : 'bad'}">${v > 0 ? '+' : ''}${v}</span>` : '<span class="mute">0</span>';
+function skHistPanel(pid) {
+  const d = pd(pid); if (!d.skc) return '';
+  const now = [seasonTxt(G.season) + '（進行中）', d.skc.a, d.sk - d.skc.a + d.skc.j, -d.skc.j, null, null, null, d.sk];
+  const rows = [now, ...(d.skh || []).slice().reverse().map(h => [seasonTxt(h[0]), ...h.slice(1)])];
+  return `<div class="pan" style="margin-top:8px"><h3>能力紀錄 ${info('只記錄喺你球隊效力過嘅球員。訓練・比賽：季內每個星期訓練嘅升跌（教練、加操、青訓教練、守門員教練都計）。傷患：休息 4 個星期或以上嘅重傷有機會永久扣能力，傷得越耐、年紀越大越易，物理治療師好啲會減低機會。季尾再按年齡升跌；23 歲或以下嘅球員仲睇上陣時間：踢夠球隊六成比賽 +2、三成半 +1、少過一成 −1；成季平均評分 7.2 或以上再 +1。')}</h3><div class="pb">
+    <table><thead><tr><th>球季</th><th class="n">季初</th><th class="n">訓練・比賽</th><th class="n">傷患</th><th class="n">年齡</th><th class="n">上陣時間</th><th class="n">表現</th><th class="n">季尾</th></tr></thead><tbody>${rows.map(r => `<tr><td>${r[0]}</td><td class="n">${r[1]}</td><td class="n">${sgn(r[2])}</td><td class="n">${sgn(r[3])}</td><td class="n">${r[4] == null ? '' : sgn(r[4])}</td><td class="n">${r[5] == null ? '' : sgn(r[5])}</td><td class="n">${r[6] == null ? '' : sgn(r[6])}</td><td class="n"><b>${r[7]}</b></td></tr>`).join('')}</tbody></table></div></div>`;
+}

@@ -307,3 +307,25 @@ function doStatement(k, pid) {
   news(`${clubName(me)} 發表聲明：${STATE[k].n}${pid ? `（${ps(pid).sn}）` : ''}`);
   return null;
 }
+
+/* ---------- ability record and lasting injuries ----------
+   Tracked for players who have been in your squad (keeps the save small):
+   d.skc = { a: ability at the start of the tracked season, j: lost to injuries so far }
+   d.skh = [[season, start, training & games, injuries, age, playing time, form, end], …] (last 15 seasons) */
+function skTrack(pid) { const d = pd(pid); if (d && !d.skc) d.skc = { a: d.sk, j: 0 }; }
+// a long injury can leave a mark: from about 4 weeks out, more likely the longer and the older; a better physio helps
+function injuryToll(pid, days, physio) {
+  if (days < 25) return 0;
+  const d = pd(pid), a = ageOf(pid);
+  if (R() > clamp((days - 18) / 45, .12, .85) * (1 - (physio || 0) * .1)) return 0;
+  const loss = (days >= 45 ? ri(1, 3) : 1) + (a >= 30 && R() < .5 ? 1 : 0);
+  d.sk = Math.max(25, d.sk - loss);
+  if (d.skc) d.skc.j += loss;
+  if (isUser(d.c)) mail(`${ps(pid).sn} 傷勢影響能力`, `${esc(ps(pid).name)} 嘅${esc(d.injn || '傷勢')}好嚴重，要休息 ${days} 日。醫療團隊估計就算傷癒，佢嘅能力都會永久下跌 ${loss}（而家 ${d.sk}）。`);
+  return loss;
+}
+// end of season: playing time decides how much a young player (23 or under next season) grows
+function playBonus(pid, a, share) {
+  if (a > 23 || pd(pid).c === 'free') return 0;
+  return share >= .6 ? 2 : share >= .35 ? 1 : share < .1 ? -1 : 0;
+}

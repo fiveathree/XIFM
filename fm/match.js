@@ -182,6 +182,7 @@ function injure(M, S, o, worse) {
   const n = worse || d.lin ? (d.injn || INJN[1]) : INJN[Math.min(INJN.length - 1, Math.floor(R() ** 2.2 * INJN.length))];
   d.inj = Math.max(4, Math.round((INJN.indexOf(n) + 1) * ri(3, 7) * (1.2 - ph * .08)) + (d.lin || 0)); d.injn = n; d.lin = 0;
   ev(M, 'inj', S.key, pid, null, `${n}（重傷，休息 ${d.inj} 日）`);
+  if (typeof injuryToll === 'function') injuryToll(pid, d.inj, ph);   // a long injury can lower ability for good (fm/life.js)
   const sub = bestSub(S, o.slot);
   if (sub && S.subs < MAXSUBS) doSub(M, S, o, sub);
   else o.pid = null;
