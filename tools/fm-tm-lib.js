@@ -32,7 +32,7 @@ const NAT = { England: 'ENG', Scotland: 'SCO', Wales: 'WAL', 'Northern Ireland':
   Senegal: 'SEN', "Cote d'Ivoire": 'CIV', 'Ivory Coast': 'CIV', Cameroon: 'CMR', Mali: 'MLI', 'Burkina Faso': 'BFA', Guinea: 'GUI', 'DR Congo': 'COD', Congo: 'CGO', Gabon: 'GAB', 'South Africa': 'RSA', Zambia: 'ZAM',
   Zimbabwe: 'ZIM', Angola: 'ANG', 'Cape Verde': 'CPV', 'Guinea-Bissau': 'GNB', Gambia: 'GAM', Togo: 'TOG', Benin: 'BEN', Kenya: 'KEN', Japan: 'JPN', 'Korea, South': 'KOR', 'South Korea': 'KOR', China: 'CHN', Iran: 'IRN',
   Australia: 'AUS', 'New Zealand': 'NZL', Lithuania: 'LTU', Latvia: 'LVA', Estonia: 'EST', Luxembourg: 'LUX', Moldova: 'MDA', Azerbaijan: 'AZE', Suriname: 'SUR', Curacao: 'CUW', Honduras: 'HON', 'Costa Rica': 'CRC',
-  Panama: 'PAN', Bolivia: 'BOL', 'Faroe Islands': 'FRO', Malta: 'MLT', Liberia: 'LBR', 'Sierra Leone': 'SLE', 'Equatorial Guinea': 'EQG', Mozambique: 'MOZ', Uzbekistan: 'UZB', 'Saudi Arabia': 'KSA', Iraq: 'IRQ' };
+  Panama: 'PAN', Bolivia: 'BOL', 'Faroe Islands': 'FRO', Malta: 'MLT', Liberia: 'LBR', 'Sierra Leone': 'SLE', 'Equatorial Guinea': 'EQG', Gibraltar: 'GIB', Mozambique: 'MOZ', Uzbekistan: 'UZB', 'Saudi Arabia': 'KSA', Iraq: 'IRQ' };
 
 // one club's season squad rows
 function parseSquad(h) {

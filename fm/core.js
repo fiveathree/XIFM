@@ -930,7 +930,7 @@ function newGame(name, cid, slot) {
   for (const cid of CLUBS) fillYouth(cid, 18);
   for (const cid of CLUBS) { const used = new Set(); for (const p of roster(cid)) { const d = pd(p); if (!d.no || used.has(d.no)) d.no = 0; used.add(d.no); } for (const p of roster(cid)) if (!pd(p).no) pd(p).no = squadNo(cid); }
   setupSeason(s0);
-  if (typeof makeProspect === 'function') { for (let k = 0; k < 6; k++) makeProspect(cid); }   // starting youth team (fm/xi.js)
+  if (typeof seedYouth === 'function' && seedYouth(cid)) { /* real youth squad (fm/data/<era>/youth.js) */ } else if (typeof makeProspect === 'function') { for (let k = 0; k < 6; k++) makeProspect(cid); }   // starting youth team (fm/xi.js)
   autoPick(cid);
   mail('歡迎嚟到 ' + clubName(cid), `${esc(name)}，董事局歡迎你出任 <b>${esc(clubName(cid))}</b> 領隊。<br>撳右上角「下一日」推進日子；有比賽嘅日子會自動入比賽畫面。季前可以先去「球員搜尋」或者「球探抽卡」補強。`);
 }

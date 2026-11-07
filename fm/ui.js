@@ -936,7 +936,7 @@ function loadEra(y) {
     const E = FM.ERAS[y]; let n = E.files.length;
     for (const f of E.files) {
       const s = document.createElement('script'); s.src = E.dir + f + '.js'; s.async = false; // keep file order
-      s.onload = () => { if (--n === 0) ok(); }; s.onerror = () => f === 'pos2' ? (--n === 0 && ok()) : bad(new Error(f + '.js'));
+      s.onload = () => { if (--n === 0) ok(); }; s.onerror = () => f === 'pos2' || f === 'youth' ? (--n === 0 && ok()) : bad(new Error(f + '.js'));
       document.head.appendChild(s);
     }
   }).then(() => indexEra(y));

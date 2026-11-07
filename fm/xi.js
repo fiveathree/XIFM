@@ -13,7 +13,7 @@ const cardR = pid => pd(pid).sk + clvOf(pid);
 const owns = pid => (G.cards && G.cards[pid]) || 0;
 function cardsInit() {   // old saves: the squad counts as collected
   G.cards = G.cards || {};
-  if (G.mgr.cid) for (const p of roster(G.mgr.cid)) { if (!G.cards[p]) G.cards[p] = 1; if (typeof skTrack === 'function') skTrack(p); }
+  if (G.mgr.cid) { for (const p of roster(G.mgr.cid)) { if (!G.cards[p]) G.cards[p] = 1; if (typeof skTrack === 'function') skTrack(p); } if (seedYouth(G.mgr.cid)) mail('真實青年軍名單', `${esc(clubName(G.mgr.cid))} 嘅 U18 / U21 而家用返真實球員名單（${roster(G.mgr.cid).filter(p => ps(p).real).length} 人），原本虛構嘅新秀已經移除。去「青年軍」頁睇。`); }
 }
 const DUPF = { C: .1, R: .3, SR: 1.2, SSR: 5, UR: 30 }, UPF = { C: .2, R: .4, SR: 1, SSR: 3, UR: 10 };
 const dupValue = pid => Math.round(pullCost(1) * DUPF[gradeOf(pid)] / 1e3) * 1e3;
@@ -262,4 +262,26 @@ function chemMap(pids) {
   const out = {};
   for (const p of pids) { const l = chemLinks(p, pids).n; out[p] = l >= 9 ? 3 : l >= 6 ? 2 : l >= 3 ? 1 : 0; }
   return out;
+}
+
+/* ---------- real youth squads (fm/data/<era>/youth.js, tools/fm-tm-youth.js) ----------
+   A club with a real youth list gets those players in its youth team (U18 / U21) instead of made-up prospects.
+   Old saves: the first load replaces the made-up prospects who never left the youth team. c.yseed marks it done. */
+function seedYouth(cid) {
+  const c = G.clubs[cid], rows = (FM.YOUTH || {})[cid]; if (!rows || c.yseed) return false;
+  for (const p of roster(cid).filter(p => ps(p).pro && !ps(p).real && pd(p).yt)) {   // made-up prospects go
+    ROS[cid] = roster(cid).filter(x => x !== p); delete G.pl[p]; delete G.y[p]; if (G.cards) delete G.cards[p];
+    for (const t in c.yl || {}) c.yl[t].xi = c.yl[t].xi.map(x => x === p ? null : x);
+  }
+  const have = new Set(Object.values(G.y).map(y => y.name));
+  rows.forEach(([name, pos, nat, by, sk, pot, team, no], k) => {
+    if (have.has(name)) return;
+    const pid = 'yr.' + cid + '.' + k;
+    G.y[pid] = { no: 0, name, pos, nat, by, sk, sn: shortName(name), yth: 1, pro: 1, real: 1, pot, yteam: team };
+    G.pl[pid] = newPl(cid, sk, G.season + 2, no || 0); G.pl[pid].yt = 1; G.pl[pid].w = Math.max(150, Math.round(wageFor(sk, c.lg) * .25 / 10) * 10);
+    (ROS[cid] = ROS[cid] || []).push(pid); G.cards = G.cards || {}; G.cards[pid] = 1; if (typeof skTrack === 'function') skTrack(pid);
+  });
+  c.yseed = 1;
+  for (const t of ['u18', 'u21']) yAuto(cid, t, false);
+  return true;
 }
