@@ -104,14 +104,20 @@ function closeModal() {
 /* ---------- info popover (hover on desktop, tap on phone) ---------- */
 let TIP = null;
 function showTip(btn) {
-  if (!TIP) { TIP = document.createElement('div'); TIP.id = 'tip'; document.body.appendChild(TIP); }
-  TIP.textContent = btn.dataset.tip; TIP.hidden = false; TIP.dataset.for = btn.dataset.tip;
-  const r = btn.getBoundingClientRect(), w = 260, h = 150;
+  if (!TIP) { TIP = document.createElement('div'); TIP.id = 'tip'; document.body.appendChild(TIP); TIP.addEventListener('mouseenter', () => clearTimeout(TIPT)); }
+  clearTimeout(TIPT);
+  const t = btn.dataset.tip; TIP.textContent = t; TIP.hidden = false; TIP.dataset.for = t;
+  // the box grows with the text so everything shows at once (wider for long texts, height to fit)
+  const w = Math.min(t.length > 260 ? 520 : t.length > 120 ? 420 : 300, innerWidth - 16);
+  TIP.style.width = w + 'px'; TIP.style.top = '0px'; TIP.style.left = '0px';
+  const r = btn.getBoundingClientRect(), h = TIP.offsetHeight;
   TIP.style.left = clamp(r.left - 10, 8, innerWidth - w - 8) + 'px';
-  TIP.style.top = (r.bottom + h + 8 < innerHeight ? r.bottom + 6 : Math.max(8, r.top - h - 6)) + 'px';
+  TIP.style.top = (r.bottom + h + 8 < innerHeight ? r.bottom + 6 : r.top - h - 6 > 8 ? r.top - h - 6 : Math.max(8, innerHeight - h - 8)) + 'px';
 }
-const hideTip = () => { if (TIP) TIP.hidden = true; };
-document.addEventListener('mouseover', e => { const b = e.target.closest('.ib'); if (b && matchMedia('(hover:hover)').matches) showTip(b); else if (!e.target.closest('#tip')) hideTip(); });
+let TIPT = 0;
+const hideTip = () => { clearTimeout(TIPT); if (TIP) TIP.hidden = true; };
+// leaving the button: a short grace period so the mouse can move onto the box (to select or scroll a very long one)
+document.addEventListener('mouseover', e => { const b = e.target.closest('.ib'); if (b && matchMedia('(hover:hover)').matches) showTip(b); else if (e.target.closest('#tip')) clearTimeout(TIPT); else if (TIP && !TIP.hidden) { clearTimeout(TIPT); TIPT = setTimeout(hideTip, 350); } });
 
 /* =====================================================================
    SCREENS

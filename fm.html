@@ -267,7 +267,7 @@ tr[data-k]{user-select:none}
 .flist .nb{padding:4px 8px;font-family:var(--f-disp);font-size:15px}
 /* (i) info popover: hover on desktop, tap on phone; fixed size */
 .ib{width:18px;height:18px;border-radius:50%;border:1px solid #9cc0ff;background:#0b2a66;color:#cfe0ff;font:italic 700 12px/1 Georgia,serif;padding:0;display:inline-grid;place-items:center;vertical-align:middle;margin-left:4px;flex:none;text-transform:none;letter-spacing:0}
-#tip{position:fixed;z-index:95;width:260px;height:150px;overflow:auto;background:#0b2559;border:1px solid var(--sel);padding:10px 12px;font:500 13px/1.6 var(--f-body);color:var(--ink);box-shadow:0 6px 24px rgba(0,0,0,.55)}
+#tip{position:fixed;z-index:95;width:300px;height:auto;max-height:calc(100vh - 16px);overflow:auto;white-space:pre-line;background:#0b2559;border:1px solid var(--sel);padding:10px 12px;font:500 13px/1.6 var(--f-body);color:var(--ink);box-shadow:0 6px 24px rgba(0,0,0,.55)}
 #tip[hidden]{display:none}
 
 /* ---------- phone ---------- */
