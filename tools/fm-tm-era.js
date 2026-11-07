@@ -78,6 +78,46 @@ function nearestClub(tmid, year, tmName) {
   const lerp = k => before && after ? Math.round((before.c[k] + (after.c[k] - before.c[k]) * (year - before.y) / (after.y - before.y)) * 10) / 10 : near[k];
   return { near, ny: sorted[0].y, rep: Math.round(lerp("rep")), bank: lerp("bank"), lg: sorted[0].lg };
 }
+// Transfermarkt only has English tiers 2–4 from 2004/05. Before that, take each division's clubs from the English
+// Wikipedia "<season> Football League" page (one section per division) and find each club on Transfermarkt.
+const WIKIDIV = { eng2: 'First', eng3: 'Second', eng4: 'Third' };
+const WCACHE = path.join(__dirname, '.wiki-cache'); fs.mkdirSync(WCACHE, { recursive: true });
+async function wikiText(title) {
+  const key = path.join(WCACHE, require('crypto').createHash('sha1').update('wt:' + title).digest('hex') + '.json');
+  if (fs.existsSync(key)) return JSON.parse(fs.readFileSync(key, 'utf8'));
+  const u = 'https://en.wikipedia.org/w/api.php?' + new URLSearchParams({ format: 'json', formatversion: '2', action: 'parse', page: title, prop: 'wikitext', redirects: '1' });
+  for (let t = 0; t < 5; t++) {
+    try { const j = await (await fetch(u, { headers: { 'User-Agent': 'XIFM-data-tool/1.0 (football game data)' } })).json(); const w = j.parse ? j.parse.wikitext : ''; fs.writeFileSync(key, JSON.stringify(w)); return w; }
+    catch (e) { await new Promise(r => setTimeout(r, 3000 * 2 ** t)); }
+  }
+  return '';
+}
+async function wikiDivision(lg, year) {
+  // the season page has one sports table per division (its section= names the division); some seasons keep the
+  // First Division table on its own page instead
+  const season = `${year}–${year === 1999 ? '2000' : String(year + 1).slice(2)}`;
+  for (const title of [`${season} Football League`, `${season} Football League ${WIKIDIV[lg]} Division`]) {
+    const w = await wikiText(title);
+    for (const blk of w.split(/\{\{\s*#invoke:\s*Sports table/i).slice(1).map(b => b.split(/\n\}\}/)[0])) {
+      const sec = (blk.match(/\|\s*section\s*=\s*([^\n|]*)/) || [])[1] || '';
+      if (sec && !sec.includes(WIKIDIV[lg] + ' Division')) continue;
+      const names = [...new Set([...blk.matchAll(/\|\s*name_[^=\s]+\s*=\s*\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g)].map(x => (x[2] || x[1]).replace(/\s+A?\.?F\.C\.?$/, '').trim()))];
+      if (names.length >= 20) return names;
+    }
+  }
+  return [];
+}
+async function tmClub(name) {   // our name → {id, slug, tm}
+  if (clubIds[name]) return clubIds[name];
+  const h = await get('/schnellsuche/ergebnis/schnellsuche?query=' + encodeURIComponent(name)); if (!h) return null;
+  const i = h.indexOf('Search results: Clubs'); if (i < 0) return null;
+  const k = nameKeys(name)[0];
+  for (const m of h.slice(i).matchAll(/<a title="([^"]+)" href="\/([^"\/]+)\/startseite\/verein\/(\d+)"/g)) {
+    const t = dec(m[1]); if (/\bU\d\d\b|\bII\b|Reserves|Youth/.test(t)) continue;
+    if (nameKeys(t)[0] === k) return { id: m[3], slug: m[2], tm: t };
+  }
+  return null;
+}
 const cleanName = s => dec(s).replace(/\s*\([^)]*\)/g, '').replace(/\s+\d+$/, '').replace(/^(FC|AFC|SC|SV|CF|SK|FK|KV|KRC|RSC|R\.)\s+/, '').replace(/\s+(FC|AFC|CF|SC|SAD)$/, '').trim();
 const nearestEra = (year, earlierFirst) => ERAS.slice().sort((a, b) => earlierFirst ? ((a.y > year) - (b.y > year)) || Math.abs(a.y - year) - Math.abs(b.y - year) : Math.abs(a.y - year) - Math.abs(b.y - year) || a.y - b.y)[0];
 
@@ -89,7 +129,13 @@ async function build(year) {
     const h = await get(`/x/startseite/wettbewerb/${COMP[lg]}/plus/?saison_id=${year}`); if (!h) { report.push(`${lg}: league page failed`); continue; }
     const seen = new Map();
     for (const m of h.matchAll(new RegExp(`<a title="([^"]+)" href="/([^"/]+)/startseite/verein/(\\d+)/saison_id/${year}"`, 'g'))) if (!seen.has(m[3])) seen.set(m[3], { id: m[3], slug: m[2], tm: dec(m[1]) });
-    leagues[lg] = [...seen.values()]; leagues[lg].forEach(c => taken.add(c.id));
+    leagues[lg] = [...seen.values()];
+    if (leagues[lg].length < 12 && WIKIDIV[lg] && year < 2004) {
+      leagues[lg] = []; const names = await wikiDivision(lg, year);
+      for (const n of names) { const t = await tmClub(n); if (t && !taken.has(t.id)) leagues[lg].push({ id: t.id, slug: t.slug, tm: t.tm }); else if (!t) report.push(`${lg}: ${n} not found on Transfermarkt`); }
+      report.push(`${lg}: ${leagues[lg].length} of ${names.length} clubs from Wikipedia`);
+    }
+    leagues[lg].forEach(c => taken.add(c.id));
   }
   // guest clubs: the nearest era's eur list, minus clubs in our leagues this season
   const g = nearestEra(year, false).L.eur;

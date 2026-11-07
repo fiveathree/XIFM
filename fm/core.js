@@ -908,6 +908,7 @@ function takeJob(cid) {
   if (old) autoPick(old);
   G.mgr.cid = cid; G.jobs = [];
   const c = G.clubs[cid]; c.conf = 60;
+  if (typeof seedYouth === 'function') seedYouth(cid);   // the new club's real youth squad, if the era has one (fm/xi.js)
   autoPick(cid);
   mail(`成為 ${clubName(cid)} 領隊`, `你正式接手 ${esc(clubName(cid))}。董事局希望你達到預期（第 ${c.exp} 名）。`);
 }

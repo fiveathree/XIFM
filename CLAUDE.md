@@ -19,7 +19,8 @@ Football-manager × gacha web game. UI language is Cantonese (Traditional Chines
 | `fm/favicon.svg`, `og-fm.png`, `og-xifm.png` | Career-mode favicon; share images (1200×630) for `fm.html` and `index.html`. |
 | `tools/fm-check-data.js`, `tools/fm-sim.js`, `tools/fm-sim-season.js` | Career-mode data validator and headless season simulator: `node tools/fm-sim.js tools/fm-sim-season.js` (run from the repo root; `FM_ERA=1994` etc. for another era; keep goals/game ≈ 2.5–2.7 after engine changes). |
 | `tools/fm-shirt-numbers.js`, `tools/fm-stadiums.js` | Fill real squad numbers from each club's English Wikipedia season page (`node tools/fm-shirt-numbers.js 2010`; pages cached in the git-ignored `tools/.wiki-cache/`), and correct stadium names/capacities per era. Both only change those fields, so pids stay the same. |
-| `fm/eras.js`, `tools/fm-build-era.js` | Career-mode start seasons (1994, 1998, 2001, 2004, 2010, 2020, 2025; `wk` pulls a far-off era's calendar back to an early-July start) and the tool that builds an era's data files from a compact text source (format in `fm/DATA_SPEC.md`). |
+| `fm/eras.js`, `tools/fm-build-era.js` | Career-mode start seasons: every season 1994 and 1998–2026 (`wk` pulls a far-off era's calendar back to an early-July start). Hand-made eras (1994, 1998, 2001, 2004, 2010, 2020, 2025) come from `tools/fm-build-era.js` (compact text source, format in `fm/DATA_SPEC.md`); the other seasons from `node tools/fm-tm-era.js <year>` (Transfermarkt squads, abilities interpolated from the hand-made eras; English tiers 2–4 before 2004 take their club lists from Wikipedia). |
+| `tools/fm-tm-youth.js` | Real U18/U21 squads → `fm/data/<era>/youth.js` (`node tools/fm-tm-youth.js 2025 all`; done for 2025 only). |
 
 No build step, no dependencies, no framework. Plain DOM + template strings. Only external resource is Google Fonts (Saira Condensed, Noto Sans TC).
 
