@@ -70,7 +70,7 @@ const clubShort = cid => CL[cid] ? CL[cid].short : '—';
 const clubCountry = cid => CL[cid].country || LG[CL[cid].lg0].country;
 
 const NATZ = { ENG: '英格蘭', SCO: '蘇格蘭', WAL: '威爾斯', NIR: '北愛爾蘭', IRL: '愛爾蘭', FRA: '法國', GER: '德國', ESP: '西班牙', ITA: '意大利', NED: '荷蘭', BEL: '比利時', POR: '葡萄牙', BRA: '巴西', ARG: '阿根廷', URU: '烏拉圭', NOR: '挪威', SWE: '瑞典', DEN: '丹麥', FIN: '芬蘭', ISL: '冰島', SUI: '瑞士', AUT: '奧地利', CZE: '捷克', SVK: '斯洛伐克', POL: '波蘭', HUN: '匈牙利', ROU: '羅馬尼亞', BUL: '保加利亞', CRO: '克羅地亞', SRB: '塞爾維亞', YUG: '南斯拉夫', SVN: '斯洛文尼亞', BIH: '波黑', MKD: '北馬其頓', GRE: '希臘', TUR: '土耳其', RUS: '俄羅斯', UKR: '烏克蘭', GEO: '格魯吉亞', BLR: '白俄羅斯', LVA: '拉脫維亞', LTU: '立陶宛', EST: '愛沙尼亞', ISR: '以色列', CMR: '喀麥隆', NGA: '尼日利亞', GHA: '加納', CIV: '科特迪瓦', SEN: '塞內加爾', MAR: '摩洛哥', TUN: '突尼斯', ALG: '阿爾及利亞', EGY: '埃及', RSA: '南非', ZIM: '津巴布韋', ZAM: '贊比亞', MLI: '馬里', GUI: '幾內亞', COD: '剛果民主共和國', LBR: '利比里亞', USA: '美國', CAN: '加拿大', MEX: '墨西哥', CRC: '哥斯達黎加', JAM: '牙買加', TRI: '千里達', HON: '洪都拉斯', COL: '哥倫比亞', CHI: '智利', PAR: '巴拉圭', PER: '秘魯', ECU: '厄瓜多爾', VEN: '委內瑞拉', BOL: '玻利維亞', AUS: '澳洲', NZL: '新西蘭', JPN: '日本', KOR: '南韓', CHN: '中國', IRN: '伊朗', KSA: '沙特阿拉伯', BFA: '布基納法索', VIN: '聖文森', BER: '百慕達', BRB: '巴巴多斯', GIB: '直布羅陀', BEN: '貝寧', MSR: '蒙特塞拉特', ANG: '安哥拉', GRN: '格林納達', SKN: '聖基茨', PAN: '巴拿馬', TJK: '塔吉克', UZB: '烏茲別克', ARM: '亞美尼亞', ALB: '阿爾巴尼亞', CYP: '塞浦路斯', GAM: '岡比亞', TOG: '多哥', LUX: '盧森堡', SCG: '塞黑', NAM: '納米比亞', DOM: '多米尼加', SLE: '塞拉利昂', GAB: '加蓬', LIE: '列支敦士登', MNE: '黑山', KOS: '科索沃', CPV: '佛得角', CGO: '剛果', ZAM: '贊比亞', TCD: '乍得', OMA: '阿曼', KEN: '肯尼亞', BDI: '布隆迪', MKD: '北馬其頓', SRB: '塞爾維亞' };
-const natName = c => NATZ[c] || c;
+const natName = c => NATZ[c] || (FM.LEGNAT || {})[c] || c;
 // EU / EEA nations in 2001 (others are shown as NON EU, like the original game)
 const EU = new Set('AUT BEL DEN FIN FRA GER GRE IRL ITA LUX NED POR ESP SWE ENG SCO WAL NIR NOR ISL LIE'.split(' '));
 
@@ -726,35 +726,48 @@ function releasePlayer(pid) {
 const GRATES = [['UR', .6], ['SSR', 4], ['SR', 14], ['R', 33], ['C', 48.4]];
 const PULLCOST = { eng1: 5e5, eng2: 2.5e5, eng3: 1e5, eng4: 5e4, sco1: 1.5e5, esp1: 5e5, ita1: 5e5, ger1: 4e5, fra1: 3e5, ned1: 2.5e5, por1: 2e5, tur1: 2e5, bel1: 1.5e5 };
 const pullCost = n => { const c = PULLCOST[G.clubs[G.mgr.cid].lg] || 2e5; return n === 10 ? c * 9 : c; };
-function gachaPool() {
-  const me = G.mgr.cid, pool = { UR: [], SSR: [], SR: [], R: [], C: [] };
-  for (const pid in G.pl) { const d = G.pl[pid]; if (d.c === 'ret' || ps(pid).yth) continue; pool[GRADE(d.sk)].push(pid); }   // your own players too: a duplicate card
+// pool: o = { leg: legends instead of current players, nat, line (G/D/M/A), lg (league id), young (21 or under) }
+// returns grade → candidate ids; legend ids are 'L<index>' (made into players the first time they are pulled, fm/xi.js)
+function gachaPool(o = {}) {
+  const pool = { UR: [], SSR: [], SR: [], R: [], C: [] }, ok = (pos, nat) => (!o.nat || nat === o.nat) && (!o.line || lineOf(pos) === o.line);
+  if (o.leg) { for (const id of legendIds()) { const L = legendRow(id), d = G.pl[id]; if (d && d.c === 'ret') continue; if (!ok(L[1], L[2])) continue; pool[GRADE(d ? d.sk : L[3])].push(id); } return pool; }
+  for (const pid in G.pl) {
+    const d = G.pl[pid]; if (d.c === 'ret' || ps(pid).yth || ps(pid).leg) continue;
+    if (!ok(ps(pid).pos, ps(pid).nat) || (o.lg && G.clubs[d.c]?.lg !== o.lg) || (o.young && ageOf(pid) > 21)) continue;
+    pool[GRADE(d.sk)].push(pid);
+  }
   return pool;
 }
-function gachaPull(n) {
-  const me = G.mgr.cid, cost = pullCost(n);
+const poolSize = p => Object.values(p).reduce((t, a) => t + a.length, 0);
+const poolMult = (o = {}) => (o.leg ? 3 : 1) * (o.nat || o.line || o.lg || o.young ? 1.5 : 1);
+function gachaPull(n, o = {}) {
+  const me = G.mgr.cid, cost = Math.round(pullCost(n) * poolMult(o) / 1e3) * 1e3;
+  const pool = gachaPool(o); if (poolSize(pool) < n) return { err: '呢個卡池人數唔夠，揀闊啲嘅條件。' };
   if (!G.inf && G.clubs[me].cash < cost) return { err: `要 ${money(cost)}，球會而家得 ${money(G.clubs[me].cash)}。` };
   fin(me, 'scout', -cost);
-  const pool = gachaPool(), sc = G.clubs[me].st.scout, out = [];
+  const sc = G.clubs[me].st.scout, out = [], GR = ['UR', 'SSR', 'SR', 'R', 'C'];
   for (let k = 0; k < n; k++) {
     const r = R() * 100;
     let acc = 0, g = 'C';
     const rates = GRATES.map(([gr, p]) => [gr, gr === 'C' ? p - sc * 1.5 : gr === 'SR' ? p + sc * 1.5 : p]);
     for (const [gr, p] of rates) { acc += p; if (r < acc) { g = gr; break; } }
     if (n === 10 && k === 9 && !out.some(x => ['SR', 'SSR', 'UR'].includes(x.g))) g = R() < .03 ? 'UR' : R() < .23 ? 'SSR' : 'SR';
-    let list = pool[g].filter(p => !out.some(o => o.pid === p));
-    if (!list.length) list = pool.C;
-    const mine = list.filter(p => pd(p).c === me); if (mine.length && R() < .2) list = mine;   // one in five of a grade is a copy of your own player (card upgrades)
-    const pid = pick(list), from = pd(pid).c;
-    out.push({ pid, g, from });
+    // a grade this pool does not have: the next one down (or up, if nothing is below)
+    const left = gr => pool[gr].filter(p => !out.some(o2 => o2.pid === p));
+    let gi = GR.indexOf(g); while (gi < GR.length - 1 && !left(GR[gi]).length) gi++; while (gi > 0 && !left(GR[gi]).length) gi--; g = GR[gi];
+    let list = left(g);
+    const mine = list.filter(p => G.pl[p] && pd(p).c === me); if (mine.length && R() < .2) list = mine;   // one in five of a grade is a copy of your own player (card upgrades)
+    const pid = pick(list);
+    if (!G.pl[pid] && typeof makeLegend === 'function') makeLegend(pid);
+    out.push({ pid, g, from: pd(pid).c });
   }
   G.cards = G.cards || {};
-  for (const o of out) {
-    o.n = G.cards[o.pid] = (G.cards[o.pid] || 0) + 1;
-    if (o.from === me) { o.dup = 1; continue; }   // already yours: a spare copy for card upgrades
+  for (const o2 of out) {
+    o2.n = G.cards[o2.pid] = (G.cards[o2.pid] || 0) + 1;
+    if (o2.from === me) { o2.dup = 1; continue; }   // already yours: a spare copy for card upgrades
     const full = activeCount(me) >= SQMAX;
-    transfer(o.pid, me, 0, Math.round(wageFor(pd(o.pid).sk, G.clubs[me].lg) * 1.05 / 10) * 10, ri(2, 4));
-    if (full) { pd(o.pid).xs = 1; o.full = 1; }
+    transfer(o2.pid, me, 0, Math.round(wageFor(pd(o2.pid).sk, G.clubs[me].lg) * 1.05 / 10) * 10, ri(2, 4));
+    if (full) { pd(o2.pid).xs = 1; o2.full = 1; }
   }
   G.stats.pulls += n;
   return { out, cost };

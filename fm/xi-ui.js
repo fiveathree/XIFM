@@ -8,7 +8,7 @@
 const XPITCH = `<svg viewBox="0 0 68 100" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="rgba(255,255,255,.55)" stroke-width=".35"><rect x="2" y="2" width="64" height="96"/><line x1="2" y1="50" x2="66" y2="50"/><circle cx="34" cy="50" r="9.15"/><rect x="13.8" y="2" width="40.4" height="16.5"/><rect x="24.8" y="2" width="18.4" height="5.5"/><rect x="13.8" y="81.5" width="40.4" height="16.5"/><rect x="24.8" y="92.5" width="18.4" height="5.5"/><path d="M26.7 18.5 A9.15 9.15 0 0 0 41.3 18.5"/><path d="M26.7 81.5 A9.15 9.15 0 0 1 41.3 81.5"/></g></svg>`;
 function cardHTML(pid, o = {}) {
   const d = pd(pid), p = ps(pid), g = GRADE(d.sk), lv = o.dim ? 0 : clvOf(pid);
-  const where = d.c === 'free' ? '自由身' : d.c === 'ret' ? '退休' : clubShort(d.c);
+  const where = (p.leg ? '傳奇 · ' : '') + (d.c === 'free' ? '自由身' : d.c === 'ret' ? '退休' : clubShort(d.c));
   return `<div class="card g-${g} ${o.dim ? 'dim' : ''} ${o.cls || ''}" ${o.open ? `data-pl="${pid}"` : ''} title="${esc(p.name)} · ${esc(clubName(d.c))}">
   <div class="c-top"><span class="c-r">${o.dim ? d.sk : cardR(pid)}</span><span class="c-g">${g}</span></div>
   <div class="c-pos">${p.pos}${lv ? `<span class="c-lv">+${lv}</span>` : ''}</div><div class="c-nat">${p.nat}</div>
@@ -132,25 +132,43 @@ SCREENS.tactics = () => {
 };
 
 /* ---------- 球探抽卡 ---------- */
+// card for a legend not pulled yet (or any legend row): same look, data from fm/legends.js
+function legCardHTML(id, o = {}) {
+  if (G.pl[id]) return cardHTML(id, o);
+  const L = legendCard(id), g = GRADE(L.sk);
+  return `<div class="card g-${g} ${o.dim ? 'dim' : ''}" title="${esc(L.name)} · ${esc(L.meta)}"><div class="c-top"><span class="c-r">${L.sk}</span><span class="c-g">${g}</span></div><div class="c-pos">${L.pos}</div><div class="c-nat">${L.nat}</div><div class="c-name">${esc(L.sn)}</div><div class="c-meta">傳奇 · ${esc(L.meta)}</div></div>`;
+}
+UI.gp = UI.gp || { leg: false, nat: '', line: '', lg: '', young: false };
+const GPLINE = [['', '全部位置'], ['G', '門將'], ['D', '後衛'], ['M', '中場'], ['A', '前鋒']];
 SCREENS.gacha = () => {
-  const c = myClub(), sc = c.st.scout, pool = gachaPool(), top = Object.keys(G.pl).filter(p => pd(p).c !== 'ret').sort((a, b) => pd(b).sk - pd(a).sk).slice(0, 3);
-  const ur = Object.keys(G.pl).filter(p => pd(p).c !== 'ret' && GRADE(pd(p).sk) === 'UR').sort((a, b) => pd(b).sk - pd(a).sk);
+  const c = myClub(), sc = c.st.scout, o = UI.gp, pool = gachaPool(o), n = poolSize(pool), mult = poolMult(o);
+  const ids = Object.values(pool).flat(), skOf = id => G.pl[id] ? pd(id).sk : legendRow(id)[3];
+  const top = ids.slice().sort((a, b) => skOf(b) - skOf(a)).slice(0, 3);
+  const ur = pool.UR.slice().sort((a, b) => skOf(b) - skOf(a));
+  const base = gachaPool({ leg: o.leg }), natCnt = {}; for (const id of Object.values(base).flat()) { const nat = G.pl[id] ? ps(id).nat : legendRow(id)[2]; natCnt[nat] = (natCnt[nat] || 0) + 1; }
+  const nats = Object.entries(natCnt).filter(([, k]) => k >= (o.leg ? 3 : 10)).sort((a, b) => b[1] - a[1]);
   const rate = (g, p) => (g === 'C' ? p - sc * 1.5 : g === 'SR' ? p + sc * 1.5 : p);
-  main(`${hdr('球探抽卡', `<span class="mute">資金 ${G.inf ? '∞' : money(c.cash)} · 已抽 ${G.stats.pulls} 次</span>`)}
-  <div class="cols" style="grid-template-rows:auto auto minmax(0,1fr);overflow:auto">
+  const cost = k => Math.round(pullCost(k) * mult / 1e3) * 1e3;
+  main(`${hdr('球探抽卡', `<span class="mute">資金 ${G.inf ? '∞' : money(c.cash)} · 已抽 ${G.stats.pulls} 次</span>${info('當代球員：呢個年代全世界嘅球員，抽中其他球會嘅即刻免轉會費加盟。傳奇球星：傳奇十一人入面嘅歷代球星（每人用佢最高峰嗰張卡，27 歲加盟），價錢 3 倍；呢個年代本身已經有嘅球員唔會出現。揀咗國籍、位置、聯賽或者新星（21 歲或以下）就係指定卡池，價錢 1.5 倍；卡池冇某個等級嘅卡，就會變成低一級。抽中自己球員係重複卡，可以喺卡冊幫佢升級。十連抽保底一張 SR 或以上。')}`)}
+  <div class="cols" style="grid-template-rows:auto auto auto minmax(0,1fr);overflow:auto">
+    <div class="row">${chips([['now', '當代球員'], ['leg', '傳奇球星']], o.leg ? 'leg' : 'now', 'gpsrc')}
+      <select class="inp" data-ch="gpnat" aria-label="國籍"><option value="">全部國籍</option>${nats.map(([k, m]) => opt(k, `${natName(k)}（${m}）`, o.nat)).join('')}</select>
+      ${chips(GPLINE, o.line, 'gpline')}
+      ${o.leg ? '' : `<select class="inp" data-ch="gplg" aria-label="聯賽"><option value="">全部聯賽</option>${PLG().map(l => opt(l, LG[l].name, o.lg)).join('')}</select><button class="chip" data-act="gpyoung" aria-pressed="${o.young}">新星（21 歲或以下）</button>`}
+      ${o.nat || o.line || o.lg || o.young ? '<button class="btn sm" data-act="gpclear">清除條件</button>' : ''}</div>
     <section class="banner">
-      <div class="fan">${top.map((p, k) => cardHTML(p).replace('class="card', `style="--rot:${-10 + k * 10}deg;--ty:${k === 1 ? -10 : 6}px" class="card`)).join('')}</div>
-      <div class="lbl" style="color:#ffd9f7">${esc(ERA.n || '')} 全世界卡池 · ${sum(Object.values(pool).map(a => a.length)).toLocaleString()} 張卡</div>
-      <h3>全世界球員<br>一抽即加盟</h3>
-      <p>球探幫你喺全世界搵人：抽中其他球會嘅球員即刻免轉會費加盟（新合約，週薪照計）。抽中自己球員就係重複卡，可以喺卡冊幫佢升級（每級 +1 評分，最多 +${CLVMAX}）或者賣錢。十連抽保底一張 SR 或以上。</p>
-      <div class="pullbtns"><button class="btn y" data-act="pull" data-a="10">十連抽 · ${money(pullCost(10))}</button><button class="btn" data-act="pull" data-a="1">單抽 · ${money(pullCost(1))}</button></div>
+      <div class="fan">${top.map((p, k) => legCardHTML(p).replace('class="card', `style="--rot:${-10 + k * 10}deg;--ty:${k === 1 ? -10 : 6}px" class="card`)).join('')}</div>
+      <div class="lbl" style="color:#ffd9f7">${o.leg ? '傳奇球星卡池' : esc(ERA.n || '') + ' 當代球員卡池'}${o.nat ? ' · ' + esc(natName(o.nat)) : ''}${o.line ? ' · ' + GPLINE.find(x => x[0] === o.line)[1] : ''}${o.lg ? ' · ' + esc(LG[o.lg].name) : ''}${o.young ? ' · 新星' : ''} · ${n.toLocaleString()} 張卡</div>
+      <h3>${o.leg ? '歷代傳奇<br>一抽即加盟' : '全世界球員<br>一抽即加盟'}</h3>
+      <p>${o.leg ? '比利、馬勒當拿、告魯夫、施丹……傳奇十一人入面嘅歷代球星，以佢哋最巔峰嘅能力加盟你球隊。' : '球探幫你喺全世界搵人：抽中其他球會嘅球員即刻免轉會費加盟（新合約，週薪照計）。'}${mult > 1 ? ` 呢個卡池價錢 ×${mult}。` : ''}</p>
+      <div class="pullbtns"><button class="btn y" data-act="pull" data-a="10" ${n < 10 ? 'disabled' : ''}>十連抽 · ${money(cost(10))}</button><button class="btn" data-act="pull" data-a="1" ${n < 1 ? 'disabled' : ''}>單抽 · ${money(cost(1))}</button></div>
     </section>
-    <div class="rates">${GRATES.map(([g, p]) => `<div class="rate"><b style="color:${{ UR: '#ffb8f5', SSR: '#ffd666', SR: '#b98aff', R: '#73a6ff', C: '#aab3c5' }[g]}">${g}</b><span>${rate(g, p).toFixed(1)}% · ${{ UR: '90+', SSR: '85–89', SR: '77–84', R: '68–76', C: '67 或以下' }[g]}</span></div>`).join('')}</div>
-    ${pan(`UR 名單（${ur.length}）${info('呢個年代能力 90 或以上嘅球員。有顏色＝你已經收集咗。撳卡睇資料。球探等級越高，SR 機率越高。')}`, `<div class="urrow">${ur.map(p => cardHTML(p, { dim: !owns(p), open: 1 })).join('') || '<p class="note">呢個年代冇 UR 球員。</p>'}</div>`, { t: 1 })}
+    <div class="rates">${GRATES.map(([g, p]) => `<div class="rate"><b style="color:${{ UR: '#ffb8f5', SSR: '#ffd666', SR: '#b98aff', R: '#73a6ff', C: '#aab3c5' }[g]}">${g}</b><span>${rate(g, p).toFixed(1)}% · ${pool[g].length} 張</span></div>`).join('')}</div>
+    ${pan(`UR 名單（${ur.length}）${info('呢個卡池能力 90 或以上嘅球員。有顏色＝你已經收集咗。球探等級越高，SR 機率越高。')}`, `<div class="urrow">${ur.map(p => legCardHTML(p, { dim: !owns(p), open: G.pl[p] ? 1 : 0 })).join('') || '<p class="note">呢個卡池冇 UR 球員。</p>'}</div>`, { t: 1 })}
   </div>`);
 };
 function xPull(n) {
-  const r = gachaPull(n); if (r.err) return toast(r.err);
+  const r = gachaPull(n, UI.gp); if (r.err) return toast(r.err);
   save(); render();
   let ov = $('#xov'); if (!ov) { ov = Object.assign(document.createElement('div'), { id: 'xov', className: 'xov' }); document.body.appendChild(ov); const fl = Object.assign(document.createElement('div'), { id: 'xflash', className: 'xflash' }); document.body.appendChild(fl); }
   ov.hidden = false;
@@ -169,19 +187,23 @@ function xFlash(g) { const f = $('#xflash'); f.style.background = g === 'UR' ? '
 UI.al = UI.al || { g: 'ALL', l: 'ALL', q: '', all: false, n: 120 };
 SCREENS.album = () => {
   cardsInit();
-  const A = UI.al, all = Object.keys(G.pl).filter(p => pd(p).c !== 'ret' && !ps(p).yth);
+  const A = UI.al, leg = A.src === 'leg';
+  const all = leg ? legendIds() : Object.keys(G.pl).filter(p => pd(p).c !== 'ret' && !ps(p).yth && !ps(p).leg);
+  const skA = p => G.pl[p] ? (leg ? cardR(p) : cardR(p)) : legendRow(p)[3], skB = p => G.pl[p] ? pd(p).sk : legendRow(p)[3];
+  const posA = p => G.pl[p] ? ps(p).pos : legendRow(p)[1], txtA = p => G.pl[p] ? ps(p).name + ' ' + clubName(pd(p).c) : legendRow(p)[0] + ' ' + legendRow(p)[5];
   const own = all.filter(owns), grades = ['UR', 'SSR', 'SR', 'R', 'C'];
-  const byG = grades.map(g => [g, own.filter(p => GRADE(pd(p).sk) === g).length, all.filter(p => GRADE(pd(p).sk) === g).length]);
-  const spare = own.reduce((t, p) => t + owns(p) - 1, 0), spareV = own.reduce((t, p) => t + (owns(p) - 1) * dupValue(p), 0);
+  const byG = grades.map(g => [g, own.filter(p => GRADE(skB(p)) === g).length, all.filter(p => GRADE(skB(p)) === g).length]);
+  const spare = own.reduce((t, p) => t + owns(p) - 1, 0), spareV = own.reduce((t, p) => t + (owns(p) - 1) * (G.pl[p] ? dupValue(p) : 0), 0);
   const q = A.q.toLowerCase();
-  const list = (A.all ? all : own).filter(p => (A.g === 'ALL' || GRADE(pd(p).sk) === A.g) && (A.l === 'ALL' || LINE[ps(p).pos] === A.l) && (!q || (ps(p).name + ' ' + clubName(pd(p).c)).toLowerCase().includes(q))).sort((a, b) => cardR(b) - cardR(a));
+  const list = (A.all ? all : own).filter(p => (A.g === 'ALL' || GRADE(skB(p)) === A.g) && (A.l === 'ALL' || LINE[posA(p)] === A.l) && (!q || txtA(p).toLowerCase().includes(q))).sort((a, b) => skA(b) - skA(a));
   main(`${hdr('卡冊', info('收集咗嘅卡：球探抽過、或者曾經喺你球隊嘅球員。撳「顯示未收集」睇晒呢個年代所有球員（灰色）。撳卡睇資料：重複卡可以幫自己球員升級（每級 +1 評分），或者賣返做資金。'))}
-  <div class="cols" style="grid-template-rows:auto auto minmax(0,1fr)">
+  <div class="cols" style="grid-template-rows:auto auto auto minmax(0,1fr)">
+    <div class="row">${chips([['now', '當代球員'], ['leg', '傳奇球星']], leg ? 'leg' : 'now', 'alsrc')}</div>
     <div class="prog"><span>已收集 <b>${own.length.toLocaleString()}</b> / ${all.length.toLocaleString()}</span>${byG.map(([g, a, b]) => `<span>${g} <b>${a}</b>/${b}</span>`).join('')}<span>重複卡 <b>${spare}</b></span>${spare ? `<button class="btn sm" data-act="sellall">賣晒重複卡 · +${money(spareV)}</button>` : ''}</div>
     <div class="row">${['ALL', ...grades].map(g => `<button class="chip" data-act="alg" data-a="${g}" aria-pressed="${A.g === g}">${g === 'ALL' ? '全部' : g}</button>`).join('')}
       ${[['ALL', '全部位置'], ['G', '門將'], ['D', '後衛'], ['M', '中場'], ['A', '前鋒']].map(([l, n]) => `<button class="chip" data-act="all" data-a="${l}" aria-pressed="${A.l === l}">${n}</button>`).join('')}
       <input class="inp" id="alq" placeholder="搜尋球員、球會" value="${esc(A.q)}" style="flex:1 1 160px;min-width:0"><button class="chip" data-act="alall" aria-pressed="${A.all}">顯示未收集</button></div>
-    ${pan(`${list.length.toLocaleString()} 張`, list.length ? `<div class="agrid">${list.slice(0, A.n).map(p => cardHTML(p, { dim: !owns(p), count: owns(p), open: 1 })).join('')}</div>${list.length > A.n ? `<div class="row" style="justify-content:center;margin-top:10px"><button class="btn" data-act="almore">顯示多 120 張（仲有 ${(list.length - A.n).toLocaleString()} 張）</button></div>` : ''}` : '<p class="note">未有卡。去「球探抽卡」開始收集。</p>', { t: 1, st: 'min-height:0' })}
+    ${pan(`${list.length.toLocaleString()} 張`, list.length ? `<div class="agrid">${list.slice(0, A.n).map(p => legCardHTML(p, { dim: !owns(p), count: owns(p), open: G.pl[p] ? 1 : 0 })).join('')}</div>${list.length > A.n ? `<div class="row" style="justify-content:center;margin-top:10px"><button class="btn" data-act="almore">顯示多 120 張（仲有 ${(list.length - A.n).toLocaleString()} 張）</button></div>` : ''}` : '<p class="note">未有卡。去「球探抽卡」開始收集。</p>', { t: 1, st: 'min-height:0' })}
   </div>`);
 };
 // card panel inside the player sheet (ui.js drawPlayer)
@@ -197,7 +219,12 @@ function cardPanel(pid) {
 /* ---------- actions ---------- */
 Object.assign(ACT, {
   pull: el => { closeModal(); xPull(+el.dataset.a); },
+  gpsrc: el => { UI.gp = { leg: el.dataset.a === 'leg', nat: '', line: UI.gp.line, lg: '', young: false }; render(); },
+  gpline: el => { UI.gp.line = el.dataset.a; render(); },
+  gpyoung: () => { UI.gp.young = !UI.gp.young; render(); },
+  gpclear: () => { UI.gp = { leg: UI.gp.leg, nat: '', line: '', lg: '', young: false }; render(); },
   tacp: el => { setTac(el.dataset.a); save(); render(); toast(`戰術風格：${TACP[el.dataset.a].n}`); },
+  alsrc: el => { UI.al.src = el.dataset.a; UI.al.n = 120; render(); },
   alg: el => { UI.al.g = el.dataset.a; UI.al.n = 120; render(); },
   all: el => { UI.al.l = el.dataset.a; UI.al.n = 120; render(); },
   alall: () => { UI.al.all = !UI.al.all; UI.al.n = 120; render(); },
@@ -229,13 +256,16 @@ const CTCOL = {
   sk: ['能力', p => cardR(p), -1], w: ['週薪', p => pd(p).w, -1], ct: ['到期', p => pd(p).ct, 1], val: ['身價', p => valueOf(p), -1],
 };
 const CTCLS = { name: '', team: '', age: 'n', pos: 'n', sk: 'n', w: 'n', ct: 'n', val: 'n hm' };
+// players matching the condition-release fields (ability below, optionally older than, youth team only if ticked)
+function condList() { const U = UI.ct, n = U.cn ?? 60, a = U.ca; return roster(myCid()).filter(p => cardR(p) < n && (a == null || a === '' || ageOf(p) > +a) && (U.cy || !inYouth(p))); }
 const relComp = pid => Math.round(pd(pid).w * 52 * Math.max(0, pd(pid).ct - G.season) * .5);
 SCREENS.contracts = () => {
   const U = UI.ct, k = CTCOL[U.sort] ? U.sort : 'ct', key = CTCOL[k][1];
   const l = [...roster(myCid())].sort((a, b) => { const x = key(a), y = key(b); return (typeof x === 'string' ? x.localeCompare(y) : x - y) * U.dir || cardR(b) - cardR(a); });
   const yt = l.filter(inYouth).length, xs = l.filter(p => pd(p).xs).length, mass = U.mass;
   main(`${hdr('合約', `<span class="mute">一隊 ${l.length - yt - xs} 人 · 青年軍 ${yt} 人${xs ? ` · 超額 ${xs} 人` : ''} · 上限 ${SQMAX} 人</span><button class="btn ${mass ? 'y' : ''}" data-act="ctmassmode">${mass ? '完成解約' : '一鍵解約'}</button>${info(`撳表頭排序，再撳一次反轉。續約：同球員傾新合約。解約：即刻終止合約，球員變自由身，球會要賠償餘下合約週薪嘅一半（今季到期嘅免賠）；撳一次會顯示賠償金額，再撳先確認。青年軍：${YTAGE} 歲或以下嘅球員可以落青年軍，佢哋唔會入一隊選擇（排陣、後備、比賽），但會喺青年軍踢波，季尾當有正選上陣時間計成長，青訓教練嘅訓練效果仲好啲。隨時可以升返一隊。超額：球隊登記上限 ${SQMAX} 人，滿咗之後抽卡抽中嘅球員照樣簽約，但未可以上陣；有人走咗就會自動登記，亦可以撳「登記上陣」。一鍵解約：撳咗之後，撳邊個球員就即刻解約邊個，唔使逐個確認，搞掂撳「完成解約」。合約喺到期嗰年 6 月完結；7 月 1 日未續約就會自由身離隊。`)}`)}
-  ${mass ? '<p class="bad" style="margin:0">一鍵解約模式：撳任何一行，嗰個球員即刻解約（會照扣賠償）。搞掂撳「完成解約」。</p>' : ''}
+  ${mass ? `<p class="bad" style="margin:0">一鍵解約模式：撳任何一行，嗰個球員即刻解約（會照扣賠償）。搞掂撳「完成解約」。</p>
+  <div class="row"><span>按條件解約：能力低過</span><input class="inp num" id="ctn" type="number" min="30" max="99" value="${U.cn ?? 60}" style="width:64px"><span>同埋年齡大過</span><input class="inp num" id="cta" type="number" min="15" max="45" value="${U.ca ?? ''}" placeholder="唔限" style="width:64px"><label><input type="checkbox" id="cty" ${U.cy ? 'checked' : ''}> 包括青年軍</label>${(() => { const m = condList(); return `<button class="btn ${U.carm ? 'y' : ''}" data-act="ctcond" ${m.length ? '' : 'disabled'}>${U.carm ? `確認解約 ${m.length} 人 · 賠 ${money(sum(m.map(relComp)))}` : `搵到 ${m.length} 人 · 解約`}</button>`; })()}</div>` : ''}
   ${pan(`合約 · 週薪總數 ${money(sum(l.map(p => pd(p).w)))}`, `<table><thead><tr>${Object.entries(CTCOL).map(([c, [t]]) => `<th class="${CTCLS[c]} srt ${c === k ? 'on' : ''}" data-act="cts" data-a="${c}" title="撳一下排序，再撳反轉">${t}${c === k ? (U.dir > 0 ? ' ▲' : ' ▼') : ''}</th>`).join('')}<th></th></tr></thead><tbody>${l.map(p => { const d = pd(p), y = inYouth(p), armed = U.arm === p;
     const team = d.xs ? '<span class="tag t-inj">超額</span>' : y ? '<span class="tag t-ls">青年軍</span>' : '一隊';
     if (mass) return `<tr class="click mrel" data-act="ctmass" data-a="${p}" title="撳一下即刻解約"><td class="nm">${esc(ps(p).sn)} ${starTag(p)}</td><td>${team}</td><td class="n">${ageOf(p)}</td><td class="n">${ps(p).pos}</td><td class="n">${cardR(p)}</td><td class="n">${money(d.w)}</td><td class="n ${d.ct <= G.season ? 'bad' : ''}">${d.ct}</td><td class="n hm">${money(valueOf(p))}</td><td class="bad nowrap">✕ 解約 · 賠 ${money(relComp(p))}</td></tr>`;
@@ -246,6 +276,7 @@ Object.assign(ACT, {
   cts: el => { const U = UI.ct, c = el.dataset.a; U.dir = U.sort === c ? -U.dir : CTCOL[c][2]; U.sort = c; U.arm = null; render(); },
   ctrel: el => { const p = el.dataset.a; if (UI.ct.arm !== p) { UI.ct.arm = p; return render(); } UI.ct.arm = null; const m = releasePlayer(p); save(); render(); toast(m); },
   ctdown: el => { const err = sendDown(el.dataset.a); if (err) return toast(err); UI.ct.arm = null; save(); render(); toast(`${ps(el.dataset.a).sn} 落咗青年軍`); },
+  ctcond: () => { const U = UI.ct; if (!U.carm) { U.carm = 1; return render(); } U.carm = 0; const m = condList(); let paid = 0; for (const p of m) { paid += relComp(p); releasePlayer(p); } save(); render(); toast(`解約咗 ${m.length} 人，賠償合共 ${money(paid)}`); },
   ctmassmode: () => { UI.ct.mass = !UI.ct.mass; UI.ct.arm = null; render(); },
   ctmass: el => { const p = el.dataset.a; if (!G.pl[p] || pd(p).c !== myCid()) return; const m = releasePlayer(p); save(); render(); toast(m); },
   ctxs: el => { const p = el.dataset.a; if (activeCount(myCid()) >= SQMAX) return toast(`登記名額已滿（${SQMAX} 人），要先解約、賣走或者落青年軍騰位`); delete pd(p).xs; save(); render(); toast(`${ps(p).sn} 已登記，可以上陣`); },
@@ -271,3 +302,7 @@ SCREENS.youth = () => {
   </div>`);
 };
 Object.assign(ACT, { yaup: () => { const err = yaUpgrade(); if (err) return toast(err); save(); render(); toast(`青訓設施升到 ${YANAME[yaOf(myClub())]}`); } });
+Object.assign(CH, { gpnat: el => { UI.gp.nat = el.value; render(); }, gplg: el => { UI.gp.lg = el.value; render(); } });
+// condition fields: remember the values; any change disarms the confirm button
+document.addEventListener('change', e => { const id = e.target.id; if (!['ctn', 'cta', 'cty'].includes(id)) return; const U = UI.ct;
+  if (id === 'ctn') U.cn = clamp(+e.target.value || 60, 30, 99); if (id === 'cta') U.ca = e.target.value === '' ? '' : clamp(+e.target.value, 15, 45); if (id === 'cty') U.cy = e.target.checked; U.carm = 0; render(); });

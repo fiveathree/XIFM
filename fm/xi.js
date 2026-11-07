@@ -156,3 +156,25 @@ function yaUpgrade() {
   if (!G.inf && c.cash < cost) return '資金唔夠';
   fin(G.mgr.cid, 'build', -cost); c.ya = yaOf(c) + 1; return null;
 }
+
+/* ---------- 傳奇球星 card pool (fm/legends.js from the main game) ----------
+   Card id 'L<index>'. A legend becomes a player (G.y entry with leg: 1, age 27) the first time he is pulled.
+   Legends who are real players of the loaded era (same name) are left out, so nobody exists twice. */
+const nrm = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z ]/g, '').trim();
+let LEGIDS = null;
+function legendIds() {
+  if (LEGIDS) return LEGIDS;
+  const here = new Set(Object.values(PS).map(p => nrm(p.name)));   // full names only: a short name like "Ronaldo" is shared by many
+  LEGIDS = (FM.LEGENDS || []).map((r, i) => [r, 'L' + i]).filter(([r]) => !here.has(nrm(r[0]))).map(x => x[1]);
+  return LEGIDS;
+}
+const legendRow = id => FM.LEGENDS[+id.slice(1)];
+const isLegend = pid => !!(ps(pid) && ps(pid).leg);
+function makeLegend(id) {
+  const L = legendRow(id);
+  G.y[id] = { no: 0, name: L[0], pos: L[1], nat: L[2], by: G.season - 27, sk: L[3], sn: L[6] || shortName(L[0]), leg: 1, ls: L[4], lc: L[5] };
+  G.pl[id] = newPl('free', L[3], G.season + 3, 0); (ROS.free = ROS.free || []).push(id);
+  return id;
+}
+// a legend that has not been pulled yet, as card data for the screens
+const legendCard = id => { const L = legendRow(id); return { name: L[0], sn: L[6] || shortName(L[0]), pos: L[1], nat: L[2], sk: L[3], meta: `${L[4]} ${L[5]}` }; };
