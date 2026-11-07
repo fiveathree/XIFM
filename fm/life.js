@@ -51,7 +51,7 @@ const STAFFR = {
 };
 const stLv = (c, k) => (c.st && c.st[k]) || 0;
 const SNAMES = {
-  ENG: [['John', 'Steve', 'Gary', 'Paul', 'Mark', 'Kevin', 'Brian', 'Tony', 'Mike', 'Chris'], ['Taylor', 'Walker', 'Clarke', 'Hughes', 'Wright', 'Turner', 'Barnes', 'Fletcher', 'Mills', 'Cooper']],
+  ENG: [['John', 'Steve', 'Gary', 'Paul', 'Mark', 'Kevin', 'Brian', 'Tony', 'Mike', 'Chris', 'Jack', 'Harry', 'Oliver', 'James', 'Callum', 'Ryan', 'Lewis', 'Jordan', 'Tom', 'Ben', 'Sam', 'Luke', 'Dan', 'Kyle'], ['Taylor', 'Walker', 'Clarke', 'Hughes', 'Wright', 'Turner', 'Barnes', 'Fletcher', 'Mills', 'Cooper', 'Bennett', 'Harris', 'Ward', 'Morgan', 'Price', 'Russell', 'Holmes', 'Shaw', 'Lloyd', 'Hunt', 'Palmer', 'Webb', 'Riley', 'Spencer', 'Bailey', 'Foster', 'Marsh', 'Chapman']],
   ESP: [['Carlos', 'José', 'Javier', 'Luis', 'Miguel', 'Pablo', 'Rafael', 'Andrés'], ['García', 'Martínez', 'López', 'Sánchez', 'Fernández', 'Ruiz', 'Moreno', 'Navarro']],
   ITA: [['Marco', 'Luca', 'Giovanni', 'Paolo', 'Roberto', 'Stefano', 'Andrea', 'Fabio'], ['Rossi', 'Bianchi', 'Ferrari', 'Esposito', 'Romano', 'Ricci', 'Conti', 'Galli']],
   GER: [['Thomas', 'Michael', 'Stefan', 'Jürgen', 'Andreas', 'Markus', 'Uwe', 'Ralf'], ['Müller', 'Schmidt', 'Weber', 'Wagner', 'Becker', 'Hoffmann', 'Koch', 'Richter']],

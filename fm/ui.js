@@ -52,9 +52,9 @@ const wdl = r => r ? `<span class="wdl ${r}">${{ W: '勝', D: '和', L: '負' }[
 function fxDesc(f, cid) { const opp = f.h === cid ? f.a : f.h; return `${compName(f.c)} · ${f.n ? '中立場' : f.h === cid ? '主場' : '作客'} 對 ${clubName(opp)} · ${fdate(f.d, 's')}`; }
 
 /* ---------- top bar / nav / ticker ---------- */
-const TITLE = { home: '主頁', squad: '陣容', tactics: '戰術', training: '訓練', staff: '職員', media: '傳媒', promo: '宣傳', search: '球員搜尋', market: '轉會市場', gacha: '球探抽卡', album: '卡冊', contracts: '合約', finance: '財政', stadium: '球場', board: '董事局', fixtures: '賽程', tables: '積分榜', cups: '盃賽', ratings: '數據排名', history: '歷史', mail: '收件箱', save: '存檔', match: '比賽' };
-const NAVG = [['球隊', ['home', 'squad', 'tactics', 'training', 'staff']], ['轉會', ['search', 'market', 'gacha', 'album', 'contracts']], ['球會', ['finance', 'stadium', 'board', 'media', 'promo']], ['賽事', ['fixtures', 'tables', 'cups', 'ratings', 'history']], ['系統', ['mail', 'save', 'quit']]];
-const NEEDCLUB = new Set(['home', 'squad', 'tactics', 'training', 'staff', 'market', 'gacha', 'album', 'contracts', 'finance', 'stadium', 'media', 'promo', 'match']);
+const TITLE = { home: '主頁', squad: '陣容', tactics: '戰術', training: '訓練', youth: '青年軍', staff: '職員', media: '傳媒', promo: '宣傳', search: '球員搜尋', market: '轉會市場', gacha: '球探抽卡', album: '卡冊', contracts: '合約', finance: '財政', stadium: '球場', board: '董事局', fixtures: '賽程', tables: '積分榜', cups: '盃賽', ratings: '數據排名', history: '歷史', mail: '收件箱', save: '存檔', match: '比賽' };
+const NAVG = [['球隊', ['home', 'squad', 'tactics', 'training', 'youth', 'staff']], ['轉會', ['search', 'market', 'gacha', 'album', 'contracts']], ['球會', ['finance', 'stadium', 'board', 'media', 'promo']], ['賽事', ['fixtures', 'tables', 'cups', 'ratings', 'history']], ['系統', ['mail', 'save', 'quit']]];
+const NEEDCLUB = new Set(['home', 'squad', 'tactics', 'training', 'youth', 'staff', 'market', 'gacha', 'album', 'contracts', 'finance', 'stadium', 'media', 'promo', 'match']);
 function rTop() {
   const cid = myCid(), f = cid && nextFx(cid), unread = G.mail.some(m => !m.rd);
   $('#top').innerHTML = `<div class="badge" data-act="badge" title="${esc(cid ? clubName(cid) : '')}">${badgeSVG(cid, 60)}</div>
@@ -155,6 +155,7 @@ function pTags(pid) {
   if (d.s && d.s.rc) t.push(`<span class="crd cr" title="今季紅牌 ${d.s.rc} 張">${d.s.rc}</span>`);
   if (d.list) t.push('<span class="tag t-ls">放售</span>');
   if (d.yt) t.push('<span class="tag t-ex" title="喺青年軍，唔入一隊選擇">青年軍</span>');
+  if (d.xs) t.push('<span class="tag t-inj" title="球隊滿員：已簽約但未登記，唔可以上陣，有空位會自動登記">超額</span>');
   if (d.c !== 'free' && d.ct <= G.season) t.push('<span class="tag t-ex">約滿</span>');
   if (typeof starTag === 'function' && d.c !== 'ret') t.push(starTag(pid));
   return t.join('');

@@ -87,3 +87,72 @@ function sendDown(pid) {
   return null;
 }
 function callUp(pid) { delete pd(pid).yt; }
+
+/* ---------- youth academy (青訓營) for your club ----------
+   c.ya   academy level 1–5 (better prospects, faster growth)
+   c.yr   youth results { w, d, l, gf, ga, log: [[day, opponent, gf, ga]] }
+   Prospects are made-up players in G.y with pro: 1 and a hidden potential pot (G.y[pid].pot).
+   Every 1 July 3–5 prospects (15–17) join the youth team; the youth team plays a game each week. */
+const YANAME = ['', '基本', '普通', '良好', '優秀', '頂級'];
+const yaOf = c => c.ya || 1;
+const yaCost = c => Math.round((yaOf(c) + 1) ** 2 * 5e5 * (TIERF[c.lg] || .7) / 1e4) * 1e4;
+const potOf = pid => (G.y[pid] && G.y[pid].pot) || 0;
+// the potential your staff can see: the better the youth coach, the closer to the truth
+function potSeen(pid) {
+  const pot = potOf(pid); if (!pot) return 0;
+  const c = G.clubs[G.mgr.cid], err = (5 - stLv(c, 'yth')) * 2, h = hsh(pid + 'pot') % (2 * err + 1) - err;
+  return clamp(pot + h, pd(pid).sk, 97);
+}
+const potStars = v => v >= 88 ? 5 : v >= 82 ? 4 : v >= 75 ? 3 : v >= 68 ? 2 : 1;
+const YPOS = ['GK', 'CD', 'CD', 'RB', 'LB', 'DM', 'CM', 'CM', 'AM', 'RM', 'LM', 'RW', 'LW', 'ST', 'ST', 'CF'];
+function youthName(nat) { return typeof staffName === 'function' ? staffName(nat) : '青年球員'; }
+function makeProspect(cid) {
+  const c = G.clubs[cid], ya = yaOf(c), nat = R() < .8 ? clubCountry(cid) : pick(['BRA', 'ARG', 'FRA', 'NED', 'POR', 'ESP', 'NGA', 'GHA', 'CIV', 'SEN']);
+  const sk = clamp(Math.round(30 + c.rep * .22 + ya * 3 + ri(-6, 6)), 35, 70);
+  const pot = clamp(sk + ri(10, 28) + ya * 2 + (R() < .04 + ya * .01 ? ri(8, 16) : 0), sk + 5, 96);
+  const n = G.nid++, pid = 'y' + n, name = youthName(nat);
+  G.y[pid] = { no: 0, name, pos: pick(YPOS), nat, by: G.season - ri(15, 17), sk, sn: shortName(name), yth: 1, pro: 1, pot };
+  G.pl[pid] = newPl(cid, sk, G.season + 3, 0); G.pl[pid].yt = 1; G.pl[pid].w = Math.max(150, Math.round(wageFor(sk, c.lg) * .3 / 10) * 10);
+  (ROS[cid] = ROS[cid] || []).push(pid);
+  G.cards = G.cards || {}; G.cards[pid] = 1; if (typeof skTrack === 'function') skTrack(pid);
+  return pid;
+}
+function youthIntake(cid, n) {
+  const got = []; for (let k = 0; k < n; k++) got.push(makeProspect(cid));
+  const best = got.slice().sort((a, b) => potSeen(b) - potSeen(a))[0];
+  mail('青訓新秀加入', `${got.length} 個青訓新秀加入咗青年軍：<br>${got.map(p => `${esc(ps(p).name)}（${ps(p).pos} · ${ageOf(p)} 歲 · 能力 ${pd(p).sk} · 潛力 ${'★'.repeat(potStars(potSeen(p)))}）`).join('<br>')}<br>青訓教練最睇好 <b>${esc(ps(best).sn)}</b>。去「青年軍」頁睇。`);
+}
+// weekly youth game and growth
+function youthWeek() {
+  const me = G.mgr.cid; if (!me) return;
+  const c = G.clubs[me], ys = roster(me).filter(p => pd(p).yt && !pd(p).inj).sort((a, b) => pd(b).sk - pd(a).sk);
+  if (ys.length >= 5) {
+    const str = sum(ys.slice(0, 11).map(p => pd(p).sk)) / Math.min(11, ys.length) - (11 - Math.min(11, ys.length));
+    const opp = pick(G.lgm[c.lg].filter(x => x !== me)), os = clamp(40 + G.clubs[opp].rep * .15 + ri(-5, 5), 40, 68);
+    const lam = (a, b) => clamp(1.4 * Math.exp((a - b) / 18), .3, 4);
+    const pois = l => { let k = 0, p = Math.exp(-l), s = p; const u = R(); while (u > s && k < 9) { k++; p *= l / k; s += p; } return k; };
+    const gf = pois(lam(str, os)), ga = pois(lam(os, str));
+    const yr = c.yr = c.yr || { w: 0, d: 0, l: 0, gf: 0, ga: 0, log: [] };
+    yr[gf > ga ? 'w' : gf < ga ? 'l' : 'd']++; yr.gf += gf; yr.ga += ga; yr.log.unshift([G.day, opp, gf, ga]); if (yr.log.length > 10) yr.log.length = 10;
+    for (const p of ys.slice(0, 11)) { const d = pd(p); d.fm.push(clamp(6.4 + (gf - ga) * .25 + (R() - .5) * 1.6, 4.5, 9.5)); if (d.fm.length > 5) d.fm.shift(); }
+  }
+  // growth: prospects grow towards their potential; everyone in the youth team gets the academy and youth coach
+  const ya = yaOf(c), yc = stLv(c, 'yth');
+  for (const p of roster(me).filter(x => pd(x).yt)) {
+    const d = pd(p), pot = potOf(p) || Math.min(97, d.sk + 6), f = form(p) || 6.5;
+    if (d.sk < pot && R() < (pot - d.sk) / 160 * (.5 + ya * .12 + yc * .06) * (f >= 7 ? 1.3 : f < 6 ? .7 : 1)) d.sk++;
+  }
+}
+// season start: intake for your club, and a youth record reset
+function youthSeason() {
+  const me = G.mgr.cid; if (!me) return;
+  const c = G.clubs[me]; c.yr = { w: 0, d: 0, l: 0, gf: 0, ga: 0, log: [] };
+  for (const p of roster(me)) if (potOf(p) && pd(p).sk > potOf(p)) pd(p).sk = potOf(p);   // nobody outgrows his potential
+  youthIntake(me, ri(3, 4) + (yaOf(c) >= 4 ? 1 : 0));
+}
+function yaUpgrade() {
+  const c = G.clubs[G.mgr.cid], cost = yaCost(c);
+  if (yaOf(c) >= 5) return '青訓設施已經係頂級';
+  if (!G.inf && c.cash < cost) return '資金唔夠';
+  fin(G.mgr.cid, 'build', -cost); c.ya = yaOf(c) + 1; return null;
+}

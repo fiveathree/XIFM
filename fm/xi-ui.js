@@ -154,7 +154,7 @@ function xPull(n) {
   save(); render();
   let ov = $('#xov'); if (!ov) { ov = Object.assign(document.createElement('div'), { id: 'xov', className: 'xov' }); document.body.appendChild(ov); const fl = Object.assign(document.createElement('div'), { id: 'xflash', className: 'xflash' }); document.body.appendChild(fl); }
   ov.hidden = false;
-  ov.innerHTML = `<div class="pullgrid ${n === 1 ? 'one' : ''}">${r.out.map((o, k) => `<div class="xflip h-${o.g}" data-k="${k}"><div class="in"><div class="back">XI</div>${cardHTML(o.pid, { badge: o.n > 1 ? `<span class="cbadge dup">重複 ×${o.n}</span>` : '<span class="cbadge new">NEW</span>' })}</div><div class="fst ${o.full ? 'bad' : o.dup ? '' : 'good'}">${o.full ? '球隊滿員，退還部分費用' : o.dup ? '重複卡 · 可以升級' : `由 ${esc(clubShort(o.from))} 加盟`}</div></div>`).join('')}</div>
+  ov.innerHTML = `<div class="pullgrid ${n === 1 ? 'one' : ''}">${r.out.map((o, k) => `<div class="xflip h-${o.g}" data-k="${k}"><div class="in"><div class="back">XI</div>${cardHTML(o.pid, { badge: o.n > 1 ? `<span class="cbadge dup">重複 ×${o.n}</span>` : '<span class="cbadge new">NEW</span>' })}</div><div class="fst ${o.full ? 'bad' : o.dup ? '' : 'good'}">${o.full ? '已簽約 · 球隊滿員，有空位先可以上陣' : o.dup ? '重複卡 · 可以升級' : `由 ${esc(clubShort(o.from))} 加盟`}</div></div>`).join('')}</div>
   <div class="ovfoot"><button class="btn" data-x="all">全部翻開</button><button class="btn y" data-x="again">再抽一次</button><button class="btn" data-x="done">完成</button></div>`;
   const flips = [...ov.querySelectorAll('.xflip')], timers = [];
   const reveal = f => { if (f.classList.contains('on')) return; f.classList.add('on'); const g = r.out[+f.dataset.k].g; if (g === 'UR' || g === 'SSR') xFlash(g); };
@@ -225,7 +225,7 @@ function skHistPanel(pid) {
 /* ---------- 合約: sortable, renew, early termination, youth team ---------- */
 UI.ct = UI.ct || { sort: 'ct', dir: 1, arm: null };
 const CTCOL = {
-  name: ['球員', p => ps(p).name, 1], team: ['隊', p => inYouth(p) ? 1 : 0, 1], age: ['歲', p => ageOf(p), 1], pos: ['位', p => POSORD.indexOf(ps(p).pos), 1],
+  name: ['球員', p => ps(p).name, 1], team: ['隊', p => pd(p).xs ? 2 : inYouth(p) ? 1 : 0, 1], age: ['歲', p => ageOf(p), 1], pos: ['位', p => POSORD.indexOf(ps(p).pos), 1],
   sk: ['能力', p => cardR(p), -1], w: ['週薪', p => pd(p).w, -1], ct: ['到期', p => pd(p).ct, 1], val: ['身價', p => valueOf(p), -1],
 };
 const CTCLS = { name: '', team: '', age: 'n', pos: 'n', sk: 'n', w: 'n', ct: 'n', val: 'n hm' };
@@ -233,15 +233,41 @@ const relComp = pid => Math.round(pd(pid).w * 52 * Math.max(0, pd(pid).ct - G.se
 SCREENS.contracts = () => {
   const U = UI.ct, k = CTCOL[U.sort] ? U.sort : 'ct', key = CTCOL[k][1];
   const l = [...roster(myCid())].sort((a, b) => { const x = key(a), y = key(b); return (typeof x === 'string' ? x.localeCompare(y) : x - y) * U.dir || cardR(b) - cardR(a); });
-  const yt = l.filter(inYouth).length;
-  main(`${hdr('合約', `<span class="mute">一隊 ${l.length - yt} 人 · 青年軍 ${yt} 人</span>${info(`撳表頭排序，再撳一次反轉。續約：同球員傾新合約。解約：即刻終止合約，球員變自由身，球會要賠償餘下合約週薪嘅一半（今季到期嘅免賠）；撳一次會顯示賠償金額，再撳先確認。青年軍：${YTAGE} 歲或以下嘅球員可以落青年軍，佢哋唔會入一隊選擇（排陣、後備、比賽），但會喺青年軍踢波，季尾當有正選上陣時間計成長，青訓教練嘅訓練效果仲好啲。隨時可以升返一隊。合約喺到期嗰年 6 月完結；7 月 1 日未續約就會自由身離隊。`)}`)}
+  const yt = l.filter(inYouth).length, xs = l.filter(p => pd(p).xs).length, mass = U.mass;
+  main(`${hdr('合約', `<span class="mute">一隊 ${l.length - yt - xs} 人 · 青年軍 ${yt} 人${xs ? ` · 超額 ${xs} 人` : ''} · 上限 ${SQMAX} 人</span><button class="btn ${mass ? 'y' : ''}" data-act="ctmassmode">${mass ? '完成解約' : '一鍵解約'}</button>${info(`撳表頭排序，再撳一次反轉。續約：同球員傾新合約。解約：即刻終止合約，球員變自由身，球會要賠償餘下合約週薪嘅一半（今季到期嘅免賠）；撳一次會顯示賠償金額，再撳先確認。青年軍：${YTAGE} 歲或以下嘅球員可以落青年軍，佢哋唔會入一隊選擇（排陣、後備、比賽），但會喺青年軍踢波，季尾當有正選上陣時間計成長，青訓教練嘅訓練效果仲好啲。隨時可以升返一隊。超額：球隊登記上限 ${SQMAX} 人，滿咗之後抽卡抽中嘅球員照樣簽約，但未可以上陣；有人走咗就會自動登記，亦可以撳「登記上陣」。一鍵解約：撳咗之後，撳邊個球員就即刻解約邊個，唔使逐個確認，搞掂撳「完成解約」。合約喺到期嗰年 6 月完結；7 月 1 日未續約就會自由身離隊。`)}`)}
+  ${mass ? '<p class="bad" style="margin:0">一鍵解約模式：撳任何一行，嗰個球員即刻解約（會照扣賠償）。搞掂撳「完成解約」。</p>' : ''}
   ${pan(`合約 · 週薪總數 ${money(sum(l.map(p => pd(p).w)))}`, `<table><thead><tr>${Object.entries(CTCOL).map(([c, [t]]) => `<th class="${CTCLS[c]} srt ${c === k ? 'on' : ''}" data-act="cts" data-a="${c}" title="撳一下排序，再撳反轉">${t}${c === k ? (U.dir > 0 ? ' ▲' : ' ▼') : ''}</th>`).join('')}<th></th></tr></thead><tbody>${l.map(p => { const d = pd(p), y = inYouth(p), armed = U.arm === p;
-    return `<tr class="${y ? 'yt' : ''}"><td class="nm">${pl(p)} ${starTag(p)}</td><td>${y ? '<span class="tag t-ls">青年軍</span>' : '一隊'}</td><td class="n">${ageOf(p)}</td><td class="n">${ps(p).pos}</td><td class="n">${cardR(p)}</td><td class="n">${money(d.w)}</td><td class="n ${d.ct <= G.season ? 'bad' : ''}">${d.ct}</td><td class="n hm">${money(valueOf(p))}</td>
-      <td class="nowrap"><button class="btn sm" data-act="renewopen" data-a="${p}">續約</button> <button class="btn sm ${armed ? 'y' : ''}" data-act="ctrel" data-a="${p}">${armed ? `確認解約 · 賠 ${money(relComp(p))}` : '解約'}</button> ${y ? `<button class="btn sm" data-act="ctup" data-a="${p}">升一隊</button>` : ageOf(p) <= YTAGE ? `<button class="btn sm" data-act="ctdown" data-a="${p}">落青年軍</button>` : ''}</td></tr>`; }).join('')}</tbody></table>`, { st: 'flex:1' })}`);
+    const team = d.xs ? '<span class="tag t-inj">超額</span>' : y ? '<span class="tag t-ls">青年軍</span>' : '一隊';
+    if (mass) return `<tr class="click mrel" data-act="ctmass" data-a="${p}" title="撳一下即刻解約"><td class="nm">${esc(ps(p).sn)} ${starTag(p)}</td><td>${team}</td><td class="n">${ageOf(p)}</td><td class="n">${ps(p).pos}</td><td class="n">${cardR(p)}</td><td class="n">${money(d.w)}</td><td class="n ${d.ct <= G.season ? 'bad' : ''}">${d.ct}</td><td class="n hm">${money(valueOf(p))}</td><td class="bad nowrap">✕ 解約 · 賠 ${money(relComp(p))}</td></tr>`;
+    return `<tr class="${y ? 'yt' : ''}"><td class="nm">${pl(p)} ${starTag(p)}</td><td>${team}</td><td class="n">${ageOf(p)}</td><td class="n">${ps(p).pos}</td><td class="n">${cardR(p)}</td><td class="n">${money(d.w)}</td><td class="n ${d.ct <= G.season ? 'bad' : ''}">${d.ct}</td><td class="n hm">${money(valueOf(p))}</td>
+      <td class="nowrap"><button class="btn sm" data-act="renewopen" data-a="${p}">續約</button> <button class="btn sm ${armed ? 'y' : ''}" data-act="ctrel" data-a="${p}">${armed ? `確認解約 · 賠 ${money(relComp(p))}` : '解約'}</button> ${d.xs ? `<button class="btn sm" data-act="ctxs" data-a="${p}">登記上陣</button>` : y ? `<button class="btn sm" data-act="ctup" data-a="${p}">升一隊</button>` : ageOf(p) <= YTAGE ? `<button class="btn sm" data-act="ctdown" data-a="${p}">落青年軍</button>` : ''}</td></tr>`; }).join('')}</tbody></table>`, { st: 'flex:1' })}`);
 };
 Object.assign(ACT, {
   cts: el => { const U = UI.ct, c = el.dataset.a; U.dir = U.sort === c ? -U.dir : CTCOL[c][2]; U.sort = c; U.arm = null; render(); },
   ctrel: el => { const p = el.dataset.a; if (UI.ct.arm !== p) { UI.ct.arm = p; return render(); } UI.ct.arm = null; const m = releasePlayer(p); save(); render(); toast(m); },
   ctdown: el => { const err = sendDown(el.dataset.a); if (err) return toast(err); UI.ct.arm = null; save(); render(); toast(`${ps(el.dataset.a).sn} 落咗青年軍`); },
+  ctmassmode: () => { UI.ct.mass = !UI.ct.mass; UI.ct.arm = null; render(); },
+  ctmass: el => { const p = el.dataset.a; if (!G.pl[p] || pd(p).c !== myCid()) return; const m = releasePlayer(p); save(); render(); toast(m); },
+  ctxs: el => { const p = el.dataset.a; if (activeCount(myCid()) >= SQMAX) return toast(`登記名額已滿（${SQMAX} 人），要先解約、賣走或者落青年軍騰位`); delete pd(p).xs; save(); render(); toast(`${ps(p).sn} 已登記，可以上陣`); },
   ctup: el => { callUp(el.dataset.a); UI.ct.arm = null; save(); render(); toast(`${ps(el.dataset.a).sn} 升上一隊`); },
 });
+
+/* ---------- 青年軍 (youth academy screen) ---------- */
+SCREENS.youth = () => {
+  const c = myClub(), me = myCid(), ys = roster(me).filter(inYouth).sort((a, b) => (potSeen(b) || pd(b).sk) - (potSeen(a) || pd(a).sk));
+  const can = roster(me).filter(p => !inYouth(p) && ageOf(p) <= YTAGE).sort((a, b) => ageOf(a) - ageOf(b));
+  const yr = c.yr || { w: 0, d: 0, l: 0, gf: 0, ga: 0, log: [] }, coach = staffOf(c, 'yth');
+  const ycard = p => { const pv = potSeen(p); return `<div class="ycard">${cardHTML(p, { open: 1 })}<div class="yinfo"><b>${pl(p)}</b><span class="num">${ps(p).pos} · ${ageOf(p)} 歲</span>${pv ? `<span class="ypot" title="青訓教練估計潛力約 ${pv}（教練越好越準）">潛力 ${'★'.repeat(potStars(pv))}${'☆'.repeat(5 - potStars(pv))}</span>` : '<span class="mute">一隊落嚟</span>'}<span class="mute">表現 ${form(p) ? form(p).toFixed(1) : '–'}</span><button class="btn sm" data-act="ctup" data-a="${p}">升一隊</button></div></div>`; };
+  main(`${hdr('青年軍', info(`青訓營每年 7 月 1 日會有 3–5 個 15–17 歲嘅新秀加入。每個新秀都有潛力（★ 越多將來可以去得越高），青訓教練越好，估計越準。青年軍每個星期踢一場青年賽，表現好嘅升得快啲；新秀會慢慢升向佢嘅潛力。青訓設施越高級，新秀越好、成長越快。覺得夠班就撳「升一隊」；一隊 ${YTAGE} 歲或以下嘅球員都可以落青年軍踢波。唔要嘅新秀可以喺「合約」解約。`))}
+  <div class="cols c2 m-stack">
+    <div class="cols" style="grid-template-rows:auto auto minmax(0,1fr)">
+      ${pan('青訓營', `<dl class="kv"><dt>青訓設施</dt><dd><span class="num" style="color:var(--sel)">${'★'.repeat(yaOf(c))}${'☆'.repeat(5 - yaOf(c))}</span> ${YANAME[yaOf(c)]} ${yaOf(c) < 5 ? `<button class="btn sm" data-act="yaup">升級 · ${money(yaCost(c))}</button>` : ''}</dd>
+        <dt>青訓教練</dt><dd>${coach ? `${esc(coach.n)} ${'★'.repeat(coach.lv)}` : '<span class="bad">懸空</span>（去「職員」請）'}</dd>
+        <dt>青年賽戰績</dt><dd>${yr.w} 勝 ${yr.d} 和 ${yr.l} 負 · 入 ${yr.gf} 失 ${yr.ga}</dd><dt>下次新秀</dt><dd>7 月 1 日</dd><dt>人數</dt><dd>${ys.length} 人${ys.length < 5 ? '（少過 5 人踢唔到青年賽）' : ''}</dd></dl>`)}
+      ${pan('最近青年賽', yr.log.length ? `<div class="res">${yr.log.map(([d, o, gf, ga]) => `<div>${wdl(gf > ga ? 'W' : gf < ga ? 'L' : 'D')}<span class="mute num">${fdate(d, 's')}</span><span>對 ${esc(clubShort(o))} U18</span><b class="num" style="margin-left:auto">${gf} - ${ga}</b></div>`).join('')}</div>` : '<p class="note">今季未有青年賽。</p>', { t: 1 })}
+      ${pan(`可以落青年軍嘅一隊球員（${YTAGE} 歲或以下）`, can.length ? `<table><tbody>${can.map(p => `<tr><td class="nm">${pl(p)}</td><td class="n">${ps(p).pos}</td><td class="n">${ageOf(p)}</td><td class="n">${cardR(p)}</td><td><button class="btn sm" data-act="ctdown" data-a="${p}">落青年軍</button></td></tr>`).join('')}</tbody></table>` : '<p class="note">一隊冇 21 歲或以下嘅球員。</p>', { t: 1 })}
+    </div>
+    ${pan(`青年軍名單 <span class="r">${ys.length} 人</span>`, ys.length ? `<div class="ygrid">${ys.map(ycard).join('')}</div>` : '<p class="note">青年軍冇人。等 7 月 1 日新秀加入，或者將一隊後生仔落青年軍。</p>', { t: 1, st: 'min-height:0' })}
+  </div>`);
+};
+Object.assign(ACT, { yaup: () => { const err = yaUpgrade(); if (err) return toast(err); save(); render(); toast(`青訓設施升到 ${YANAME[yaOf(myClub())]}`); } });

@@ -174,7 +174,17 @@ function movePlayer(pid, to) {
   if (ROS[from]) ROS[from] = ROS[from].filter(x => x !== pid);
   d.c = to; (ROS[to] = ROS[to] || []).push(pid);
   for (const cid of [from]) { const c = G.clubs[cid]; if (c) { c.xi = c.xi.map(x => x === pid ? null : x); c.sb = c.sb.filter(x => x !== pid); delete c.ord[pid]; } }
-  d.list = 0; delete d.yt;   // leaving a club ends a youth-team spell
+  d.list = 0; delete d.yt; delete d.xs;   // leaving a club ends a youth-team spell or an extra (超額) contract
+  if (isUser(from) && typeof fillExtras === 'function') fillExtras(from);
+}
+// squad limit: players beyond it (超額, d.xs) are under contract but cannot play until a place frees up
+const SQMAX = 45;
+const activeCount = cid => roster(cid).filter(p => !pd(p).xs).length;
+function fillExtras(cid) {
+  for (const p of roster(cid).filter(x => pd(x).xs).sort((a, b) => pd(b).sk - pd(a).sk)) {
+    if (activeCount(cid) >= SQMAX) break;
+    delete pd(p).xs; mail(`${ps(p).sn} 可以上陣`, `球隊有空位，超額簽入嘅 ${esc(ps(p).name)} 而家正式登記，可以上陣。`);
+  }
 }
 function squadNo(cid) { const used = new Set(roster(cid).map(p => pd(p).no)); for (let n = 1; n < 60; n++) if (!used.has(n)) return n; return 0; }
 
@@ -397,7 +407,8 @@ const NEED = { G: 2, D: 6, M: 6, A: 3 };
 function mkYouth(cid, pos, sk) {
   const n = G.nid++, pid = 'y' + n, c = CL[cid];
   const k = roster(cid).filter(p => p[0] === 'y').length + 1;
-  G.y[pid] = { no: 0, name: `${c.short} 青年軍 ${k}`, pos, nat: clubCountry(cid), by: G.season - ri(17, 19), sk, sn: `${c.short} 青年軍 ${k}`, yth: 1 };
+  const nat = clubCountry(cid), nm = typeof youthName === 'function' ? youthName(nat) : `${c.short} 青年軍 ${k}`;
+  G.y[pid] = { no: 0, name: nm, pos, nat, by: G.season - ri(17, 19), sk, sn: typeof youthName === 'function' ? shortName(nm) : nm, yth: 1 };
   G.pl[pid] = newPl(cid, sk, G.season + ri(1, 3), 0);
   G.pl[pid].no = squadNo(cid) || 0;
   (ROS[cid] = ROS[cid] || []).push(pid);
@@ -426,7 +437,7 @@ function fillYouth(cid, min, gap = 4) {
 function trimYouth() {
   for (const cid of GCL()) {
     const c = G.clubs[cid], min = isUser(cid) ? 16 : 18;
-    for (const pid of roster(cid).filter(p => ps(p).yth).reverse()) {
+    for (const pid of roster(cid).filter(p => ps(p).yth && !ps(p).pro && !pd(p).yt).reverse()) {
       const rest = roster(cid).filter(p => p !== pid);
       if (rest.length < min || Object.values(lineShort(rest)).some(v => v > 0)) continue;
       ROS[cid] = rest; delete G.pl[pid]; delete G.y[pid]; if (G.cards) delete G.cards[pid];
@@ -439,7 +450,7 @@ function trimYouth() {
 }
 
 /* ---------- lineup selection (AI and the user's 自動排陣) ---------- */
-function avail(pid) { const d = pd(pid); return !d.inj && !d.sus && !d.yt; }   // a light injury (d.lin) can still play; d.yt = sent to the youth team (fm/xi.js)
+function avail(pid) { const d = pd(pid); return !d.inj && !d.sus && !d.yt && !d.xs; }   // a light injury (d.lin) can still play; d.yt = sent to the youth team (fm/xi.js)
 /* form arrows (like the classic console game): 0 ↓ 下 · 1 ↘ 中下 · 2 → 平 · 3 ↗ 中上 · 4 ↑ 上 — ability ×ARWF */
 const ARWF = [.94, .97, 1, 1.03, 1.06], ARWN = ['下', '中下', '平', '中上', '上'], ARWI = ['↓', '↘', '→', '↗', '↑'];
 function rArw() { const r = R(); return r < .1 ? 0 : r < .3 ? 1 : r < .7 ? 2 : r < .9 ? 3 : 4; }
@@ -741,8 +752,9 @@ function gachaPull(n) {
   for (const o of out) {
     o.n = G.cards[o.pid] = (G.cards[o.pid] || 0) + 1;
     if (o.from === me) { o.dup = 1; continue; }   // already yours: a spare copy for card upgrades
-    if (roster(me).length >= 45) { o.full = 1; fin(me, 'scout', Math.round(pullCost(1) * .25)); continue; }
+    const full = activeCount(me) >= SQMAX;
     transfer(o.pid, me, 0, Math.round(wageFor(pd(o.pid).sk, G.clubs[me].lg) * 1.05 / 10) * 10, ri(2, 4));
+    if (full) { pd(o.pid).xs = 1; o.full = 1; }
   }
   G.stats.pulls += n;
   return { out, cost };
@@ -849,6 +861,7 @@ function rollover() {
     d.s = newStats(); d.fm = []; d.cond = 100; d.sus = 0;
   }
   if (track.length) mail('球員能力變化', '今季完結，你嘅球員能力有以下變化（撳球員睇「能力紀錄」）：<br>' + track.sort((a, b) => (pd(b).sk - pd(b).skh.at(-1)[1]) - (pd(a).sk - pd(a).skh.at(-1)[1])).map(p => { const h = pd(p).skh.at(-1); return `${esc(ps(p).sn)} ${h[1]} → ${h[7]}（${h[7] - h[1] > 0 ? '+' : ''}${h[7] - h[1]}）`; }).join('<br>'));
+  if (typeof youthSeason === 'function') youthSeason();   // 青訓新秀 (fm/xi.js)
   // new real players for the new season, if a data patch exists
   const patch = FM.seasons?.[ns] && (FM.seasons[ns].era || 2001) === (G.era || 2001) ? FM.seasons[ns] : null;
   if (patch) for (const [ck, rows] of Object.entries(patch.clubs || {})) rows.forEach((r, i) => { const pid = `s${ns}.${ck}.${i}`; const cid = G.clubs[ck] ? ck : 'free'; G.pl[pid] = newPl(cid, r[5], ns + ri(1, 4), r[0]); (ROS[cid] = ROS[cid] || []).push(pid); });
@@ -900,6 +913,7 @@ function newGame(name, cid, slot) {
   for (const cid of CLUBS) fillYouth(cid, 18);
   for (const cid of CLUBS) { const used = new Set(); for (const p of roster(cid)) { const d = pd(p); if (!d.no || used.has(d.no)) d.no = 0; used.add(d.no); } for (const p of roster(cid)) if (!pd(p).no) pd(p).no = squadNo(cid); }
   setupSeason(s0);
+  if (typeof makeProspect === 'function') { G.clubs[cid].yr = { w: 0, d: 0, l: 0, gf: 0, ga: 0, log: [] }; for (let k = 0; k < 6; k++) makeProspect(cid); }   // starting youth team (fm/xi.js)
   autoPick(cid);
   mail('歡迎嚟到 ' + clubName(cid), `${esc(name)}，董事局歡迎你出任 <b>${esc(clubName(cid))}</b> 領隊。<br>撳右上角「下一日」推進日子；有比賽嘅日子會自動入比賽畫面。季前可以先去「球員搜尋」或者「球探抽卡」補強。`);
 }
@@ -925,7 +939,7 @@ function nextDay() {
     driftArw(pid);
   }
   if (G.inst && G.inst.length) G.inst = G.inst.filter(x => { if (x.d > d) return true; fin(x.from, 'tout', -x.amt); fin(x.to, 'tin', x.amt); if (isUser(x.from)) mail('轉會分期付款', `已付 ${esc(clubName(x.to))} ${money(x.amt)}（${esc(ps(x.pid).sn)} 轉會費分期）。`); return false; });
-  if (wday(d) === 1) { weekly(); training(); if (typeof lifeWeekly === 'function') lifeWeekly(); }
+  if (wday(d) === 1) { weekly(); training(); if (typeof lifeWeekly === 'function') lifeWeekly(); if (typeof youthWeek === 'function') youthWeek(); }
   if (inWindow(d)) { aiMarket(); aiOffers(); }
   for (const id in G.comp) { const c = G.comp[id]; if (c.t !== 'L') maybeDraw(c, d); }
   for (const j of G.jobs) if (j.exp < d) G.jobs = G.jobs.filter(x => x !== j);
@@ -1009,14 +1023,14 @@ function groupsDone(comp) {
 /* ---------- save / load (compact) ---------- */
 const SKEY = s => 'xifm-fm-' + s;
 function pack() {
-  const pl = {}; for (const pid in G.pl) { const d = G.pl[pid]; if (d.c === 'ret') continue; const st = d.s; pl[pid] = [d.c, d.no, d.sk, Math.round(d.cond), d.fm.join('|'), d.inj, d.injn, d.sus, d.w, d.ct, d.list, st.ap, st.gl, st.as, st.yc, st.rc, st.mom, Math.round(st.rt * 10), d.arw ?? 2, d.lin || 0, d.pop == null ? -1 : Math.round(d.pop * 10), d.p2x || '', d.tf || '', d.clv || 0, d.skc ? JSON.stringify([d.skc.a, d.skc.j, d.skh || []]) : '', d.yt || 0]; }
+  const pl = {}; for (const pid in G.pl) { const d = G.pl[pid]; if (d.c === 'ret') continue; const st = d.s; pl[pid] = [d.c, d.no, d.sk, Math.round(d.cond), d.fm.join('|'), d.inj, d.injn, d.sus, d.w, d.ct, d.list, st.ap, st.gl, st.as, st.yc, st.rc, st.mom, Math.round(st.rt * 10), d.arw ?? 2, d.lin || 0, d.pop == null ? -1 : Math.round(d.pop * 10), d.p2x || '', d.tf || '', d.clv || 0, d.skc ? JSON.stringify([d.skc.a, d.skc.j, d.skh || []]) : '', d.yt || 0, d.xs || 0]; }
   const fx = G.fx.map(f => [f.i, f.d, f.c, f.r, f.h, f.a, f.hg, f.ag, f.ko || 0, f.n || 0, f.g ?? -1, f.ph ?? -1, f.pa ?? -1, f.et || 0, f.att || 0, f.sc || 0]);
   return JSON.stringify(Object.assign({}, G, { pl, fx, packed: 1 }));
 }
 function unpack(str) {
   const g = JSON.parse(str);
   const pl = {};
-  for (const pid in g.pl) { const a = g.pl[pid]; pl[pid] = { c: a[0], no: a[1], sk: a[2], cond: a[3], fm: a[4] ? a[4].split('|').map(Number) : [], inj: a[5], injn: a[6], sus: a[7], w: a[8], ct: a[9], list: a[10], s: { ap: a[11], gl: a[12], as: a[13], yc: a[14], rc: a[15], mom: a[16], rt: a[17] / 10 }, arw: a[18] ?? 2, lin: a[19] || 0 }; if (a[20] >= 0) pl[pid].pop = a[20] / 10; if (a[21]) pl[pid].p2x = a[21]; if (a[22]) pl[pid].tf = a[22]; if (a[23]) pl[pid].clv = a[23]; if (a[24]) { const t = JSON.parse(a[24]); pl[pid].skc = { a: t[0], j: t[1] }; if (t[2].length) pl[pid].skh = t[2]; } if (a[25]) pl[pid].yt = 1; }
+  for (const pid in g.pl) { const a = g.pl[pid]; pl[pid] = { c: a[0], no: a[1], sk: a[2], cond: a[3], fm: a[4] ? a[4].split('|').map(Number) : [], inj: a[5], injn: a[6], sus: a[7], w: a[8], ct: a[9], list: a[10], s: { ap: a[11], gl: a[12], as: a[13], yc: a[14], rc: a[15], mom: a[16], rt: a[17] / 10 }, arw: a[18] ?? 2, lin: a[19] || 0 }; if (a[20] >= 0) pl[pid].pop = a[20] / 10; if (a[21]) pl[pid].p2x = a[21]; if (a[22]) pl[pid].tf = a[22]; if (a[23]) pl[pid].clv = a[23]; if (a[24]) { const t = JSON.parse(a[24]); pl[pid].skc = { a: t[0], j: t[1] }; if (t[2].length) pl[pid].skh = t[2]; } if (a[25]) pl[pid].yt = 1; if (a[26]) pl[pid].xs = 1; }
   g.fx = g.fx.map(a => { const f = { i: a[0], d: a[1], c: a[2], r: a[3], h: a[4], a: a[5], hg: a[6], ag: a[7] }; if (a[8]) f.ko = a[8]; if (a[9]) f.n = 1; if (a[10] >= 0) f.g = a[10]; if (a[11] >= 0) { f.ph = a[11]; f.pa = a[12]; } if (a[13]) f.et = 1; if (a[14]) f.att = a[14]; if (a[15]) f.sc = a[15]; return f; });
   g.pl = pl; delete g.packed;
   G = g; reindex(); reindexFx(); ALLP = null; trimYouth();
