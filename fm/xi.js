@@ -73,3 +73,17 @@ function tacFit(key, on) {
 function xiTac(S) { const c = G.clubs[S.cid]; return c.tac && TACP[c.tac] ? tacFit(c.tac, S.on) : null; }
 function setTac(key) { const c = myClubX(); c.tac = key; Object.assign(c.sty, TACP[key].sty); }
 const myClubX = () => G.clubs[G.mgr.cid];
+
+/* ---------- youth team (青年軍) for your club: d.yt = 1 ----------
+   Players 21 or under can be sent down: they leave first-team selection but play youth football (counts as regular
+   playing time for season-end growth) and get the youth coach's training. Promote them back any time. */
+const YTAGE = 21;
+const inYouth = pid => !!(G.pl[pid] && G.pl[pid].yt);
+function sendDown(pid) {
+  const d = pd(pid), c = G.clubs[d.c];
+  if (ageOf(pid) > YTAGE) return `只可以將 ${YTAGE} 歲或以下嘅球員落青年軍`;
+  d.yt = 1; c.xi = c.xi.map(p => p === pid ? null : p); c.sb = c.sb.filter(p => p !== pid);
+  if (c.sp) for (const k in c.sp) if (c.sp[k] === pid) delete c.sp[k];
+  return null;
+}
+function callUp(pid) { delete pd(pid).yt; }

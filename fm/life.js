@@ -113,7 +113,7 @@ function lifeWeekly() {
     for (const pid of roster(cid)) {
       const d = pd(pid), a = ageOf(pid);
       if (gk && ps(pid).pos === 'GK' && a <= 30 && R() < .012 * gk) d.sk = Math.min(97, d.sk + 1);
-      if (yth && a <= 21 && R() < .01 * yth) d.sk = Math.min(97, d.sk + 1);
+      if (yth && a <= 21 && R() < .01 * yth * (d.yt ? 1.5 : 1)) d.sk = Math.min(97, d.sk + 1);
       // popularity drifts towards what skill, club and recent games suggest
       const f = form(pid), tgt = clamp(basePop(pid) + (f ? (f - 6.6) * 8 : 0) + Math.min(12, (d.s.gl || 0) * .6 + (d.s.mom || 0) * 1.5), 1, 99);
       d.pop = Math.round((popOf(pid) + (tgt - popOf(pid)) * .08) * 10) / 10;
@@ -327,5 +327,6 @@ function injuryToll(pid, days, physio) {
 // end of season: playing time decides how much a young player (23 or under next season) grows
 function playBonus(pid, a, share) {
   if (a > 23 || pd(pid).c === 'free') return 0;
+  if (pd(pid).yt) share = Math.max(share, .4);   // the youth team plays its own games: counts as regular football
   return share >= .6 ? 2 : share >= .35 ? 1 : share < .1 ? -1 : 0;
 }

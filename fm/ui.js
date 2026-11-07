@@ -154,6 +154,7 @@ function pTags(pid) {
   if (d.s && d.s.yc) t.push(`<span class="crd cy" title="今季黃牌 ${d.s.yc} 張">${d.s.yc}</span>`);
   if (d.s && d.s.rc) t.push(`<span class="crd cr" title="今季紅牌 ${d.s.rc} 張">${d.s.rc}</span>`);
   if (d.list) t.push('<span class="tag t-ls">放售</span>');
+  if (d.yt) t.push('<span class="tag t-ex" title="喺青年軍，唔入一隊選擇">青年軍</span>');
   if (d.c !== 'free' && d.ct <= G.season) t.push('<span class="tag t-ex">約滿</span>');
   if (typeof starTag === 'function' && d.c !== 'ret') t.push(starTag(pid));
   return t.join('');

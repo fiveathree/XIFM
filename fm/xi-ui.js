@@ -53,7 +53,8 @@ function pitemX(pid, k) {
 SCREENS.squad = () => {
   const cid = myCid(), c = myClub(), T = teamEval(cid), cap = taker(T.S, 'cap');
   const inXI = new Set(c.xi.filter(Boolean)), inSB = new Set(c.sb);
-  const res = roster(cid).filter(p => !inXI.has(p) && !inSB.has(p)).sort((a, b) => POSORD.indexOf(ps(a).pos) - POSORD.indexOf(ps(b).pos) || cardR(b) - cardR(a));
+  const yts = roster(cid).filter(inYouth).length;
+  const res = roster(cid).filter(p => !inXI.has(p) && !inSB.has(p) && !inYouth(p)).sort((a, b) => POSORD.indexOf(ps(a).pos) - POSORD.indexOf(ps(b).pos) || cardR(b) - cardR(a));
   const probs = lineupProblems(cid), plans = c.plans || [], cur = c.plan ?? 0, tx = xiTac(T.S);
   main(`${hdr('陣容', `${[0, 1, 2].map(i => `<button class="chip" data-act="plan" data-a="${i}" aria-pressed="${cur === i}">方案 ${'ABC'[i]}${plans[i] ? '' : '（空）'}</button>`).join('')}<button class="btn sm" data-act="plansave">存入方案 ${'ABC'[cur]}</button><button class="btn" data-act="autopick">自動排陣</button>${info('拖住張卡：放喺另一張卡上面＝兩個人對調；放喺草地空位＝將嗰個位置移過去（位置跟住變，變自訂陣式）；拖去後備或者右邊名單都得。唔想拖：撳一張卡揀咗佢，再撳另一張對調。卡上面大數字係球員評分（包括卡牌等級），下面標籤係佢喺嗰個位置嘅實際能力：綠色＝本位，黃色＝相近位置扣少少，紅色＝扣得多。黃色圓點係默契加成：正選入面同國籍隊友越多，加 1–2 分。白色 C 係隊長。撳球員個名睇詳細資料。')}${probs.length ? `<span class="bad">${esc(probs.slice(0, 2).join('；'))}</span>` : ''}`)}
   <div class="xsq">
@@ -65,7 +66,7 @@ SCREENS.squad = () => {
       ${pan(`球隊實力 <span class="r">${fname(c.form)}</span>`, `<div class="xstats">${[['總評', T.ovr], ['進攻', T.att], ['中場', T.mid], ['防守', T.def]].map(([k, v]) => `<div class="xstat"><div class="v">${v}</div><div class="k">${k}</div><div class="bar"><i style="width:${clamp((v - 40) / 55 * 100, 0, 100)}%"></i></div></div>`).join('')}</div>
         <p class="note" style="margin:6px 0 0">默契加成 <b style="color:var(--amber)">+${T.chem}</b> · 戰術風格 <b>${c.tac && TACP[c.tac] ? TACP[c.tac].n : '未揀'}</b>${tx && tx.fit ? `（${tx.fit}）` : ''} · 球隊默契 ${Math.round(cohOf(c))}</p>`)}
       ${pan('陣式', `<div class="row">${FLIST().map(f => `<button class="chip" data-act="pform" data-a="${f}" aria-pressed="${c.form === f}">${f}</button>`).join('')}${c.cust ? `<button class="chip" data-act="pform" data-a="${CUSTK(cid)}" aria-pressed="${isCust(c.form)}">自訂</button>` : ''}</div>`)}
-      ${pan(`預備組 <span class="r">${res.length} 人 · 全隊 ${roster(cid).length} 人</span>`, `<div class="plist">${res.map(p => pitemX(p, 'r' + p)).join('') || '<p class="note">冇預備球員。</p>'}</div>`, { st: 'flex:1;min-height:180px' })}
+      ${pan(`預備組 <span class="r">${res.length} 人 · 全隊 ${roster(cid).length} 人${yts ? ` · 青年軍 ${yts} 人（喺「合約」升降）` : ''}</span>`, `<div class="plist">${res.map(p => pitemX(p, 'r' + p)).join('') || '<p class="note">冇預備球員。</p>'}</div>`, { st: 'flex:1;min-height:180px' })}
     </div>
   </div>`);
 };
@@ -220,3 +221,27 @@ function skHistPanel(pid) {
   return `<div class="pan" style="margin-top:8px"><h3>能力紀錄 ${info('只記錄喺你球隊效力過嘅球員。訓練・比賽：季內每個星期訓練嘅升跌（教練、加操、青訓教練、守門員教練都計）。傷患：休息 4 個星期或以上嘅重傷有機會永久扣能力，傷得越耐、年紀越大越易，物理治療師好啲會減低機會。季尾再按年齡升跌；23 歲或以下嘅球員仲睇上陣時間：踢夠球隊六成比賽 +2、三成半 +1、少過一成 −1；成季平均評分 7.2 或以上再 +1。')}</h3><div class="pb">
     <table><thead><tr><th>球季</th><th class="n">季初</th><th class="n">訓練・比賽</th><th class="n">傷患</th><th class="n">年齡</th><th class="n">上陣時間</th><th class="n">表現</th><th class="n">季尾</th></tr></thead><tbody>${rows.map(r => `<tr><td>${r[0]}</td><td class="n">${r[1]}</td><td class="n">${sgn(r[2])}</td><td class="n">${sgn(r[3])}</td><td class="n">${r[4] == null ? '' : sgn(r[4])}</td><td class="n">${r[5] == null ? '' : sgn(r[5])}</td><td class="n">${r[6] == null ? '' : sgn(r[6])}</td><td class="n"><b>${r[7]}</b></td></tr>`).join('')}</tbody></table></div></div>`;
 }
+
+/* ---------- 合約: sortable, renew, early termination, youth team ---------- */
+UI.ct = UI.ct || { sort: 'ct', dir: 1, arm: null };
+const CTCOL = {
+  name: ['球員', p => ps(p).name, 1], team: ['隊', p => inYouth(p) ? 1 : 0, 1], age: ['歲', p => ageOf(p), 1], pos: ['位', p => POSORD.indexOf(ps(p).pos), 1],
+  sk: ['能力', p => cardR(p), -1], w: ['週薪', p => pd(p).w, -1], ct: ['到期', p => pd(p).ct, 1], val: ['身價', p => valueOf(p), -1],
+};
+const CTCLS = { name: '', team: '', age: 'n', pos: 'n', sk: 'n', w: 'n', ct: 'n', val: 'n hm' };
+const relComp = pid => Math.round(pd(pid).w * 52 * Math.max(0, pd(pid).ct - G.season) * .5);
+SCREENS.contracts = () => {
+  const U = UI.ct, k = CTCOL[U.sort] ? U.sort : 'ct', key = CTCOL[k][1];
+  const l = [...roster(myCid())].sort((a, b) => { const x = key(a), y = key(b); return (typeof x === 'string' ? x.localeCompare(y) : x - y) * U.dir || cardR(b) - cardR(a); });
+  const yt = l.filter(inYouth).length;
+  main(`${hdr('合約', `<span class="mute">一隊 ${l.length - yt} 人 · 青年軍 ${yt} 人</span>${info(`撳表頭排序，再撳一次反轉。續約：同球員傾新合約。解約：即刻終止合約，球員變自由身，球會要賠償餘下合約週薪嘅一半（今季到期嘅免賠）；撳一次會顯示賠償金額，再撳先確認。青年軍：${YTAGE} 歲或以下嘅球員可以落青年軍，佢哋唔會入一隊選擇（排陣、後備、比賽），但會喺青年軍踢波，季尾當有正選上陣時間計成長，青訓教練嘅訓練效果仲好啲。隨時可以升返一隊。合約喺到期嗰年 6 月完結；7 月 1 日未續約就會自由身離隊。`)}`)}
+  ${pan(`合約 · 週薪總數 ${money(sum(l.map(p => pd(p).w)))}`, `<table><thead><tr>${Object.entries(CTCOL).map(([c, [t]]) => `<th class="${CTCLS[c]} srt ${c === k ? 'on' : ''}" data-act="cts" data-a="${c}" title="撳一下排序，再撳反轉">${t}${c === k ? (U.dir > 0 ? ' ▲' : ' ▼') : ''}</th>`).join('')}<th></th></tr></thead><tbody>${l.map(p => { const d = pd(p), y = inYouth(p), armed = U.arm === p;
+    return `<tr class="${y ? 'yt' : ''}"><td class="nm">${pl(p)} ${starTag(p)}</td><td>${y ? '<span class="tag t-ls">青年軍</span>' : '一隊'}</td><td class="n">${ageOf(p)}</td><td class="n">${ps(p).pos}</td><td class="n">${cardR(p)}</td><td class="n">${money(d.w)}</td><td class="n ${d.ct <= G.season ? 'bad' : ''}">${d.ct}</td><td class="n hm">${money(valueOf(p))}</td>
+      <td class="nowrap"><button class="btn sm" data-act="renewopen" data-a="${p}">續約</button> <button class="btn sm ${armed ? 'y' : ''}" data-act="ctrel" data-a="${p}">${armed ? `確認解約 · 賠 ${money(relComp(p))}` : '解約'}</button> ${y ? `<button class="btn sm" data-act="ctup" data-a="${p}">升一隊</button>` : ageOf(p) <= YTAGE ? `<button class="btn sm" data-act="ctdown" data-a="${p}">落青年軍</button>` : ''}</td></tr>`; }).join('')}</tbody></table>`, { st: 'flex:1' })}`);
+};
+Object.assign(ACT, {
+  cts: el => { const U = UI.ct, c = el.dataset.a; U.dir = U.sort === c ? -U.dir : CTCOL[c][2]; U.sort = c; U.arm = null; render(); },
+  ctrel: el => { const p = el.dataset.a; if (UI.ct.arm !== p) { UI.ct.arm = p; return render(); } UI.ct.arm = null; const m = releasePlayer(p); save(); render(); toast(m); },
+  ctdown: el => { const err = sendDown(el.dataset.a); if (err) return toast(err); UI.ct.arm = null; save(); render(); toast(`${ps(el.dataset.a).sn} 落咗青年軍`); },
+  ctup: el => { callUp(el.dataset.a); UI.ct.arm = null; save(); render(); toast(`${ps(el.dataset.a).sn} 升上一隊`); },
+});
