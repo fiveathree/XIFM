@@ -433,7 +433,7 @@ function driftArw(pid) {
 function effOf(pid, slot, cond) {
   const d = pd(pid), c = cond ?? d.cond;
   const cf = c >= 92 ? 1 : clamp(.78 + .22 * (c - 40) / 52, .7, 1);
-  return d.sk * fitP(pid, slot) * cf * ARWF[d.arw ?? 2] * (d.lin ? .92 : 1);
+  return (d.sk + (d.clv || 0)) * fitP(pid, slot) * cf * ARWF[d.arw ?? 2] * (d.lin ? .92 : 1);   // d.clv: card level (fm/xi.js)
 }
 /* captain and set-piece takers: club.sp = { cap, cl, cr, fkl, fks, pk } (player ids; missing or unavailable → best on the pitch).
    attrs: 4 傳球, 5 射門, 6 頭球, 7 控球 */
@@ -507,6 +507,7 @@ function transfer(pid, to, fee, wage, years, paid = fee) {
   if (G.clubs[from]) fin(from, 'tin', paid);
   if (G.clubs[to]) fin(to, 'tout', -paid);
   movePlayer(pid, to);
+  if (isUser(to)) { G.cards = G.cards || {}; if (!G.cards[pid]) G.cards[pid] = 1; }   // your players go into the album (fm/xi.js)
   if (isUser(to)) G.clubs[to].coh = clamp((G.clubs[to].coh ?? 60) - 3, 0, 100);   // a new face: cohesion dips (fm/life.js)
   d.w = wage || wageFor(d.sk, G.clubs[to]?.lg || 'eng3');
   d.ct = G.season + (years || ri(2, 4));
@@ -695,7 +696,7 @@ const PULLCOST = { eng1: 5e5, eng2: 2.5e5, eng3: 1e5, eng4: 5e4, sco1: 1.5e5, es
 const pullCost = n => { const c = PULLCOST[G.clubs[G.mgr.cid].lg] || 2e5; return n === 10 ? c * 9 : c; };
 function gachaPool() {
   const me = G.mgr.cid, pool = { UR: [], SSR: [], SR: [], R: [], C: [] };
-  for (const pid in G.pl) { const d = G.pl[pid]; if (d.c === me || d.c === 'ret' || ps(pid).yth) continue; pool[GRADE(d.sk)].push(pid); }
+  for (const pid in G.pl) { const d = G.pl[pid]; if (d.c === 'ret' || ps(pid).yth) continue; pool[GRADE(d.sk)].push(pid); }   // your own players too: a duplicate card
   return pool;
 }
 function gachaPull(n) {
@@ -711,10 +712,14 @@ function gachaPull(n) {
     if (n === 10 && k === 9 && !out.some(x => ['SR', 'SSR', 'UR'].includes(x.g))) g = R() < .03 ? 'UR' : R() < .23 ? 'SSR' : 'SR';
     let list = pool[g].filter(p => !out.some(o => o.pid === p));
     if (!list.length) list = pool.C;
+    const mine = list.filter(p => pd(p).c === me); if (mine.length && R() < .2) list = mine;   // one in five of a grade is a copy of your own player (card upgrades)
     const pid = pick(list), from = pd(pid).c;
     out.push({ pid, g, from });
   }
+  G.cards = G.cards || {};
   for (const o of out) {
+    o.n = G.cards[o.pid] = (G.cards[o.pid] || 0) + 1;
+    if (o.from === me) { o.dup = 1; continue; }   // already yours: a spare copy for card upgrades
     if (roster(me).length >= 45) { o.full = 1; fin(me, 'scout', Math.round(pullCost(1) * .25)); continue; }
     transfer(o.pid, me, 0, Math.round(wageFor(pd(o.pid).sk, G.clubs[me].lg) * 1.05 / 10) * 10, ri(2, 4));
   }
@@ -976,14 +981,14 @@ function groupsDone(comp) {
 /* ---------- save / load (compact) ---------- */
 const SKEY = s => 'xifm-fm-' + s;
 function pack() {
-  const pl = {}; for (const pid in G.pl) { const d = G.pl[pid]; if (d.c === 'ret') continue; const st = d.s; pl[pid] = [d.c, d.no, d.sk, Math.round(d.cond), d.fm.join('|'), d.inj, d.injn, d.sus, d.w, d.ct, d.list, st.ap, st.gl, st.as, st.yc, st.rc, st.mom, Math.round(st.rt * 10), d.arw ?? 2, d.lin || 0, d.pop == null ? -1 : Math.round(d.pop * 10), d.p2x || '', d.tf || '']; }
+  const pl = {}; for (const pid in G.pl) { const d = G.pl[pid]; if (d.c === 'ret') continue; const st = d.s; pl[pid] = [d.c, d.no, d.sk, Math.round(d.cond), d.fm.join('|'), d.inj, d.injn, d.sus, d.w, d.ct, d.list, st.ap, st.gl, st.as, st.yc, st.rc, st.mom, Math.round(st.rt * 10), d.arw ?? 2, d.lin || 0, d.pop == null ? -1 : Math.round(d.pop * 10), d.p2x || '', d.tf || '', d.clv || 0]; }
   const fx = G.fx.map(f => [f.i, f.d, f.c, f.r, f.h, f.a, f.hg, f.ag, f.ko || 0, f.n || 0, f.g ?? -1, f.ph ?? -1, f.pa ?? -1, f.et || 0, f.att || 0, f.sc || 0]);
   return JSON.stringify(Object.assign({}, G, { pl, fx, packed: 1 }));
 }
 function unpack(str) {
   const g = JSON.parse(str);
   const pl = {};
-  for (const pid in g.pl) { const a = g.pl[pid]; pl[pid] = { c: a[0], no: a[1], sk: a[2], cond: a[3], fm: a[4] ? a[4].split('|').map(Number) : [], inj: a[5], injn: a[6], sus: a[7], w: a[8], ct: a[9], list: a[10], s: { ap: a[11], gl: a[12], as: a[13], yc: a[14], rc: a[15], mom: a[16], rt: a[17] / 10 }, arw: a[18] ?? 2, lin: a[19] || 0 }; if (a[20] >= 0) pl[pid].pop = a[20] / 10; if (a[21]) pl[pid].p2x = a[21]; if (a[22]) pl[pid].tf = a[22]; }
+  for (const pid in g.pl) { const a = g.pl[pid]; pl[pid] = { c: a[0], no: a[1], sk: a[2], cond: a[3], fm: a[4] ? a[4].split('|').map(Number) : [], inj: a[5], injn: a[6], sus: a[7], w: a[8], ct: a[9], list: a[10], s: { ap: a[11], gl: a[12], as: a[13], yc: a[14], rc: a[15], mom: a[16], rt: a[17] / 10 }, arw: a[18] ?? 2, lin: a[19] || 0 }; if (a[20] >= 0) pl[pid].pop = a[20] / 10; if (a[21]) pl[pid].p2x = a[21]; if (a[22]) pl[pid].tf = a[22]; if (a[23]) pl[pid].clv = a[23]; }
   g.fx = g.fx.map(a => { const f = { i: a[0], d: a[1], c: a[2], r: a[3], h: a[4], a: a[5], hg: a[6], ag: a[7] }; if (a[8]) f.ko = a[8]; if (a[9]) f.n = 1; if (a[10] >= 0) f.g = a[10]; if (a[11] >= 0) { f.ph = a[11]; f.pa = a[12]; } if (a[13]) f.et = 1; if (a[14]) f.att = a[14]; if (a[15]) f.sc = a[15]; return f; });
   g.pl = pl; delete g.packed;
   G = g; reindex(); reindexFx(); ALLP = null;

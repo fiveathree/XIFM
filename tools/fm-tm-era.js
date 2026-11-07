@@ -33,11 +33,18 @@ function loadEra(y) {
   let pos2 = {}; const p2 = path.join(dir, 'pos2.js'); if (fs.existsSync(p2)) { global.FM = {}; eval(fs.readFileSync(p2, 'utf8')); pos2 = global.FM.POS2 || {}; }
   return { y, L, pos2 };
 }
-const ERAS = fs.readdirSync('fm/data').filter(d => /^\d{4}$/.test(d)).map(Number).concat(2001).filter(y => !years.includes(y)).sort((a, b) => a - b).map(loadEra);
+// name keys for matching a Transfermarkt club name to ours: drop years, legal forms and city prefixes
+const LEGAL = new Set(['fc', 'afc', 'cf', 'sc', 'ac', 'as', 'sv', 'fk', 'sk', 'kv', 'krc', 'rsc', 'kaa', 'ksc', 'ksk', 'ksv', 'raa', 'acf', 'ud', 'cd', 'us', 'ss', 'club', 'calcio', 'de', 'the', 'and', 'olympique', 'stade', 'union', 'royal', 'vfl', 'vfb', 'tsg', 'bv', 'rcd', 'sd', 'ca', 'cs', 'sl', 'sad', 'fbc', 'peloro', 'football', 'futebol']);
+function nameKeys(n) { const w = norm(dec(n).replace(/\([^)]*\)/g, ' ')).split(' ').filter(x => x && !LEGAL.has(x) && !/^\d+$/.test(x)); const k = w.join(' '); return k ? [k, ...(w.length > 1 ? [w[0]] : [])].filter((x, i, a) => x.length >= 4 && a.indexOf(x) === i) : []; }
+// only the hand-made eras are sources (eras this tool built are estimates themselves)
+const SOURCES = [1994, 1998, 2001, 2004, 2010, 2020, 2025];
+const ERAS = SOURCES.filter(y => !years.includes(y)).map(loadEra);
 const hist = {};      // norm(name) → [{y, sk, by, pos, nat, sn}]
 const clubHist = {};  // TM club id → [{y, lg, c}]
+const clubByName = {};  // cleaned name → [{y, lg, c}] (fallback when the id is unknown)
 for (const E of ERAS) for (const l of Object.values(E.L)) for (const c of l.clubs) {
   if (!c.moved || l.id !== 'eur') { const t = clubIds[c.name]; if (t) (clubHist[t.id] = clubHist[t.id] || []).push({ y: E.y, lg: l.id, c }); }
+  if (!c.moved) for (const k of nameKeys(c.name)) (clubByName[k] = clubByName[k] || []).push({ y: E.y, lg: l.id, c });
   if (c.moved) continue;
   for (const p of c.p) { if (/青年軍/.test(p[1])) continue; (hist[norm(p[1])] = hist[norm(p[1])] || []).push({ y: E.y, sk: p[5], by: p[4], pos: p[2], nat: p[3], sn: p[6], name: p[1] }); }
 }
@@ -62,14 +69,16 @@ function skillFrom(h, by, year) {
   if (!n || Math.abs(n.y - year) > 9) return null;
   return clamp(n.sk + ageMove(by || n.by, n.y, year), 35, 94);
 }
-function nearestClub(tmid, year) {
-  const h = clubHist[tmid] || []; if (!h.length) return null;
+function nearestClub(tmid, year, tmName) {
+  let h = clubHist[tmid] || [];
+  if (!h.length && tmName) { const ks = nameKeys(tmName); h = clubByName[ks[0]] || []; if (!h.length && ks[1]) { const m = clubByName[ks[1]] || []; if (new Set(m.map(x => x.c.name)).size === 1) h = m; } }
+  if (!h.length) return null;
   const sorted = h.slice().sort((a, b) => Math.abs(a.y - year) - Math.abs(b.y - year) || a.y - b.y), near = sorted[0].c;
   const before = h.filter(x => x.y < year).sort((a, b) => b.y - a.y)[0], after = h.filter(x => x.y > year).sort((a, b) => a.y - b.y)[0];
   const lerp = k => before && after ? Math.round((before.c[k] + (after.c[k] - before.c[k]) * (year - before.y) / (after.y - before.y)) * 10) / 10 : near[k];
-  return { near, rep: Math.round(lerp('rep')), bank: lerp('bank'), lg: sorted[0].lg };
+  return { near, ny: sorted[0].y, rep: Math.round(lerp("rep")), bank: lerp("bank"), lg: sorted[0].lg };
 }
-const cleanName = s => dec(s).replace(/^(FC|AFC|SC|SV|CF|SK|FK|KV|KRC|RSC|R\.)\s+/, '').replace(/\s+(FC|AFC|CF|SC|SAD)$/, '').trim();
+const cleanName = s => dec(s).replace(/\s*\([^)]*\)/g, '').replace(/\s+\d+$/, '').replace(/^(FC|AFC|SC|SV|CF|SK|FK|KV|KRC|RSC|R\.)\s+/, '').replace(/\s+(FC|AFC|CF|SC|SAD)$/, '').trim();
 const nearestEra = (year, earlierFirst) => ERAS.slice().sort((a, b) => earlierFirst ? ((a.y > year) - (b.y > year)) || Math.abs(a.y - year) - Math.abs(b.y - year) : Math.abs(a.y - year) - Math.abs(b.y - year) || a.y - b.y)[0];
 
 async function build(year) {
@@ -121,10 +130,11 @@ async function build(year) {
     for (const c of cl) {
       const R = raw[c.id]; if (!R) continue;
       const ks = R.tm.map(t => t.sk).filter(Boolean).sort((a, b) => a - b), med = ks.length >= 5 ? ks[Math.floor(ks.length / 2)] : null;
-      const nc = nearestClub(c.id, year);
+      const nc = nearestClub(c.id, year, c.tm);
       const p = [];
+      const seenP = new Set();
       for (const t of R.tm) {
-        if (placed.has(t.id)) continue;
+        if (placed.has(t.id) || seenP.has(t.id)) continue; seenP.add(t.id);
         const h0 = t.h[0] || {};
         let sk = t.sk, how = 'k';
         if (!sk) { sk = est(t); how = 'v'; }
@@ -136,6 +146,11 @@ async function build(year) {
         const name = h0.name || t.name;
         p.push({ t, row: [t.no || 0, name, ps, nat, by, sk].concat(h0.sn ? [h0.sn] : []), how });
       }
+      if (p.length < 11 && nc) {
+        const old = nc.near.p.filter(r => !/青年軍/.test(r[1]) && year - r[4] <= 36 && year - r[4] >= 17);
+        for (const r of old) if (!p.some(x => x.row[1] === r[1])) p.push({ t: { id: 'old:' + r[1] }, row: [r[0], r[1], r[2], r[3], r[4], clamp(r[5] + ageMove(r[4], nc.ny, year), 35, 94)].concat(r[6] ? [r[6]] : []), how: 'k' });
+        report.push(`${c.tm}: Transfermarkt squad empty, used the ${nc.lg} squad of the nearest era`);
+      }
       // squad: both best keepers, then the best of the rest, up to 28 (fringe players far below the squad dropped)
       p.sort((a, b) => b.row[5] - a.row[5]);
       const gks = p.filter(x => x.row[2] === 'GK').slice(0, 3), rest = p.filter(x => x.row[2] !== 'GK');
@@ -146,7 +161,7 @@ async function build(year) {
       const order = { GK: 0, RB: 1, RWB: 1, LB: 2, LWB: 2, CD: 3, DM: 4, CM: 5, RM: 6, LM: 6, AM: 7, RW: 8, LW: 8, CF: 9, ST: 10 };
       squad.sort((a, b) => order[a.row[2]] - order[b.row[2]] || b.row[5] - a.row[5]);
       const names = new Set(L.clubs.flatMap(k => k.p.map(r => r[1])));
-      const prow = squad.filter(x => !names.has(x.row[1])).map(x => { placed.set(x.t.id, c.id); if (x.how === 'k') nKnown++; else if (x.how === 'v') nVal++; else nClub++; return x.row; });
+      const prow = squad.filter(x => !names.has(x.row[1]) && (names.add(x.row[1]), true)).map(x => { placed.set(x.t.id, c.id); if (x.how === 'k') nKnown++; else if (x.how === 'v') nVal++; else nClub++; return x.row; });
       // club details
       let club;
       if (nc) {

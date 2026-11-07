@@ -655,9 +655,9 @@
   "tm": "AC Sparta Praha"
  },
  "Olympiacos": {
-  "id": "105461",
-  "slug": "olympiacos-fc",
-  "tm": "Olympiacos FC"
+  "id": "683",
+  "slug": "olympiakos-piraus",
+  "tm": "Olympiacos Piraeus"
  },
  "PAOK": {
   "id": "1091",
@@ -1915,9 +1915,9 @@
   "tm": "Bröndby IF"
  },
  "Steaua București": {
-  "id": "139720",
-  "slug": "steaua-bucuresti-1947-1998-",
-  "tm": "Steaua București (1947-1998)"
+  "id": "301",
+  "slug": "fcsb",
+  "tm": "FCSB"
  },
  "Austria Wien": {
   "id": "4383",

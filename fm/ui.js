@@ -52,9 +52,9 @@ const wdl = r => r ? `<span class="wdl ${r}">${{ W: '勝', D: '和', L: '負' }[
 function fxDesc(f, cid) { const opp = f.h === cid ? f.a : f.h; return `${compName(f.c)} · ${f.n ? '中立場' : f.h === cid ? '主場' : '作客'} 對 ${clubName(opp)} · ${fdate(f.d, 's')}`; }
 
 /* ---------- top bar / nav / ticker ---------- */
-const TITLE = { home: '主頁', squad: '陣容', tactics: '戰術', training: '訓練', staff: '職員', media: '傳媒', promo: '宣傳', search: '球員搜尋', market: '轉會市場', gacha: '球探抽卡', contracts: '合約', finance: '財政', stadium: '球場', board: '董事局', fixtures: '賽程', tables: '積分榜', cups: '盃賽', ratings: '數據排名', history: '歷史', mail: '收件箱', save: '存檔', match: '比賽' };
-const NAVG = [['球隊', ['home', 'squad', 'tactics', 'training', 'staff']], ['轉會', ['search', 'market', 'gacha', 'contracts']], ['球會', ['finance', 'stadium', 'board', 'media', 'promo']], ['賽事', ['fixtures', 'tables', 'cups', 'ratings', 'history']], ['系統', ['mail', 'save', 'quit']]];
-const NEEDCLUB = new Set(['home', 'squad', 'tactics', 'training', 'staff', 'market', 'gacha', 'contracts', 'finance', 'stadium', 'media', 'promo', 'match']);
+const TITLE = { home: '主頁', squad: '陣容', tactics: '戰術', training: '訓練', staff: '職員', media: '傳媒', promo: '宣傳', search: '球員搜尋', market: '轉會市場', gacha: '球探抽卡', album: '卡冊', contracts: '合約', finance: '財政', stadium: '球場', board: '董事局', fixtures: '賽程', tables: '積分榜', cups: '盃賽', ratings: '數據排名', history: '歷史', mail: '收件箱', save: '存檔', match: '比賽' };
+const NAVG = [['球隊', ['home', 'squad', 'tactics', 'training', 'staff']], ['轉會', ['search', 'market', 'gacha', 'album', 'contracts']], ['球會', ['finance', 'stadium', 'board', 'media', 'promo']], ['賽事', ['fixtures', 'tables', 'cups', 'ratings', 'history']], ['系統', ['mail', 'save', 'quit']]];
+const NEEDCLUB = new Set(['home', 'squad', 'tactics', 'training', 'staff', 'market', 'gacha', 'album', 'contracts', 'finance', 'stadium', 'media', 'promo', 'match']);
 function rTop() {
   const cid = myCid(), f = cid && nextFx(cid), unread = G.mail.some(m => !m.rd);
   $('#top').innerHTML = `<div class="badge" data-act="badge" title="${esc(cid ? clubName(cid) : '')}">${badgeSVG(cid, 60)}</div>
@@ -187,86 +187,13 @@ function loadPlan(i) {
   c.sb = p.sb.filter(x => mine.has(x) && !c.xi.includes(x));
 }
 const PITCHV = `<svg viewBox="0 0 68 100" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="rgba(255,255,255,.6)" stroke-width=".4"><rect x="2" y="2" width="64" height="96"/><line x1="2" y1="50" x2="66" y2="50"/><circle cx="34" cy="50" r="9"/><rect x="14" y="2" width="40" height="16"/><rect x="14" y="82" width="40" height="16"/><rect x="25" y="2" width="18" height="6"/><rect x="25" y="92" width="18" height="6"/></g></svg>`;
-SCREENS.squad = () => {
-  const cid = myCid(), c = myClub(), slots = FORMS[c.form];
-  const inXI = new Set(c.xi.filter(Boolean)), inSB = new Set(c.sb);
-  const res = roster(cid).filter(p => !inXI.has(p) && !inSB.has(p)).sort((a, b) => lineOf(ps(a).pos).localeCompare(lineOf(ps(b).pos)) || pd(b).sk - pd(a).sk);
-  const row = (k, pid, slot) => {
-    const sel = UI.sel === k ? 'sel' : '';
-    if (!pid) return `<tr class="click ${sel}" data-act="sq" data-k="${k}"><td class="n hm">—</td><td class="n">${slot || ''}</td><td colspan="6" class="mute">（空位，撳一下再撳一個球員）</td></tr>`;
-    const d = pd(pid), p = ps(pid), bad = slot && fitP(pid, slot) < .85;
-    return `<tr class="click ${sel}" data-act="sq" data-k="${k}"><td class="n hm">${d.no || ''}</td><td class="n ${bad ? 'pbad' : ''}" title="${esc(POSN[p.pos])}">${slot || p.pos}</td><td class="nm">${pl(pid)}${slot && slot !== p.pos ? ` <span class="mute">(${[p.pos, ...pos2P(pid)].join('/')})</span>` : ''}</td><td>${pTags(pid)}</td><td>${Math.round(d.cond)}${cbar(d.cond)}</td><td class="n hm">${form(pid) ? form(pid).toFixed(1) : '–'}</td><td class="n">${slot && fitP(pid, slot) < 1 ? `<span class="${bad ? 'pbad' : ''}" title="本位 ${d.sk}，踢${esc(POSN[slot])}打 ${Math.round(fitP(pid, slot) * 100)}%">${Math.round(d.sk * fitP(pid, slot))}</span> <s class="mute">${d.sk}</s>` : d.sk}</td>
-      <td class="hm"><select data-ch="ord" data-a="${pid}" aria-label="個人指令">${Object.entries(ORDERS).map(([v, t]) => opt(v, t, c.ord[pid] || 'n')).join('')}</select></td></tr>`;
-  };
-  const probs = lineupProblems(cid), plans = c.plans || [], cur = c.plan ?? 0;
-  main(`${hdr('陣容', `${[0, 1, 2].map(i => `<button class="chip" data-act="plan" data-a="${i}" aria-pressed="${cur === i}">方案 ${'ABC'[i]}${plans[i] ? '' : '（空）'}</button>`).join('')}<button class="btn sm" data-act="plansave">存入方案 ${'ABC'[cur]}</button><button class="btn" data-act="autopick">自動排陣</button>${info('拖住球場上嘅球衣：放喺另一件球衣上面就對調兩個球員，放喺空位就移動嗰個位置（變自訂陣式）。用滑鼠亦可以由左邊名單拖人入球場。撳一個再撳另一個都可以對調。踢非本位會扣能力（同一般足球遊戲一樣）：能力一欄會顯示扣咗之後嘅數，劃咗線嗰個係本位能力。同一類位置唔扣（前鋒↔中鋒、右中場↔右翼、左中場↔左翼、右閘↔右翼衛、左閘↔左翼衛）；相近位置扣少啲（例如左閘踢右閘、防守中場踢中場約扣 5–10%），同一條線其他位置扣 20%，跨線扣 32%，門將同出面球員互換扣 70%。紅色＝扣得多。方案 A／B／C：撳「存入」記低陣式同陣容，之後一撳就換返。')}${probs.length ? `<span class="bad">${esc(probs.slice(0, 2).join('；'))}</span>` : ''}`)}
-  <div class="cols m-stack sqg">
-    ${pan(`球員名單 <span class="r">${roster(cid).length} 人</span>`, `<table><thead><tr><th class="n hm">#</th><th class="n">位置</th><th>球員</th><th>狀態</th><th>體能</th><th class="n hm">表現</th><th class="n">能力</th><th class="hm">指令</th></tr></thead><tbody>
-      <tr class="sec"><td colspan="8">正選</td></tr>${slots.map((s, i) => row('x' + i, c.xi[i], s[0])).join('')}
-      <tr class="sec"><td colspan="8">後備</td></tr>${[0, 1, 2, 3, 4].map(i => row('b' + i, c.sb[i], '')).join('')}
-      <tr class="sec"><td colspan="8">預備組</td></tr>${res.map(p => row('r' + p, p, '')).join('')}</tbody></table>`)}
-    ${pan(`球場模擬 <span class="r">${fname(c.form)}</span>`, `<div class="pitchwrap"><div class="pitchv" id="sqp">${PITCHV}${shirtsHTML(cid, c.xi, c.form, true)}</div></div>`, { t: 1 })}
-    ${pan('陣式', `<div class="flist">${FLIST().map(f => `<button class="nb" data-act="pform" data-a="${f}" aria-current="${c.form === f}">${f}</button>`).join('')}${c.cust ? `<button class="nb" data-act="pform" data-a="${CUSTK(cid)}" aria-current="${isCust(c.form)}">自訂</button>` : ''}</div>`, { t: 1, cls: 'fpan' })}
-  </div>`);
-};
-
-/* ---------- squad drag & drop (pointer events: shirts on any device, list rows with a mouse) ---------- */
-let DRG = null, NOCLICK = false;
-function dropTarget(e) {
-  DRG.g.hidden = true; const el = document.elementFromPoint(e.clientX, e.clientY); DRG.g.hidden = false;
-  if (!el) return null;
-  const sh = el.closest('#sqp .shirt[data-i]'); if (sh && 'x' + sh.dataset.i !== DRG.src) return { k: 'x' + sh.dataset.i, el: sh };
-  const row = el.closest('tr[data-k]'); if (row && row.dataset.k !== DRG.src) return { k: row.dataset.k, el: row };
-  const p = el.closest('#sqp');
-  if (p && DRG.sh) { const r = p.getBoundingClientRect(); return { move: [clamp((e.clientX - r.left) / r.width * 100, 5, 95), clamp((e.clientY - r.top) / r.height * 100, 5, 95)] }; }
-  return null;
-}
-function endDrag() { if (!DRG) return; DRG.g?.remove(); DRG.el.classList.remove('dragging'); $$('.dropon').forEach(x => x.classList.remove('dropon')); DRG = null; }
-document.addEventListener('pointerdown', e => {
-  if (SCR !== 'squad' || DRG) return;
-  if (e.target.closest('select,input,button')) return;
-  const sh = e.target.closest('#sqp .shirt[data-i]'), row = !sh && e.pointerType === 'mouse' && e.button === 0 && e.target.closest('tr[data-k]');
-  if (!sh && !row) return;
-  DRG = { src: sh ? 'x' + sh.dataset.i : row.dataset.k, sh: !!sh, el: sh || row, x0: e.clientX, y0: e.clientY, id: e.pointerId, on: false };
-  if (sh) { e.preventDefault(); try { sh.setPointerCapture(e.pointerId); } catch (x) { } }
-});
-document.addEventListener('pointermove', e => {
-  if (!DRG || e.pointerId !== DRG.id) return;
-  if (!DRG.on) {
-    if (Math.hypot(e.clientX - DRG.x0, e.clientY - DRG.y0) < 6) return;
-    DRG.on = true; const pid = sqGet(myClub(), DRG.src);
-    DRG.g = Object.assign(document.createElement('div'), { className: 'dghost', textContent: pid ? ps(pid).sn : '空位' });
-    document.body.appendChild(DRG.g); DRG.el.classList.add('dragging');
-  }
-  DRG.g.style.left = e.clientX + 'px'; DRG.g.style.top = e.clientY + 'px';
-  const t = dropTarget(e); $$('.dropon').forEach(x => x.classList.remove('dropon')); if (t && t.el) t.el.classList.add('dropon');
-});
-document.addEventListener('pointerup', e => {
-  if (!DRG || e.pointerId !== DRG.id) return;
-  const d = DRG, t = d.on ? dropTarget(e) : null; endDrag();
-  if (!d.on) { if (d.sh) ACT.sq({ dataset: { k: d.src } }); return; } // a tap on a shirt = select / swap
-  NOCLICK = true; setTimeout(() => { NOCLICK = false; }, 0);
-  if (!t) return;
-  if (t.k) sqSwap(d.src, t.k); else moveSlot(+d.src.slice(1), ...t.move);
-  UI.sel = null; save(); render();
-});
-document.addEventListener('pointercancel', endDrag);
+/* 陣容 card board + its drag & drop: fm/xi-ui.js */
+let NOCLICK = false;   // set for one tick after a drag so the drop does not also count as a click
 
 /* ---------- 戰術 ---------- */
 const STYLEN = { ment: '心態', pass: '傳球', tempo: '節奏', mark: '防守方式', trap: '越位陷阱' };
 const STYLEI = { ment: '進攻：多人插上，入球多但後防空虛；防守：收縮陣型，少失波但難入球。', pass: '短傳：控球同中場優勢；長傳：直接打前場，進攻多啲但控球少。', tempo: '快節奏：射門機會多，但體能消耗大同多犯規；慢節奏：慳體力。', mark: '人盯人：防守稍強，但犯規同黃牌多。', trap: '用越位陷阱：防守加強，但對手前鋒夠快就會被打身後。' };
-SCREENS.tactics = () => {
-  const c = myClub(), cid = myCid(), f = UI.tf || c.form;
-  main(`${hdr('戰術', info('陣式同打法會影響每分鐘嘅進攻、防守同控球計算。比賽中途都可以改。'))}
-  <div class="cols c2 m-stack">
-    <div class="cols" style="grid-template-rows:auto minmax(0,1fr)">
-      ${pan('陣式', `<div class="row">${[...FLIST(), ...(c.cust ? [CUSTK(cid)] : [])].map(k => `<button class="chip" data-act="tform" data-a="${k}" aria-pressed="${k === f}">${fname(k)}</button>`).join('')}</div>${f !== c.form ? `<div class="row" style="margin-top:8px"><button class="btn y" data-act="setform" data-a="${f}">用 ${fname(f)}</button><span class="note">而家用緊 ${fname(c.form)}</span></div>` : ''}`)}
-      ${pan(`隊長 · 定位球 ${info('揀隊長同各種定位球主罰。揀「自動」或者揀咗嘅人唔喺場上，就由場上最適合嘅人負責。隊長喺場會令全隊表現略為提升。角球同長罰球睇傳球同控球，短罰球（直接射門）睇射門同傳球，十二碼睇射門同控球。')}`, `<table class="spt"><tbody>${Object.entries(SPR).map(([k, t]) => { const ros = roster(cid).filter(p => ps(p).pos !== 'GK').sort((a, b) => SPW[k](b) - SPW[k](a)), cur = (c.sp || {})[k], auto = bestFor(k, c.xi.filter(Boolean)); return `<tr><td style="width:90px">${t}</td><td><select class="inp" data-ch="sp" data-a="${k}" aria-label="${t}"><option value="">自動${auto ? `（${esc(ps(auto).sn)}）` : ''}</option>${ros.map(p => `<option value="${p}" ${p === cur ? 'selected' : ''}>${esc(ps(p).sn)} · ${ps(p).pos} · ${Math.round(k === 'cap' ? pd(p).sk : k === 'pk' ? attrs(p)[5] : k === 'fks' ? (attrs(p)[5] + attrs(p)[4]) / 2 : attrs(p)[4])}</option>`).join('')}</select></td></tr>`; }).join('')}</tbody></table>`)}
-      ${pan('打法', `<table><tbody>${Object.entries(STYLE).map(([k, v]) => `<tr><td style="width:120px">${STYLEN[k]} ${info(STYLEI[k])}</td><td><div class="row">${v.map((t, i) => `<button class="chip" data-act="sty" data-a="${k}:${i}" aria-pressed="${c.sty[k] === i}">${t}</button>`).join('')}</div></td></tr>`).join('')}</tbody></table>`)}
-    </div>
-    ${pan(fname(f), `<div class="pitchv">${PITCHV}${shirtsHTML(cid, f === c.form ? c.xi : Array(11).fill(null), f)}</div>`, { t: 1 })}
-  </div>`);
-};
+/* 戰術 screen: fm/xi-ui.js */
 
 /* 訓練 · 職員 · 傳媒 · 宣傳 screens: fm/life-ui.js */
 
@@ -334,10 +261,11 @@ function drawPlayer() {
       act = `<div class="row"><span class="mute">球員意願</span><span class="tag wl${wl}">${WILLN[wl]}</span>${info('睇球會大細、會唔會有正選、合約剩幾耐、有冇放售、年紀等等。「唔會去」出幾多都冇用；「唔太想」會要求高啲人工；「好想去」人工可以少少。')}${d.c !== 'free' ? `<span class="mute">賣方心目中約 ${money(askingPrice(pid))}</span>${info('後生、正選主力、合約仲長嘅球員，球會會要溢價先肯放。')}` : ''}</div>
       <div class="row">轉會費 £<input class="inp num mny" id="pf" value="${nfi(P.fee ?? (d.c === 'free' ? 0 : valueOf(pid)))}" style="width:120px" inputmode="numeric" ${d.c === 'free' ? 'disabled' : ''}>${d.c !== 'free' ? `<select class="inp" id="pn" aria-label="付款">${[[1, '一次過'], [2, '分 2 年'], [3, '分 3 年']].map(([v, t]) => opt(v, t, P.n || 1)).join('')}</select><select class="inp" id="psw" aria-label="加球員交換" style="max-width:200px"><option value="">唔加球員</option>${mine2.map(x => `<option value="${x}" ${x === P.swap ? 'selected' : ''}>+ ${esc(ps(x).sn)} · ${ps(x).pos} · ${pd(x).sk} · ${money(valueOf(x))}</option>`).join('')}</select>${info('分期：今日只付第一期，其餘喺之後每季開季時自動付；賣方會當遲收嘅錢少少折扣，所以總數要多啲。加球員：將你一個球員一齊交換，賣方需要嗰個位置會計足身價，唔需要就打折；嗰個球員自己都要肯去。')}` : ''}<button class="btn y" data-act="bid">${d.c === 'free' ? '傾合約' : '出價'}</button>${P.counter ? `<button class="btn" data-act="bidc">出 ${money(P.counter)}</button>` : ''}</div>`; }
   }
-  modal(`${esc(p.name)}`, `<div class="pf">${d.c !== 'free' && d.c !== 'ret' ? badgeSVG(d.c, 64) : ''}<div><div class="D" style="font-size:20px">${esc(clubName(d.c))}</div><div class="mute">${POSN[p.pos]}（${p.pos}）${pos2P(pid).length ? `，次位置 ${pos2P(pid).map(q => `${POSN[q]}（${q}）`).join('、')}` : ''} · ${ageOf(pid)} 歲 · ${esc(natName(p.nat))} · #${d.no || '—'}</div><div>${pTags(pid)}</div></div><div class="gcard g-${GRADE(d.sk)} pfc"><span class="r">${d.sk}</span><span class="g">${GRADE(d.sk)}</span></div></div>
+  modal(`${esc(p.name)}`, `<div class="pf">${d.c !== 'free' && d.c !== 'ret' ? badgeSVG(d.c, 64) : ''}<div><div class="D" style="font-size:20px">${esc(clubName(d.c))}</div><div class="mute">${POSN[p.pos]}（${p.pos}）${pos2P(pid).length ? `，次位置 ${pos2P(pid).map(q => `${POSN[q]}（${q}）`).join('、')}` : ''} · ${ageOf(pid)} 歲 · ${esc(natName(p.nat))} · #${d.no || '—'}</div><div>${pTags(pid)}</div></div><div class="pfx">${cardHTML(pid)}</div></div>
     <dl class="kv kv2"><dt>身價</dt><dd>${money(valueOf(pid))}</dd><dt>週薪</dt><dd>${money(d.w)}</dd><dt>合約至</dt><dd>${d.c === 'free' ? '—' : d.ct + ' 年 6 月'}</dd><dt>體能</dt><dd>${Math.round(d.cond)}${cbar(d.cond)}</dd><dt>表現</dt><dd>${form(pid) ? form(pid).toFixed(1) : '–'}</dd><dt>傷病</dt><dd>${d.inj ? `${esc(d.injn)}（${d.inj} 日）` : '冇'}</dd></dl>
     <div class="attrs">${an.map((n, k) => `<div><span>${n}</span><b class="num">${a[k]}</b><div class="bar"><i style="width:${a[k]}%;background:${a[k] >= 85 ? 'var(--win)' : a[k] >= 70 ? 'var(--sel)' : a[k] >= 55 ? '#9cc0ff' : 'var(--loss)'}"></i></div></div>`).join('')}</div>
     <table><thead><tr><th class="n">上陣</th><th class="n">入球</th><th class="n">助攻</th><th class="n">黃牌</th><th class="n">紅牌</th><th class="n">最佳</th><th class="n">平均評分</th></tr></thead><tbody><tr><td class="n">${s.ap}</td><td class="n">${s.gl}</td><td class="n">${s.as}</td><td class="n">${s.yc}</td><td class="n">${s.rc}</td><td class="n">${s.mom}</td><td class="n">${s.ap ? (s.rt / s.ap).toFixed(2) : '–'}</td></tr></tbody></table>
+    ${cardPanel(pid)}
     <div class="pact">${P.msg ? `<p class="msg">${esc(P.msg)}</p>` : ''}${act}</div>`);
 }
 
@@ -355,23 +283,7 @@ SCREENS.market = () => {
 
 /* ---------- 球探抽卡 ---------- */
 const gcardHTML = (pid, g, from) => `<div class="gcard g-${g}"><span class="r">${pd(pid).sk}</span><span class="g">${g}</span><span class="p">${ps(pid).pos}</span><span class="n">${esc(ps(pid).sn)}</span><span class="c">${esc(clubName(from))} · ${ageOf(pid)}歲</span></div>`;
-SCREENS.gacha = () => {
-  const c = myClub(), sc = c.st.scout;
-  main(`${hdr('球探抽卡', info('球探喺全世界幫你搵人：抽中嘅球員即刻免轉會費加盟（新合約，週薪照計）。用球會資金付款，十連抽保底一張 SR 或以上。球隊最多 45 人，滿咗會退返部分費用。'))}
-  <div class="cols c2 m-stack">
-    ${pan('抽卡', `<div class="gban"><div class="D" style="font-size:30px;line-height:1">全世界球員<br>一抽即加盟</div><p class="note" style="margin:8px 0">資金 ${G.inf ? '∞' : money(c.cash)} · 已抽 ${G.stats.pulls} 次</p>
-      <div class="row"><button class="btn y" data-act="pull" data-a="10" style="font-size:18px;padding:10px 16px">十連抽 · ${money(pullCost(10))}</button><button class="btn" data-act="pull" data-a="1" style="font-size:18px;padding:10px 16px">單抽 · ${money(pullCost(1))}</button></div></div>`)}
-    ${pan(`機率 · 球探 ${sc} 級`, `<table><thead><tr><th>等級</th><th class="n">能力</th><th class="n">機率</th></tr></thead><tbody>${GRATES.map(([g, p]) => `<tr><td><span class="tag g-${g}" style="background:var(--c1);color:var(--ink)">${g}</span></td><td class="n">${{ UR: '90+', SSR: '85–89', SR: '77–84', R: '68–76', C: '<68' }[g]}</td><td class="n">${(g === 'C' ? p - sc * 1.5 : g === 'SR' ? p + sc * 1.5 : p).toFixed(1)}%</td></tr>`).join('')}</tbody></table>`, { t: 1 })}
-  </div>`);
-};
-function doPull(n) {
-  const r = gachaPull(n);
-  if (r.err) return toast(r.err);
-  save();
-  modal(n === 10 ? '十連抽結果' : '抽卡結果', `<div class="pgrid">${r.out.map((o, k) => `<div class="flip h-${o.g}" data-k="${k}"><div class="in"><div class="back">XI</div>${gcardHTML(o.pid, o.g, o.from)}</div><div class="fst ${o.full ? 'bad' : 'good'}">${o.full ? '球隊滿員，退還部分費用' : '已加盟'}</div></div>`).join('')}</div><div class="row" style="justify-content:center"><button class="btn y" data-act="pull" data-a="${n}">再抽</button><button class="btn" data-act="mclose">完成</button></div>`, 'tall');
-  $$('#modal .flip').forEach((f, k) => setTimeout(() => f.classList.add('on'), 250 + k * 160));
-  render();
-}
+/* 球探抽卡 screen and pack opening: fm/xi-ui.js */
 
 /* ---------- 合約 ---------- */
 SCREENS.contracts = () => {
@@ -713,7 +625,7 @@ function subPanel() {
   const changed = ins.length || D.form !== S.form || D.on.some((o, i) => o.pid !== S.on[i]?.pid || o.slot !== S.on[i]?.slot || o.x !== S.on[i]?.x || o.y !== S.on[i]?.y);
   const shirts = D.on.map((o, i) => {
     const pid = o.pid, f = pid ? fitP(pid, o.slot) : 1, cond = pid ? Math.round(pd(pid).cond) : 0;
-    return `<div class="shirt dg ${pid && MT.sel === pid ? 'selp' : ''} ${pid && !orig.has(pid) ? 'newin' : ''}" data-mi="${i}" style="left:${o.x}%;top:${o.y}%"><b class="sp">${o.slot}</b><i style="background:${col[0]};color:${col[1]}">${pid ? pd(pid).no || '' : ''}</i><span class="${f < .85 ? 'bad' : ''}">${pid ? esc(ps(pid).sn) : '冇人'}</span>${pid ? `<em class="rt ${f < 1 ? 'down' : ''}">${Math.round(pd(pid).sk * f)} · <b class="${cc(cond)}">${cond}%</b></em>` : ''}</div>`;
+    return `<div class="shirt dg ${pid && MT.sel === pid ? 'selp' : ''} ${pid && !orig.has(pid) ? 'newin' : ''}" data-mi="${i}" style="left:${o.x}%;top:${o.y}%">${pid ? cardHTML(pid) : '<div class="empty"><b>+</b></div>'}${pid ? `<em class="rt ${f < 1 ? 'down' : ''}">${o.slot} ${Math.round(cardR(pid) * f)} · <b class="${cc(cond)}">${cond}%</b></em>` : `<b class="sp">${o.slot}</b>`}</div>`;
   }).join('');
   const benchH = bench.map(p => { const cond = Math.round(pd(p).cond), out = orig.has(p); return `<div class="mbc ${out ? 'out' : ''}" data-mb="${p}"><b class="n">${ps(p).pos}</b><span class="nm">${esc(ps(p).sn)}${out ? ' <span class="tag t-ex">換出</span>' : ''}</span><span class="n">${pd(p).sk}</span><span class="n ${cc(cond)}">${cond}%</span></div>`; }).join('') || '<div class="mute">冇後備</div>';
   modal(`換人 · 戰術（仲可以換 ${Math.max(0, left)} 個${ins.length ? `，${ins.length} 個未確認` : ''}）`, `<div class="mtbw">
@@ -993,7 +905,7 @@ function showStart() {
       <div class="row"><button class="btn" data-act="sback">返回</button><span style="margin-left:auto" class="mute">${W.cid ? esc(CL[W.cid].name) : '未揀球會'}</span><button class="btn y" data-act="wgo" ${W.cid ? '' : 'disabled'}>開始 ▶</button></div></div>`;
   }
 }
-function enterGame() { $('#start').hidden = true; $('#app').hidden = false; W.step = 0; SCR = myCid() ? 'home' : 'board'; render(); }
+function enterGame() { cardsInit(); $('#start').hidden = true; $('#app').hidden = false; W.step = 0; SCR = myCid() ? 'home' : 'board'; render(); }
 const SACT = {
   snew: () => { W.step = 1; showStart(); },
   sloadl: () => { W.step = 9; showStart(); },

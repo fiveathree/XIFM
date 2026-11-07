@@ -144,3 +144,10 @@ FM.addSeason(2002, { clubs: {
 - 傳媒: pre-match press conference (from 3 days before, once per fixture; `pressQs`/`pressApply` → `G.mot` motivation % for that fixture), statements `STATE` every 14 days.
 - 宣傳: fans `c.fans` (default = rep; above rep raises gate/merch/sponsorship), club campaigns `PROMO`, player promotion `PPROMO`, popularity `d.pop` (stars ≥70, superstars ≥85: extra merch, gate, higher wage demands, complain after 3 weeks without a game).
 - Save: player fields 20–22 (pop×10, p2x, tf); club fields are stored as is.
+
+## 7. 傳奇十一人 merged in (fm/xi.js + fm/xi-ui.js + fm/xi.css)
+- Cards: `cardHTML(pid)` (the main game's card art; grade from ability via `GRADE`), card level `d.clv` 0–5 (+1 rating each; `effOf` adds it; packed field 23).
+- 陣容 is a card board on a turf pitch (`SCREENS.squad` in xi-ui.js): drag cards between pitch, bench and the reserve list, or onto grass to move a position (custom formation via `moveSlot`). Team strength tiles come from `sideRatings` on a board side. The in-match tactics board shows the same cards.
+- 默契加成 `chemMap`: nationality links in the eleven, +1 (3+ team-mates) / +2 (6+), for every club, added in `sideRatings`.
+- 戰術風格 `TACP` (the main game's seven tactics): sets the sliders and adds `tacFit` att/def by how the players' attributes compare with their overall (user club only, `c.tac`).
+- 球探抽卡: banner + pack opening overlay (`xPull`); own players can come out (a fifth of a grade's picks) as duplicate cards. Collection `G.cards {pid: copies}`; 卡冊 (`SCREENS.album`) with grade/line/search filters; upgrades and selling duplicates in the player sheet (`cardPanel`).
