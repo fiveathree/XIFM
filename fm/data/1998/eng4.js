@@ -9,7 +9,7 @@ FM.addLeague({
     {id:"cam", name:"Cambridge United", short:"CAM", country:"ENG", stadium:"Abbey Stadium", cap:9600,
      col:["#FDB913","#000000"], rep:38, bank:1,
      p:[
-       [0,"Trevor Benjamin","ST","JAM",1979,62],
+       [0,"Trevor Benjamin","LW","JAM",1979,62],
        [0,"Martin Butler","ST","ENG",1974,60],
      ]},
     {id:"car", name:"Cardiff City", short:"CAR", country:"WAL", stadium:"Ninian Park", cap:15000,
@@ -35,7 +35,7 @@ FM.addLeague({
      col:["#FFFFFF","#000000"], rep:38, bank:1,
      p:[
        [0,"Roger Freestone","GK","WAL",1968,62],
-       [0,"Jonathan Coates","RM","WAL",1975,58],
+       [0,"Jonathan Coates","CM","WAL",1975,58],
      ]},
     {id:"man", name:"Mansfield Town", short:"MAN", country:"ENG", stadium:"Field Mill", cap:9990,
      col:["#F5A12D","#003DA5"], rep:36, bank:1,
@@ -46,7 +46,7 @@ FM.addLeague({
      col:["#0055A5","#FFFFFF"], rep:38, bank:1,
      p:[
        [0,"Matthew Etherington","LM","ENG",1981,58],
-       [0,"Simon Davies","CM","WAL",1979,58],
+       [0,"Simon Davies","RM","WAL",1979,58],
      ]},
     {id:"hal", name:"Halifax Town", short:"HAL", country:"ENG", stadium:"The Shay", cap:9900,
      col:["#003DA5","#FFFFFF"], rep:34, bank:1,

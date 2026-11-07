@@ -4,8 +4,8 @@ FM.addLeague({
     {id:"bjk", name:"Beşiktaş", short:"BJK", country:"TUR", stadium:"İnönü Stadyumu", cap:32000,
      col:["#000000","#FFFFFF"], rep:78, bank:4,
      p:[
-       [0,"Recep Çetin","CD","TUR",1965,76],
-       [0,"Mehmet Özdilek","RM","TUR",1966,74],
+       [0,"Recep Çetin","RB","TUR",1965,76],
+       [0,"Mehmet Özdilek","AM","TUR",1966,74],
        [0,"Sergen Yalçın","AM","TUR",1972,78],
        [0,"Feyyaz Uçar","ST","TUR",1963,76],
        [0,"Ertuğrul Sağlam","ST","TUR",1969,76],
@@ -14,8 +14,8 @@ FM.addLeague({
      col:["#7F1734","#56B4E9"], rep:72, bank:3,
      p:[
        [0,"Ogün Temizkanoğlu","CD","TUR",1969,76],
-       [0,"Abdullah Ercan","LB","TUR",1971,72],
-       [0,"Ünal Karaman","CM","TUR",1966,74],
+       [0,"Abdullah Ercan","LM","TUR",1971,72],
+       [0,"Ünal Karaman","AM","TUR",1966,74],
        [0,"Hami Mandıralı","ST","TUR",1968,78],
        [0,"Shota Arveladze","ST","GEO",1973,76],
      ]},
@@ -24,7 +24,7 @@ FM.addLeague({
      p:[
        [0,"Hayrettin Demirbaş","GK","TUR",1963,74],
        [0,"Bülent Korkmaz","CD","TUR",1968,78],
-       [0,"Tugay Kerimoğlu","CM","TUR",1970,76],
+       [0,"Tugay Kerimoğlu","DM","TUR",1970,76],
        [0,"Hakan Şükür","ST","TUR",1971,82],
        [0,"Kubilay Türkyılmaz","ST","SUI",1967,76],
        [0,"Arif Erdem","ST","TUR",1972,74],
@@ -34,7 +34,7 @@ FM.addLeague({
      p:[
        [0,"Rüştü Reçber","GK","TUR",1973,72],
        [0,"Uche Okechukwu","CD","NGA",1967,76],
-       [0,"Oğuz Çetin","AM","TUR",1963,78],
+       [0,"Oğuz Çetin","CM","TUR",1963,78],
        [0,"Aykut Kocaman","ST","TUR",1965,80],
        [0,"Tanju Çolak","ST","TUR",1963,76],
      ]},

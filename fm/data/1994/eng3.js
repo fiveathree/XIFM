@@ -9,8 +9,8 @@ FM.addLeague({
     {id:"bre", name:"Brentford", short:"BRE", country:"ENG", stadium:"Griffin Park", cap:12700,
      col:["#E30613","#FFFFFF"], rep:46, bank:1,
      p:[
-       [0,"Nicky Forster","ST","ENG",1973,64],
-       [0,"Robert Taylor","ST","ENG",1971,62],
+       [9,"Nicky Forster","ST","ENG",1973,64],
+       [11,"Robert Taylor","ST","ENG",1971,62],
      ]},
     {id:"cre", name:"Crewe Alexandra", short:"CRE", country:"ENG", stadium:"Gresty Road", cap:10046,
      col:["#E2001A","#FFFFFF"], rep:44, bank:1,
@@ -63,7 +63,7 @@ FM.addLeague({
      col:["#D7192D","#FFFFFF"], rep:42, bank:1,
      p:[
        [0,"Gary Bennett","ST","ENG",1963,64],
-       [0,"Karl Connolly","LM","ENG",1970,62],
+       [0,"Karl Connolly","LW","ENG",1970,62],
      ]},
     {id:"bra", name:"Bradford City", short:"BRA", country:"ENG", stadium:"Valley Parade", cap:25136,
      col:["#7A1E3A","#F2A900"], rep:44, bank:1,

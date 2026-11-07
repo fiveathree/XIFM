@@ -19,9 +19,9 @@ FM.addLeague({
      col:["#0071C5","#000000"], rep:72, bank:4,
      p:[
        [0,"Dany Verlinden","GK","BEL",1963,76],
-       [0,"Lorenzo Staelens","CM","BEL",1964,76],
-       [0,"Franky Van der Elst","CM","BEL",1961,76],
-       [0,"Gert Verheyen","RM","BEL",1970,74],
+       [0,"Lorenzo Staelens","DM","BEL",1964,76],
+       [0,"Franky Van der Elst","DM","BEL",1961,76],
+       [0,"Gert Verheyen","RW","BEL",1970,74],
      ]},
     {id:"gek", name:"Germinal Ekeren", short:"GEK", country:"BEL", stadium:"Veltwijckpark", cap:8000,
      col:["#E2001A","#FFD700"], rep:54, bank:1,

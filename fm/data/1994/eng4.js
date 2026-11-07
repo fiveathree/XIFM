@@ -43,7 +43,7 @@ FM.addLeague({
     {id:"col", name:"Colchester United", short:"COL", country:"ENG", stadium:"Layer Road", cap:7500,
      col:["#0057B8","#FFFFFF"], rep:34, bank:1,
      p:[
-       [0,"Mark Kinsella","CM","IRL",1972,62],
+       [0,"Mark Kinsella","DM","IRL",1972,62],
      ]},
     {id:"bar", name:"Barnet", short:"BAR", country:"ENG", stadium:"Underhill Stadium", cap:5568,
      col:["#FFA500","#000000"], rep:32, bank:1,

@@ -8,12 +8,12 @@ FM.addLeague({
        [2,"Oleh Luzhnyi","RB","UKR",1968,76],
        [5,"Vladyslav Vashchuk","CD","UKR",1975,76],
        [4,"Oleksandr Holovko","CD","UKR",1972,74],
-       [7,"Kakha Kaladze","LB","GEO",1978,74],
+       [7,"Kakha Kaladze","CD","GEO",1978,74],
        [14,"Andriy Husin","CM","UKR",1972,74],
        [0,"Valentin Belkevich","AM","BLR",1973,78],
-       [9,"Vitaliy Kosovskyi","RM","UKR",1973,74],
+       [9,"Vitaliy Kosovskyi","RW","UKR",1973,74],
        [10,"Andriy Shevchenko","ST","UKR",1976,88],
-       [11,"Serhiy Rebrov","ST","UKR",1974,84],
+       [11,"Serhiy Rebrov","CF","UKR",1974,84],
      ]},
     {id:"oly", name:"Olympiacos", short:"OLY", country:"GRE", stadium:"Georgios Karaiskakis Stadium", cap:33000,
      col:["#E2001A","#FFFFFF"], rep:76, bank:5,
@@ -28,7 +28,7 @@ FM.addLeague({
      col:["#007A33","#FFFFFF"], rep:72, bank:4,
      p:[
        [0,"Krzysztof Warzycha","ST","POL",1964,76],
-       [0,"Angelos Basinas","CM","GRE",1976,72],
+       [0,"Angelos Basinas","DM","GRE",1976,72],
        [0,"Nikos Liberopoulos","ST","GRE",1975,72],
      ]},
     {id:"aek", name:"AEK Athens", short:"AEK", country:"GRE", stadium:"Nikos Goumas Stadium", cap:27729,
@@ -41,7 +41,7 @@ FM.addLeague({
      col:["#E2001A","#FFFFFF"], rep:76, bank:5,
      p:[
        [0,"Yegor Titov","AM","RUS",1976,78],
-       [0,"Andrei Tikhonov","LM","RUS",1970,76],
+       [0,"Andrei Tikhonov","AM","RUS",1970,76],
        [0,"Ilya Tsymbalar","CM","UKR",1969,76],
      ]},
     {id:"lok", name:"Lokomotiv Moscow", short:"LOK", country:"RUS", stadium:"Lokomotiv Stadium", cap:24000,
@@ -53,14 +53,14 @@ FM.addLeague({
     {id:"ros", name:"Rosenborg", short:"ROS", country:"NOR", stadium:"Lerkendal Stadion", cap:21166,
      col:["#FFFFFF","#000000"], rep:72, bank:4,
      p:[
-       [0,"Bent Skammelsrud","CM","NOR",1966,74],
+       [0,"Bent Skammelsrud","DM","NOR",1966,74],
        [0,"Roar Strand","CM","NOR",1970,74],
        [0,"John Carew","ST","NOR",1979,74],
      ]},
     {id:"stu", name:"Sturm Graz", short:"STU", country:"AUT", stadium:"Arnold Schwarzenegger Stadium", cap:15400,
      col:["#000000","#FFFFFF"], rep:66, bank:3,
      p:[
-       [0,"Ivica Vastić","AM","AUT",1969,80],
+       [0,"Ivica Vastić","CF","AUT",1969,80],
        [0,"Mario Haas","ST","AUT",1974,76],
      ]},
     {id:"bif", name:"Brøndby", short:"BIF", country:"DEN", stadium:"Brøndby Stadium", cap:29000,
@@ -112,7 +112,7 @@ FM.addLeague({
     {id:"mha", name:"Maccabi Haifa", short:"MHA", country:"ISR", stadium:"Kiryat Eliezer Stadium", cap:14002,
      col:["#00A040","#FFFFFF"], rep:58, bank:2,
      p:[
-       [0,"Yossi Benayoun","AM","ISR",1980,70],
+       [0,"Yossi Benayoun","RW","ISR",1980,70],
      ]},
   ]
 });

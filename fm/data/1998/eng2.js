@@ -9,7 +9,7 @@ FM.addLeague({
        [0,"Michael Gray","LB","ENG",1974,70],
        [0,"Kevin Ball","CM","ENG",1964,70],
        [0,"Lee Clark","CM","ENG",1972,72],
-       [0,"Nicky Summerbee","RM","ENG",1971,70],
+       [0,"Nicky Summerbee","RB","ENG",1971,70],
        [0,"Allan Johnston","LM","SCO",1973,72],
        [0,"Kevin Phillips","ST","ENG",1973,78],
        [0,"Niall Quinn","ST","IRL",1966,76],
@@ -18,9 +18,9 @@ FM.addLeague({
      col:["#7A1E3A","#F2A900"], rep:52, bank:2,
      p:[
        [0,"Gary Walsh","GK","ENG",1968,68],
-       [0,"Peter Beagrie","LM","ENG",1965,72],
+       [0,"Peter Beagrie","LW","ENG",1965,72],
        [0,"Lee Mills","ST","ENG",1970,70],
-       [0,"Robbie Blake","ST","ENG",1976,66],
+       [0,"Robbie Blake","CF","ENG",1976,66],
        [0,"Dean Windass","ST","ENG",1969,68],
      ]},
     {id:"ips", name:"Ipswich Town", short:"IPS", country:"ENG", stadium:"Portman Road", cap:30311,
@@ -40,7 +40,7 @@ FM.addLeague({
      p:[
        [0,"Ian Bennett","GK","ENG",1971,68],
        [0,"Martin Grainger","LB","ENG",1972,66],
-       [0,"Bryan Hughes","CM","ENG",1976,66],
+       [0,"Bryan Hughes","AM","ENG",1976,66],
        [0,"Dele Adebola","ST","NGA",1975,66],
        [0,"Paul Furlong","ST","ENG",1968,66],
      ]},
@@ -58,9 +58,9 @@ FM.addLeague({
        [6,"Jussi Jääskeläinen","GK","FIN",1975,70],
        [14,"Gudni Bergsson","CD","ISL",1965,70],
        [5,"Mark Fish","CD","RSA",1974,68],
-       [2,"Per Frandsen","CM","DEN",1970,70],
-       [1,"Claus Jensen","CM","DEN",1977,70],
-       [4,"Michael Johansen","RM","DEN",1972,68],
+       [2,"Per Frandsen","RM","DEN",1970,70],
+       [1,"Claus Jensen","AM","DEN",1977,70],
+       [4,"Michael Johansen","AM","DEN",1972,68],
        [20,"Eiður Guðjohnsen","ST","ISL",1978,72],
        [7,"Bob Taylor","ST","ENG",1967,64],
        [10,"Dean Holdsworth","ST","ENG",1968,66],
@@ -70,7 +70,7 @@ FM.addLeague({
      p:[
        [0,"Mike Stowell","GK","ENG",1965,66],
        [0,"Keith Curle","CD","ENG",1963,66],
-       [0,"Kevin Muscat","RB","AUS",1973,66],
+       [0,"Kevin Muscat","CD","AUS",1973,66],
        [0,"Carl Robinson","CM","WAL",1976,64],
        [0,"Robbie Keane","ST","IRL",1980,74],
        [0,"Steve Bull","ST","ENG",1965,68],
@@ -86,9 +86,9 @@ FM.addLeague({
      p:[
        [0,"Andy Marshall","GK","ENG",1975,68],
        [0,"Craig Fleming","CD","ENG",1971,66],
-       [0,"Darren Eadie","LM","ENG",1975,66],
+       [0,"Darren Eadie","LW","ENG",1975,66],
        [0,"Iwan Roberts","ST","WAL",1968,68],
-       [0,"Craig Bellamy","ST","WAL",1979,68],
+       [0,"Craig Bellamy","LW","WAL",1979,68],
      ]},
     {id:"hud", name:"Huddersfield Town", short:"HUD", country:"ENG", stadium:"McAlpine Stadium", cap:24500,
      col:["#0E63AD","#FFFFFF"], rep:50, bank:2,
@@ -98,7 +98,7 @@ FM.addLeague({
     {id:"gri", name:"Grimsby Town", short:"GRI", country:"ENG", stadium:"Blundell Park", cap:8974,
      col:["#000000","#FFFFFF"], rep:48, bank:1,
      p:[
-       [0,"Kevin Donovan","RM","ENG",1971,64],
+       [0,"Kevin Donovan","CM","ENG",1971,64],
        [0,"Paul Groves","CM","ENG",1966,62],
      ]},
     {id:"wba", name:"West Bromwich Albion", short:"WBA", country:"ENG", stadium:"The Hawthorns", cap:27877,
@@ -114,14 +114,14 @@ FM.addLeague({
      col:["#D71920","#FFFFFF"], rep:52, bank:2,
      p:[
        [0,"Darren Sheridan","CM","ENG",1967,62],
-       [0,"Martin Bullock","RM","ENG",1975,62],
+       [0,"Martin Bullock","DM","ENG",1975,62],
        [0,"Georgi Hristov","ST","MKD",1976,66],
      ]},
     {id:"cry", name:"Crystal Palace", short:"CRY", country:"ENG", stadium:"Selhurst Park", cap:26309,
      col:["#1B458F","#C4122E"], rep:54, bank:2,
      p:[
-       [0,"Attilio Lombardo","RM","ITA",1966,72],
-       [0,"Hayden Mullins","CD","ENG",1979,62],
+       [0,"Attilio Lombardo","RW","ITA",1966,72],
+       [0,"Hayden Mullins","DM","ENG",1979,62],
        [0,"Clinton Morrison","ST","IRL",1979,62],
        [0,"Matt Bradbury","ST","ENG",1975,64],
      ]},
@@ -129,7 +129,7 @@ FM.addLeague({
      col:["#FFFFFF","#003399"], rep:48, bank:1,
      p:[
        [8,"Alan Mahon","LM","IRL",1978,64],
-       [6,"Kenny Irons","CM","ENG",1970,64],
+       [6,"Kenny Irons","AM","ENG",1970,64],
        [16,"David Kelly","ST","IRL",1965,64],
      ]},
     {id:"sto", name:"Stockport County", short:"STO", country:"ENG", stadium:"Edgeley Park", cap:11541,
@@ -157,7 +157,7 @@ FM.addLeague({
      col:["#001489","#FFFFFF"], rep:52, bank:1,
      p:[
        [0,"Alan Knight","GK","ENG",1961,62],
-       [0,"Sammy Igoe","RM","ENG",1975,62],
+       [0,"Sammy Igoe","CM","ENG",1975,62],
        [0,"Steve Claridge","ST","ENG",1966,66],
      ]},
     {id:"qpr", name:"Queens Park Rangers", short:"QPR", country:"ENG", stadium:"Loftus Road", cap:19100,
@@ -188,7 +188,7 @@ FM.addLeague({
      col:["#E21A23","#FFFFFF"], rep:48, bank:2,
      p:[
        [0,"Ade Akinbiyi","ST","NGA",1974,66],
-       [0,"Mickey Bell","LB","ENG",1971,64],
+       [0,"Mickey Bell","CD","ENG",1971,64],
      ]},
   ]
 });

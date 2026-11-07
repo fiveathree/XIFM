@@ -6,13 +6,13 @@ FM.addLeague({
      p:[
        [0,"İlhan Mansız","ST","TUR",1975,78],
        [0,"Pascal Nouma","ST","FRA",1972,72],
-       [0,"Tayfur Havutçu","CM","TUR",1970,72],
+       [0,"Tayfur Havutçu","DM","TUR",1970,72],
        [0,"Ronaldo Guiaro","CD","BRA",1974,71,"R. Guiaro"],
        [0,"Ahmet Dursun","ST","TUR",1978,69],
      ]},
     {id:"ts", name:"Trabzonspor", short:"TS", country:"TUR", stadium:"Hüseyin Avni Aker Stadyumu", cap:24000, col:["#7F1734","#56B4E9"], rep:66, bank:3,
      p:[
-       [0,"Gökdeniz Karadeniz","RM","TUR",1980,70],
+       [0,"Gökdeniz Karadeniz","RW","TUR",1980,70],
        [0,"Hüseyin Çimşir","DM","TUR",1979,67],
        [0,"Fatih Tekke","ST","TUR",1977,70],
      ]},

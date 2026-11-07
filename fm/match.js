@@ -71,7 +71,7 @@ function step(M) {
   const hAtt = R() < ph;
   const S = hAtt ? H : A, O = hAtt ? A : H, rs = hAtt ? rh : ra, ro = hAtt ? ra : rh;
   S.pos++;
-  let p = .138 * clamp(rs.att / Math.max(20, ro.def), .6, 1.7) ** 2 * (rs.t + ro.t) / 2;
+  let p = .141 * clamp(rs.att / Math.max(20, ro.def), .6, 1.7) ** 2 * (rs.t + ro.t) / 2;
   if (O.sty.trap && rs.pace > 72 && R() < .25) p *= 1.25;
   p = clamp(p, .03, .34);
   M.ball = [hAtt ? 70 + R() * 20 : 10 + R() * 20, 15 + R() * 70];

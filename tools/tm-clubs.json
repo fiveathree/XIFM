@@ -1,0 +1,2357 @@
+{
+ "Union Saint-Gilloise": {
+  "id": "3948",
+  "slug": "royale-union-saint-gilloise",
+  "tm": "Union Saint-Gilloise"
+ },
+ "Club Brugge": {
+  "id": "2282",
+  "slug": "fc-brugge",
+  "tm": "Club Brugge KV"
+ },
+ "Gent": {
+  "id": "3437",
+  "slug": "argentinien",
+  "tm": "Argentina"
+ },
+ "Anderlecht": {
+  "id": "58",
+  "slug": "rsc-anderlecht",
+  "tm": "RSC Anderlecht"
+ },
+ "Antwerp": {
+  "id": "1096",
+  "slug": "royal-antwerpen-fc",
+  "tm": "Royal Antwerp FC"
+ },
+ "Genk": {
+  "id": "1184",
+  "slug": "krc-genk",
+  "tm": "KRC Genk"
+ },
+ "Mechelen": {
+  "id": "354",
+  "slug": "kv-mechelen",
+  "tm": "KV Mechelen"
+ },
+ "Standard Liège": {
+  "id": "3057",
+  "slug": "standard-luttich",
+  "tm": "Standard Liège"
+ },
+ "Charleroi": {
+  "id": "172",
+  "slug": "rsc-charleroi",
+  "tm": "Royal Charleroi SC"
+ },
+ "Westerlo": {
+  "id": "968",
+  "slug": "kvc-westerlo",
+  "tm": "KVC Westerlo"
+ },
+ "OH Leuven": {
+  "id": "2727",
+  "slug": "oud-heverlee-leuven",
+  "tm": "Oud-Heverlee Leuven"
+ },
+ "Cercle Brugge": {
+  "id": "520",
+  "slug": "cercle-brugge",
+  "tm": "Cercle Brugge"
+ },
+ "Sint-Truiden": {
+  "id": "475",
+  "slug": "vv-st-truiden",
+  "tm": "Sint-Truidense VV"
+ },
+ "Dender": {
+  "id": "31727",
+  "slug": "fc-dender",
+  "tm": "FC Dender"
+ },
+ "Zulte Waregem": {
+  "id": "3508",
+  "slug": "sv-zulte-waregem",
+  "tm": "Zulte Waregem"
+ },
+ "La Louvière": {
+  "id": "3901",
+  "slug": "raal-la-louviere",
+  "tm": "RAAL La Louvière"
+ },
+ "Liverpool": {
+  "id": "31",
+  "slug": "fc-liverpool",
+  "tm": "Liverpool FC"
+ },
+ "Arsenal": {
+  "id": "11",
+  "slug": "fc-arsenal",
+  "tm": "Arsenal FC"
+ },
+ "Manchester City": {
+  "id": "281",
+  "slug": "manchester-city",
+  "tm": "Manchester City"
+ },
+ "Chelsea": {
+  "id": "631",
+  "slug": "fc-chelsea",
+  "tm": "Chelsea FC"
+ },
+ "Newcastle United": {
+  "id": "762",
+  "slug": "newcastle-united",
+  "tm": "Newcastle United"
+ },
+ "Aston Villa": {
+  "id": "405",
+  "slug": "aston-villa",
+  "tm": "Aston Villa"
+ },
+ "Nottingham Forest": {
+  "id": "703",
+  "slug": "nottingham-forest",
+  "tm": "Nottingham Forest"
+ },
+ "Brighton & Hove Albion": {
+  "id": "1237",
+  "slug": "brighton-amp-hove-albion",
+  "tm": "Brighton & Hove Albion"
+ },
+ "Bournemouth": {
+  "id": "989",
+  "slug": "afc-bournemouth",
+  "tm": "AFC Bournemouth"
+ },
+ "Brentford": {
+  "id": "1148",
+  "slug": "fc-brentford",
+  "tm": "Brentford FC"
+ },
+ "Fulham": {
+  "id": "931",
+  "slug": "fc-fulham",
+  "tm": "Fulham FC"
+ },
+ "Crystal Palace": {
+  "id": "873",
+  "slug": "crystal-palace",
+  "tm": "Crystal Palace"
+ },
+ "Everton": {
+  "id": "29",
+  "slug": "fc-everton",
+  "tm": "Everton FC"
+ },
+ "West Ham United": {
+  "id": "379",
+  "slug": "west-ham-united",
+  "tm": "West Ham United"
+ },
+ "Manchester United": {
+  "id": "985",
+  "slug": "manchester-united",
+  "tm": "Manchester United"
+ },
+ "Wolverhampton Wanderers": {
+  "id": "543",
+  "slug": "wolverhampton-wanderers",
+  "tm": "Wolverhampton Wanderers"
+ },
+ "Tottenham Hotspur": {
+  "id": "148",
+  "slug": "tottenham-hotspur",
+  "tm": "Tottenham Hotspur"
+ },
+ "Leeds United": {
+  "id": "399",
+  "slug": "leeds-united",
+  "tm": "Leeds United"
+ },
+ "Burnley": {
+  "id": "1132",
+  "slug": "fc-burnley",
+  "tm": "Burnley FC"
+ },
+ "Sunderland": {
+  "id": "289",
+  "slug": "afc-sunderland",
+  "tm": "Sunderland AFC"
+ },
+ "Leicester City": {
+  "id": "1003",
+  "slug": "leicester-city",
+  "tm": "Leicester City"
+ },
+ "Ipswich Town": {
+  "id": "677",
+  "slug": "ipswich-town",
+  "tm": "Ipswich Town"
+ },
+ "Southampton": {
+  "id": "180",
+  "slug": "fc-southampton",
+  "tm": "Southampton FC"
+ },
+ "Sheffield United": {
+  "id": "350",
+  "slug": "sheffield-united",
+  "tm": "Sheffield United"
+ },
+ "Middlesbrough": {
+  "id": "641",
+  "slug": "fc-middlesbrough",
+  "tm": "Middlesbrough FC"
+ },
+ "Coventry City": {
+  "id": "990",
+  "slug": "coventry-city",
+  "tm": "Coventry City"
+ },
+ "Bristol City": {
+  "id": "698",
+  "slug": "bristol-city",
+  "tm": "Bristol City"
+ },
+ "Millwall": {
+  "id": "1028",
+  "slug": "fc-millwall",
+  "tm": "Millwall FC"
+ },
+ "Blackburn Rovers": {
+  "id": "164",
+  "slug": "blackburn-rovers",
+  "tm": "Blackburn Rovers"
+ },
+ "West Bromwich Albion": {
+  "id": "984",
+  "slug": "west-bromwich-albion",
+  "tm": "West Bromwich Albion"
+ },
+ "Swansea City": {
+  "id": "2288",
+  "slug": "swansea-city",
+  "tm": "Swansea City"
+ },
+ "Norwich City": {
+  "id": "1123",
+  "slug": "norwich-city",
+  "tm": "Norwich City"
+ },
+ "Watford": {
+  "id": "1010",
+  "slug": "fc-watford",
+  "tm": "Watford FC"
+ },
+ "Queens Park Rangers": {
+  "id": "1039",
+  "slug": "queens-park-rangers",
+  "tm": "Queens Park Rangers"
+ },
+ "Stoke City": {
+  "id": "512",
+  "slug": "stoke-city",
+  "tm": "Stoke City"
+ },
+ "Hull City": {
+  "id": "3008",
+  "slug": "hull-city",
+  "tm": "Hull City"
+ },
+ "Preston North End": {
+  "id": "466",
+  "slug": "preston-north-end",
+  "tm": "Preston North End"
+ },
+ "Portsmouth": {
+  "id": "1020",
+  "slug": "fc-portsmouth",
+  "tm": "Portsmouth FC"
+ },
+ "Derby County": {
+  "id": "22",
+  "slug": "derby-county",
+  "tm": "Derby County"
+ },
+ "Oxford United": {
+  "id": "988",
+  "slug": "oxford-united",
+  "tm": "Oxford United"
+ },
+ "Sheffield Wednesday": {
+  "id": "1035",
+  "slug": "sheffield-wednesday",
+  "tm": "Sheffield Wednesday"
+ },
+ "Wrexham": {
+  "id": "1112",
+  "slug": "afc-wrexham",
+  "tm": "Wrexham AFC"
+ },
+ "Birmingham City": {
+  "id": "337",
+  "slug": "birmingham-city",
+  "tm": "Birmingham City"
+ },
+ "Charlton Athletic": {
+  "id": "358",
+  "slug": "charlton-athletic",
+  "tm": "Charlton Athletic"
+ },
+ "Luton Town": {
+  "id": "1031",
+  "slug": "luton-town",
+  "tm": "Luton Town"
+ },
+ "Plymouth Argyle": {
+  "id": "2262",
+  "slug": "plymouth-argyle",
+  "tm": "Plymouth Argyle"
+ },
+ "Cardiff City": {
+  "id": "603",
+  "slug": "cardiff-city",
+  "tm": "Cardiff City"
+ },
+ "Wycombe Wanderers": {
+  "id": "2805",
+  "slug": "wycombe-wanderers",
+  "tm": "Wycombe Wanderers"
+ },
+ "Huddersfield Town": {
+  "id": "1110",
+  "slug": "huddersfield-town",
+  "tm": "Huddersfield Town"
+ },
+ "Bolton Wanderers": {
+  "id": "355",
+  "slug": "bolton-wanderers",
+  "tm": "Bolton Wanderers"
+ },
+ "Stockport County": {
+  "id": "1098",
+  "slug": "stockport-county",
+  "tm": "Stockport County"
+ },
+ "Barnsley": {
+  "id": "349",
+  "slug": "fc-barnsley",
+  "tm": "Barnsley FC"
+ },
+ "Reading": {
+  "id": "1032",
+  "slug": "fc-reading",
+  "tm": "Reading FC"
+ },
+ "Leyton Orient": {
+  "id": "1150",
+  "slug": "leyton-orient",
+  "tm": "Leyton Orient"
+ },
+ "Wigan Athletic": {
+  "id": "1071",
+  "slug": "wigan-athletic",
+  "tm": "Wigan Athletic"
+ },
+ "Blackpool": {
+  "id": "1181",
+  "slug": "fc-blackpool",
+  "tm": "Blackpool FC"
+ },
+ "Rotherham United": {
+  "id": "1194",
+  "slug": "rotherham-united",
+  "tm": "Rotherham United"
+ },
+ "Mansfield Town": {
+  "id": "3820",
+  "slug": "mansfield-town",
+  "tm": "Mansfield Town"
+ },
+ "Stevenage": {
+  "id": "3684",
+  "slug": "fc-stevenage",
+  "tm": "Stevenage FC"
+ },
+ "Peterborough United": {
+  "id": "1072",
+  "slug": "peterborough-united",
+  "tm": "Peterborough United"
+ },
+ "Lincoln City": {
+  "id": "1198",
+  "slug": "lincoln-city",
+  "tm": "Lincoln City"
+ },
+ "Exeter City": {
+  "id": "6699",
+  "slug": "exeter-city",
+  "tm": "Exeter City"
+ },
+ "Burton Albion": {
+  "id": "2963",
+  "slug": "burton-albion",
+  "tm": "Burton Albion"
+ },
+ "Northampton Town": {
+  "id": "1302",
+  "slug": "northampton-town",
+  "tm": "Northampton Town"
+ },
+ "AFC Wimbledon": {
+  "id": "3884",
+  "slug": "afc-wimbledon",
+  "tm": "AFC Wimbledon"
+ },
+ "Bradford City": {
+  "id": "1027",
+  "slug": "bradford-city",
+  "tm": "Bradford City"
+ },
+ "Doncaster Rovers": {
+  "id": "2454",
+  "slug": "doncaster-rovers",
+  "tm": "Doncaster Rovers"
+ },
+ "Port Vale": {
+  "id": "1211",
+  "slug": "fc-port-vale",
+  "tm": "Port Vale FC"
+ },
+ "Walsall": {
+  "id": "899",
+  "slug": "fc-walsall",
+  "tm": "Walsall FC"
+ },
+ "Chesterfield": {
+  "id": "1219",
+  "slug": "fc-chesterfield",
+  "tm": "Chesterfield FC"
+ },
+ "Notts County": {
+  "id": "1045",
+  "slug": "notts-county",
+  "tm": "Notts County"
+ },
+ "Grimsby Town": {
+  "id": "1034",
+  "slug": "grimsby-town",
+  "tm": "Grimsby Town"
+ },
+ "Salford City": {
+  "id": "34888",
+  "slug": "salford-city",
+  "tm": "Salford City"
+ },
+ "Colchester United": {
+  "id": "1060",
+  "slug": "colchester-united",
+  "tm": "Colchester United"
+ },
+ "Swindon Town": {
+  "id": "352",
+  "slug": "swindon-town",
+  "tm": "Swindon Town"
+ },
+ "Bromley": {
+  "id": "8981",
+  "slug": "fc-bromley",
+  "tm": "Bromley FC"
+ },
+ "Crewe Alexandra": {
+  "id": "1042",
+  "slug": "crewe-alexandra",
+  "tm": "Crewe Alexandra"
+ },
+ "Milton Keynes Dons": {
+  "id": "991",
+  "slug": "milton-keynes-dons",
+  "tm": "Milton Keynes Dons"
+ },
+ "Cheltenham Town": {
+  "id": "3371",
+  "slug": "cheltenham-town",
+  "tm": "Cheltenham Town"
+ },
+ "Fleetwood Town": {
+  "id": "11177",
+  "slug": "fleetwood-town",
+  "tm": "Fleetwood Town"
+ },
+ "Tranmere Rovers": {
+  "id": "1074",
+  "slug": "tranmere-rovers",
+  "tm": "Tranmere Rovers"
+ },
+ "Gillingham": {
+  "id": "2814",
+  "slug": "fc-gillingham",
+  "tm": "Gillingham FC"
+ },
+ "Accrington Stanley": {
+  "id": "3688",
+  "slug": "accrington-stanley",
+  "tm": "Accrington Stanley"
+ },
+ "Barrow": {
+  "id": "6168",
+  "slug": "afc-barrow",
+  "tm": "Barrow AFC"
+ },
+ "Harrogate Town": {
+  "id": "12020",
+  "slug": "harrogate-town",
+  "tm": "Harrogate Town"
+ },
+ "Newport County": {
+  "id": "3716",
+  "slug": "newport-county",
+  "tm": "Newport County"
+ },
+ "Bristol Rovers": {
+  "id": "2455",
+  "slug": "bristol-rovers",
+  "tm": "Bristol Rovers"
+ },
+ "Shrewsbury Town": {
+  "id": "3054",
+  "slug": "shrewsbury-town",
+  "tm": "Shrewsbury Town"
+ },
+ "Crawley Town": {
+  "id": "3537",
+  "slug": "crawley-town",
+  "tm": "Crawley Town"
+ },
+ "Cambridge United": {
+  "id": "986",
+  "slug": "cambridge-united",
+  "tm": "Cambridge United"
+ },
+ "Oldham Athletic": {
+  "id": "1078",
+  "slug": "oldham-athletic",
+  "tm": "Oldham Athletic"
+ },
+ "Barnet": {
+  "id": "2804",
+  "slug": "fc-barnet",
+  "tm": "Barnet FC"
+ },
+ "Barcelona": {
+  "id": "131",
+  "slug": "fc-barcelona",
+  "tm": "FC Barcelona"
+ },
+ "Real Madrid": {
+  "id": "418",
+  "slug": "real-madrid",
+  "tm": "Real Madrid"
+ },
+ "Atlético Madrid": {
+  "id": "13",
+  "slug": "atletico-madrid",
+  "tm": "Atlético de Madrid"
+ },
+ "Athletic Bilbao": {
+  "id": "621",
+  "slug": "athletic-bilbao",
+  "tm": "Athletic Bilbao"
+ },
+ "Villarreal": {
+  "id": "1050",
+  "slug": "fc-villarreal",
+  "tm": "Villarreal CF"
+ },
+ "Real Betis": {
+  "id": "150",
+  "slug": "real-betis-sevilla",
+  "tm": "Real Betis Balompié"
+ },
+ "Celta Vigo": {
+  "id": "940",
+  "slug": "celta-vigo",
+  "tm": "Celta de Vigo"
+ },
+ "Rayo Vallecano": {
+  "id": "367",
+  "slug": "rayo-vallecano",
+  "tm": "Rayo Vallecano"
+ },
+ "Osasuna": {
+  "id": "331",
+  "slug": "ca-osasuna",
+  "tm": "CA Osasuna"
+ },
+ "Mallorca": {
+  "id": "237",
+  "slug": "rcd-mallorca",
+  "tm": "RCD Mallorca"
+ },
+ "Real Sociedad": {
+  "id": "681",
+  "slug": "real-sociedad-san-sebastian",
+  "tm": "Real Sociedad"
+ },
+ "Valencia": {
+  "id": "1049",
+  "slug": "fc-valencia",
+  "tm": "Valencia CF"
+ },
+ "Getafe": {
+  "id": "3709",
+  "slug": "fc-getafe",
+  "tm": "Getafe CF"
+ },
+ "Espanyol": {
+  "id": "714",
+  "slug": "espanyol-barcelona",
+  "tm": "RCD Espanyol Barcelona"
+ },
+ "Alavés": {
+  "id": "1108",
+  "slug": "deportivo-alaves",
+  "tm": "Deportivo Alavés"
+ },
+ "Girona": {
+  "id": "12321",
+  "slug": "fc-girona",
+  "tm": "Girona FC"
+ },
+ "Sevilla": {
+  "id": "368",
+  "slug": "fc-sevilla",
+  "tm": "Sevilla FC"
+ },
+ "Elche": {
+  "id": "1531",
+  "slug": "fc-elche",
+  "tm": "Elche CF"
+ },
+ "Levante": {
+  "id": "46746",
+  "slug": "ao-levante",
+  "tm": "Levante FC"
+ },
+ "Real Oviedo": {
+  "id": "2497",
+  "slug": "real-oviedo",
+  "tm": "Real Oviedo"
+ },
+ "Copenhagen": {
+  "id": "190",
+  "slug": "fc-kopenhagen",
+  "tm": "FC Copenhagen"
+ },
+ "Slavia Prague": {
+  "id": "62",
+  "slug": "sk-slavia-prag",
+  "tm": "SK Slavia Prague"
+ },
+ "Sparta Prague": {
+  "id": "197",
+  "slug": "ac-sparta-prag",
+  "tm": "AC Sparta Praha"
+ },
+ "Olympiacos": {
+  "id": "105461",
+  "slug": "olympiacos-fc",
+  "tm": "Olympiacos FC"
+ },
+ "PAOK": {
+  "id": "1091",
+  "slug": "paok-thessaloniki",
+  "tm": "PAOK Thessaloniki"
+ },
+ "Pafos": {
+  "id": "45457",
+  "slug": "pafos-fc",
+  "tm": "Pafos FC"
+ },
+ "Kairat Almaty": {
+  "id": "10482",
+  "slug": "kairat-almaty",
+  "tm": "Kairat Almaty"
+ },
+ "Qarabağ": {
+  "id": "10625",
+  "slug": "qarabag-fk",
+  "tm": "Qarabağ FK"
+ },
+ "Red Bull Salzburg": {
+  "id": "409",
+  "slug": "red-bull-salzburg",
+  "tm": "Red Bull Salzburg"
+ },
+ "Shakhtar Donetsk": {
+  "id": "660",
+  "slug": "shakhtar-donetsk",
+  "tm": "Shakhtar Donetsk"
+ },
+ "Dynamo Kyiv": {
+  "id": "338",
+  "slug": "dynamo-kiew",
+  "tm": "Dynamo Kyiv"
+ },
+ "Red Star Belgrade": {
+  "id": "159",
+  "slug": "roter-stern-belgrad",
+  "tm": "Red Star Belgrade"
+ },
+ "Dinamo Zagreb": {
+  "id": "419",
+  "slug": "gnk-dinamo-zagreb",
+  "tm": "GNK Dinamo Zagreb"
+ },
+ "Young Boys": {
+  "id": "91886",
+  "slug": "sv-young-boys",
+  "tm": "SV Young Boys"
+ },
+ "Basel": {
+  "id": "26",
+  "slug": "fc-basel-1893",
+  "tm": "FC Basel 1893"
+ },
+ "Midtjylland": {
+  "id": "865",
+  "slug": "fc-midtjylland",
+  "tm": "FC Midtjylland"
+ },
+ "Ferencváros": {
+  "id": "279",
+  "slug": "ferencvaros-budapest",
+  "tm": "Ferencvárosi TC"
+ },
+ "Paris Saint-Germain": {
+  "id": "583",
+  "slug": "fc-paris-saint-germain",
+  "tm": "Paris Saint-Germain"
+ },
+ "Marseille": {
+  "id": "244",
+  "slug": "olympique-marseille",
+  "tm": "Olympique Marseille"
+ },
+ "Monaco": {
+  "id": "162",
+  "slug": "as-monaco",
+  "tm": "AS Monaco"
+ },
+ "Nice": {
+  "id": "417",
+  "slug": "ogc-nizza",
+  "tm": "OGC Nice"
+ },
+ "Lille": {
+  "id": "1082",
+  "slug": "losc-lille",
+  "tm": "LOSC Lille"
+ },
+ "Lyon": {
+  "id": "61607",
+  "slug": "fc-lyon",
+  "tm": "FC Lyon"
+ },
+ "Strasbourg": {
+  "id": "667",
+  "slug": "rc-strassburg-alsace",
+  "tm": "RC Strasbourg Alsace"
+ },
+ "Lens": {
+  "id": "826",
+  "slug": "rc-lens",
+  "tm": "RC Lens"
+ },
+ "Brest": {
+  "id": "3911",
+  "slug": "stade-brest-29",
+  "tm": "Stade Brestois 29"
+ },
+ "Toulouse": {
+  "id": "415",
+  "slug": "fc-toulouse",
+  "tm": "FC Toulouse"
+ },
+ "Auxerre": {
+  "id": "290",
+  "slug": "aj-auxerre",
+  "tm": "AJ Auxerre"
+ },
+ "Rennes": {
+  "id": "35199",
+  "slug": "ta-rennes",
+  "tm": "TA Rennes"
+ },
+ "Nantes": {
+  "id": "995",
+  "slug": "fc-nantes",
+  "tm": "FC Nantes"
+ },
+ "Angers": {
+  "id": "124",
+  "slug": "glasgow-rangers",
+  "tm": "Rangers FC"
+ },
+ "Le Havre": {
+  "id": "738",
+  "slug": "ac-le-havre",
+  "tm": "Le Havre AC"
+ },
+ "Lorient": {
+  "id": "1158",
+  "slug": "fc-lorient",
+  "tm": "FC Lorient"
+ },
+ "Paris FC": {
+  "id": "10004",
+  "slug": "paris-fc",
+  "tm": "Paris FC"
+ },
+ "Metz": {
+  "id": "347",
+  "slug": "fc-metz",
+  "tm": "FC Metz"
+ },
+ "Bayern Munich": {
+  "id": "27",
+  "slug": "fc-bayern-munchen",
+  "tm": "FC Bayern Munich"
+ },
+ "Bayer Leverkusen": {
+  "id": "15",
+  "slug": "bayer-04-leverkusen",
+  "tm": "Bayer 04 Leverkusen"
+ },
+ "Eintracht Frankfurt": {
+  "id": "24",
+  "slug": "eintracht-frankfurt",
+  "tm": "Eintracht Frankfurt"
+ },
+ "Borussia Dortmund": {
+  "id": "16",
+  "slug": "borussia-dortmund",
+  "tm": "Borussia Dortmund"
+ },
+ "SC Freiburg": {
+  "id": "60",
+  "slug": "sc-freiburg",
+  "tm": "SC Freiburg"
+ },
+ "Mainz 05": {
+  "id": "39",
+  "slug": "1-fsv-mainz-05",
+  "tm": "1.FSV Mainz 05"
+ },
+ "RB Leipzig": {
+  "id": "23826",
+  "slug": "rasenballsport-leipzig",
+  "tm": "RB Leipzig"
+ },
+ "Werder Bremen": {
+  "id": "86",
+  "slug": "sv-werder-bremen",
+  "tm": "SV Werder Bremen"
+ },
+ "VfB Stuttgart": {
+  "id": "79",
+  "slug": "vfb-stuttgart",
+  "tm": "VfB Stuttgart"
+ },
+ "Borussia Mönchengladbach": {
+  "id": "18",
+  "slug": "borussia-monchengladbach",
+  "tm": "Borussia Mönchengladbach"
+ },
+ "VfL Wolfsburg": {
+  "id": "82",
+  "slug": "vfl-wolfsburg",
+  "tm": "VfL Wolfsburg"
+ },
+ "FC Augsburg": {
+  "id": "167",
+  "slug": "fc-augsburg",
+  "tm": "FC Augsburg"
+ },
+ "Union Berlin": {
+  "id": "89",
+  "slug": "1-fc-union-berlin",
+  "tm": "1.FC Union Berlin"
+ },
+ "FC St. Pauli": {
+  "id": "35",
+  "slug": "fc-st-pauli",
+  "tm": "FC St. Pauli"
+ },
+ "TSG Hoffenheim": {
+  "id": "533",
+  "slug": "tsg-1899-hoffenheim",
+  "tm": "TSG 1899 Hoffenheim"
+ },
+ "1. FC Köln": {
+  "id": "3",
+  "slug": "1-fc-koln",
+  "tm": "1.FC Köln"
+ },
+ "Hamburger SV": {
+  "id": "41",
+  "slug": "hamburger-sv",
+  "tm": "Hamburger SV"
+ },
+ "Napoli": {
+  "id": "6195",
+  "slug": "ssc-neapel",
+  "tm": "SSC Napoli"
+ },
+ "Inter": {
+  "id": "46",
+  "slug": "inter-mailand",
+  "tm": "Inter Milan"
+ },
+ "Atalanta": {
+  "id": "800",
+  "slug": "atalanta-bergamo",
+  "tm": "Atalanta BC"
+ },
+ "Juventus": {
+  "id": "506",
+  "slug": "juventus-turin",
+  "tm": "Juventus FC"
+ },
+ "Roma": {
+  "id": "12",
+  "slug": "as-rom",
+  "tm": "AS Roma"
+ },
+ "Fiorentina": {
+  "id": "43161",
+  "slug": "fiorentina-fc",
+  "tm": "Fiorentina FC"
+ },
+ "Lazio": {
+  "id": "398",
+  "slug": "lazio-rom",
+  "tm": "SS Lazio"
+ },
+ "AC Milan": {
+  "id": "5",
+  "slug": "ac-mailand",
+  "tm": "AC Milan"
+ },
+ "Bologna": {
+  "id": "1025",
+  "slug": "fc-bologna",
+  "tm": "Bologna FC 1909"
+ },
+ "Como": {
+  "id": "1047",
+  "slug": "como-1907",
+  "tm": "Como 1907"
+ },
+ "Torino": {
+  "id": "416",
+  "slug": "fc-turin",
+  "tm": "Torino FC"
+ },
+ "Udinese": {
+  "id": "410",
+  "slug": "udinese-calcio",
+  "tm": "Udinese Calcio"
+ },
+ "Genoa": {
+  "id": "252",
+  "slug": "genua-cfc",
+  "tm": "Genoa CFC"
+ },
+ "Hellas Verona": {
+  "id": "276",
+  "slug": "hellas-verona",
+  "tm": "Hellas Verona"
+ },
+ "Cagliari": {
+  "id": "1390",
+  "slug": "cagliari-calcio",
+  "tm": "Cagliari Calcio"
+ },
+ "Parma": {
+  "id": "130",
+  "slug": "parma-calcio-1913",
+  "tm": "Parma Calcio 1913"
+ },
+ "Lecce": {
+  "id": "1005",
+  "slug": "us-lecce",
+  "tm": "US Lecce"
+ },
+ "Sassuolo": {
+  "id": "6574",
+  "slug": "us-sassuolo",
+  "tm": "US Sassuolo"
+ },
+ "Pisa": {
+  "id": "4172",
+  "slug": "ac-pisa-1909",
+  "tm": "Pisa Sporting Club"
+ },
+ "Cremonese": {
+  "id": "2239",
+  "slug": "us-cremonese",
+  "tm": "US Cremonese"
+ },
+ "PSV Eindhoven": {
+  "id": "383",
+  "slug": "psv-eindhoven",
+  "tm": "PSV Eindhoven"
+ },
+ "Ajax": {
+  "id": "610",
+  "slug": "ajax-amsterdam",
+  "tm": "Ajax Amsterdam"
+ },
+ "Feyenoord": {
+  "id": "234",
+  "slug": "feyenoord-rotterdam",
+  "tm": "Feyenoord Rotterdam"
+ },
+ "Utrecht": {
+  "id": "200",
+  "slug": "fc-utrecht",
+  "tm": "FC Utrecht"
+ },
+ "AZ": {
+  "id": "1090",
+  "slug": "az-alkmaar",
+  "tm": "AZ Alkmaar"
+ },
+ "Twente": {
+  "id": "317",
+  "slug": "fc-twente-enschede",
+  "tm": "FC Twente Enschede"
+ },
+ "Go Ahead Eagles": {
+  "id": "1435",
+  "slug": "go-ahead-eagles-deventer",
+  "tm": "Go Ahead Eagles"
+ },
+ "NEC": {
+  "id": "467",
+  "slug": "nec-nijmegen",
+  "tm": "NEC Nijmegen"
+ },
+ "Heerenveen": {
+  "id": "306",
+  "slug": "sc-heerenveen",
+  "tm": "SC Heerenveen"
+ },
+ "PEC Zwolle": {
+  "id": "1269",
+  "slug": "pec-zwolle",
+  "tm": "PEC Zwolle"
+ },
+ "Sparta Rotterdam": {
+  "id": "468",
+  "slug": "sparta-rotterdam",
+  "tm": "Sparta Rotterdam"
+ },
+ "Fortuna Sittard": {
+  "id": "385",
+  "slug": "fortuna-sittard",
+  "tm": "Fortuna Sittard"
+ },
+ "Groningen": {
+  "id": "202",
+  "slug": "fc-groningen",
+  "tm": "FC Groningen"
+ },
+ "Heracles Almelo": {
+  "id": "1304",
+  "slug": "heracles-almelo",
+  "tm": "Heracles Almelo"
+ },
+ "NAC Breda": {
+  "id": "132",
+  "slug": "nac-breda",
+  "tm": "NAC Breda"
+ },
+ "Excelsior": {
+  "id": "798",
+  "slug": "sbv-excelsior-rotterdam",
+  "tm": "Excelsior Rotterdam"
+ },
+ "Volendam": {
+  "id": "724",
+  "slug": "fc-volendam",
+  "tm": "FC Volendam"
+ },
+ "Telstar": {
+  "id": "1434",
+  "slug": "sc-telstar",
+  "tm": "SC Telstar"
+ },
+ "Sporting CP": {
+  "id": "336",
+  "slug": "sporting-lissabon",
+  "tm": "Sporting CP"
+ },
+ "Benfica": {
+  "id": "294",
+  "slug": "benfica-lissabon",
+  "tm": "SL Benfica"
+ },
+ "Porto": {
+  "id": "720",
+  "slug": "fc-porto",
+  "tm": "FC Porto"
+ },
+ "Braga": {
+  "id": "1075",
+  "slug": "sc-braga",
+  "tm": "SC Braga"
+ },
+ "Santa Clara": {
+  "id": "2423",
+  "slug": "cd-santa-clara",
+  "tm": "CD Santa Clara"
+ },
+ "Vitória de Guimarães": {
+  "id": "2420",
+  "slug": "vitoria-guimaraes-sc",
+  "tm": "Vitória Guimarães SC"
+ },
+ "Famalicão": {
+  "id": "3329",
+  "slug": "fc-famalicao",
+  "tm": "FC Famalicão"
+ },
+ "Estoril": {
+  "id": "1465",
+  "slug": "gd-estoril-praia",
+  "tm": "GD Estoril Praia"
+ },
+ "Casa Pia": {
+  "id": "3268",
+  "slug": "casa-pia-ac",
+  "tm": "Casa Pia AC"
+ },
+ "Gil Vicente": {
+  "id": "2424",
+  "slug": "gil-vicente-fc",
+  "tm": "Gil Vicente FC"
+ },
+ "Moreirense": {
+  "id": "979",
+  "slug": "moreirense-fc",
+  "tm": "Moreirense FC"
+ },
+ "Rio Ave": {
+  "id": "2425",
+  "slug": "rio-ave-fc",
+  "tm": "Rio Ave FC"
+ },
+ "Arouca": {
+  "id": "8024",
+  "slug": "fc-arouca",
+  "tm": "FC Arouca"
+ },
+ "Nacional": {
+  "id": "6600",
+  "slug": "sc-internacional-porto-alegre",
+  "tm": "Sport Club Internacional"
+ },
+ "Estrela Amadora": {
+  "id": "2431",
+  "slug": "cf-estrela-amadora-sad",
+  "tm": "CF Estrela Amadora"
+ },
+ "AVS": {
+  "id": "110302",
+  "slug": "avs-futebol-sad",
+  "tm": "Avs Futebol"
+ },
+ "Tondela": {
+  "id": "7179",
+  "slug": "cd-tondela",
+  "tm": "CD Tondela"
+ },
+ "Alverca": {
+  "id": "2521",
+  "slug": "fc-alverca",
+  "tm": "FC Alverca"
+ },
+ "Celtic": {
+  "id": "371",
+  "slug": "celtic-glasgow",
+  "tm": "Celtic FC"
+ },
+ "Rangers": {
+  "id": "124",
+  "slug": "glasgow-rangers",
+  "tm": "Rangers FC"
+ },
+ "Hibernian": {
+  "id": "903",
+  "slug": "hibernian-fc",
+  "tm": "Hibernian FC"
+ },
+ "Aberdeen": {
+  "id": "370",
+  "slug": "aberdeen-fc",
+  "tm": "Aberdeen FC"
+ },
+ "Heart of Midlothian": {
+  "id": "43",
+  "slug": "heart-of-midlothian-fc",
+  "tm": "Heart of Midlothian FC"
+ },
+ "Dundee United": {
+  "id": "1519",
+  "slug": "dundee-united-fc",
+  "tm": "Dundee United FC"
+ },
+ "Motherwell": {
+  "id": "987",
+  "slug": "motherwell-fc",
+  "tm": "Motherwell FC"
+ },
+ "Kilmarnock": {
+  "id": "2553",
+  "slug": "kilmarnock-fc",
+  "tm": "Kilmarnock FC"
+ },
+ "Dundee": {
+  "id": "511",
+  "slug": "dundee-fc",
+  "tm": "Dundee FC"
+ },
+ "Falkirk": {
+  "id": "1191",
+  "slug": "falkirk-fc",
+  "tm": "Falkirk FC"
+ },
+ "Livingston": {
+  "id": "1241",
+  "slug": "livingston-fc",
+  "tm": "Livingston FC"
+ },
+ "Galatasaray": {
+  "id": "141",
+  "slug": "galatasaray-istanbul",
+  "tm": "Galatasaray"
+ },
+ "Fenerbahçe": {
+  "id": "36",
+  "slug": "fenerbahce-istanbul",
+  "tm": "Fenerbahce"
+ },
+ "Samsunspor": {
+  "id": "152",
+  "slug": "samsunspor",
+  "tm": "Samsunspor"
+ },
+ "Beşiktaş": {
+  "id": "114",
+  "slug": "besiktas-istanbul",
+  "tm": "Beşiktaş JK"
+ },
+ "İstanbul Başakşehir": {
+  "id": "6890",
+  "slug": "istanbul-basaksehir-fk",
+  "tm": "Basaksehir FK"
+ },
+ "Eyüpspor": {
+  "id": "7160",
+  "slug": "eyupspor",
+  "tm": "Eyüpspor"
+ },
+ "Trabzonspor": {
+  "id": "449",
+  "slug": "trabzonspor",
+  "tm": "Trabzonspor"
+ },
+ "Göztepe": {
+  "id": "1467",
+  "slug": "goztepe",
+  "tm": "Göztepe"
+ },
+ "Kasımpaşa": {
+  "id": "10484",
+  "slug": "kasimpasa",
+  "tm": "Kasimpasa"
+ },
+ "Konyaspor": {
+  "id": "2293",
+  "slug": "konyaspor",
+  "tm": "Konyaspor"
+ },
+ "Alanyaspor": {
+  "id": "11282",
+  "slug": "alanyaspor",
+  "tm": "Alanyaspor"
+ },
+ "Çaykur Rizespor": {
+  "id": "126",
+  "slug": "caykur-rizespor",
+  "tm": "Caykur Rizespor"
+ },
+ "Antalyaspor": {
+  "id": "589",
+  "slug": "antalyaspor",
+  "tm": "Antalyaspor"
+ },
+ "Gaziantep FK": {
+  "id": "2832",
+  "slug": "gaziantep-fk",
+  "tm": "Gaziantep FK"
+ },
+ "Kayserispor": {
+  "id": "3205",
+  "slug": "kayserispor",
+  "tm": "Kayserispor"
+ },
+ "Kocaelispor": {
+  "id": "120",
+  "slug": "kocaelispor",
+  "tm": "Kocaelispor"
+ },
+ "Gençlerbirliği": {
+  "id": "820",
+  "slug": "genclerbirligi-ankara",
+  "tm": "Genclerbirligi Ankara"
+ },
+ "Fatih Karagümrük": {
+  "id": "6646",
+  "slug": "fatih-karagumruk",
+  "tm": "Fatih Karagümrük"
+ },
+ "Beerschot": {
+  "id": "566",
+  "slug": "beerschot-ac",
+  "tm": "Beerschot AC (-2013)"
+ },
+ "Kortrijk": {
+  "id": "601",
+  "slug": "kv-kortrijk",
+  "tm": "KV Kortrijk"
+ },
+ "Eupen": {
+  "id": "8441",
+  "slug": "fc-eupen",
+  "tm": "FC Eupen"
+ },
+ "Oostende": {
+  "id": "19433",
+  "slug": "sv-diksmuide",
+  "tm": "KV Diksmuide Oostende"
+ },
+ "Excel Mouscron": {
+  "id": "29228",
+  "slug": "royal-excel-mouscron",
+  "tm": "Royal Excel Mouscron (-2022)"
+ },
+ "Rochdale": {
+  "id": "1088",
+  "slug": "afc-rochdale",
+  "tm": "Rochdale AFC"
+ },
+ "Morecambe": {
+  "id": "3697",
+  "slug": "fc-morecambe",
+  "tm": "Morecambe FC"
+ },
+ "Forest Green Rovers": {
+  "id": "3455",
+  "slug": "forest-green-rovers",
+  "tm": "Forest Green Rovers"
+ },
+ "Carlisle United": {
+  "id": "1220",
+  "slug": "carlisle-united",
+  "tm": "Carlisle United"
+ },
+ "Scunthorpe United": {
+  "id": "2964",
+  "slug": "scunthorpe-united",
+  "tm": "Scunthorpe United"
+ },
+ "Southend United": {
+  "id": "2793",
+  "slug": "southend-united",
+  "tm": "Southend United"
+ },
+ "Granada": {
+  "id": "16795",
+  "slug": "fc-granada",
+  "tm": "Granada CF"
+ },
+ "Cádiz": {
+  "id": "2687",
+  "slug": "fc-cadiz",
+  "tm": "Cádiz CF"
+ },
+ "Huesca": {
+  "id": "5358",
+  "slug": "sd-huesca",
+  "tm": "SD Huesca"
+ },
+ "Real Valladolid": {
+  "id": "366",
+  "slug": "real-valladolid",
+  "tm": "Real Valladolid CF"
+ },
+ "Eibar": {
+  "id": "1533",
+  "slug": "sd-eibar",
+  "tm": "SD Eibar"
+ },
+ "Lokomotiv Moscow": {
+  "id": "932",
+  "slug": "lokomotiv-moskau",
+  "tm": "Lokomotiv Moscow"
+ },
+ "Zenit St Petersburg": {
+  "id": "964",
+  "slug": "zenit-st-petersburg",
+  "tm": "Zenit St. Petersburg"
+ },
+ "Krasnodar": {
+  "id": "16704",
+  "slug": "fk-krasnodar",
+  "tm": "FC Krasnodar"
+ },
+ "CSKA Moscow": {
+  "id": "2410",
+  "slug": "zska-moskau",
+  "tm": "CSKA Moscow"
+ },
+ "Molde": {
+  "id": "687",
+  "slug": "molde-fk",
+  "tm": "Molde FK"
+ },
+ "Montpellier": {
+  "id": "969",
+  "slug": "montpellier-hsc",
+  "tm": "Montpellier HSC"
+ },
+ "Saint-Étienne": {
+  "id": "109230",
+  "slug": "saint-etienne-sc",
+  "tm": "Saint-Étienne SC"
+ },
+ "Bordeaux": {
+  "id": "40",
+  "slug": "fc-girondins-bordeaux",
+  "tm": "FC Girondins Bordeaux"
+ },
+ "Reims": {
+  "id": "1421",
+  "slug": "stade-reims",
+  "tm": "Stade Reims"
+ },
+ "Nîmes": {
+  "id": "63668",
+  "slug": "sc-nimes",
+  "tm": "SC Nîmes"
+ },
+ "Dijon": {
+  "id": "2969",
+  "slug": "dijon-fco",
+  "tm": "Dijon FCO"
+ },
+ "Hertha BSC": {
+  "id": "44",
+  "slug": "hertha-bsc",
+  "tm": "Hertha BSC"
+ },
+ "Arminia Bielefeld": {
+  "id": "10",
+  "slug": "arminia-bielefeld",
+  "tm": "Arminia Bielefeld"
+ },
+ "Schalke 04": {
+  "id": "33",
+  "slug": "fc-schalke-04",
+  "tm": "FC Schalke 04"
+ },
+ "Sampdoria": {
+  "id": "1038",
+  "slug": "sampdoria-genua",
+  "tm": "UC Sampdoria"
+ },
+ "Spezia": {
+  "id": "3522",
+  "slug": "spezia-calcio",
+  "tm": "Spezia Calcio"
+ },
+ "Benevento": {
+  "id": "4171",
+  "slug": "benevento-calcio",
+  "tm": "Benevento Calcio"
+ },
+ "Crotone": {
+  "id": "4083",
+  "slug": "fc-crotone",
+  "tm": "FC Crotone"
+ },
+ "Vitesse": {
+  "id": "87814",
+  "slug": "vitesse-fc",
+  "tm": "Vitesse FC"
+ },
+ "RKC Waalwijk": {
+  "id": "235",
+  "slug": "rkc-waalwijk",
+  "tm": "RKC Waalwijk"
+ },
+ "FC Emmen": {
+  "id": "1283",
+  "slug": "fc-emmen",
+  "tm": "FC Emmen"
+ },
+ "VVV-Venlo": {
+  "id": "1426",
+  "slug": "vvv-venlo",
+  "tm": "VVV-Venlo"
+ },
+ "ADO Den Haag": {
+  "id": "1268",
+  "slug": "ado-den-haag",
+  "tm": "ADO Den Haag"
+ },
+ "Paços de Ferreira": {
+  "id": "2995",
+  "slug": "fc-pacos-de-ferreira",
+  "tm": "FC Paços de Ferreira"
+ },
+ "Boavista": {
+  "id": "11266",
+  "slug": "boavista-sport-club-rj-",
+  "tm": "Boavista SC"
+ },
+ "Portimonense": {
+  "id": "94930",
+  "slug": "portimonense-b-sc",
+  "tm": "Portimonense SC"
+ },
+ "Marítimo": {
+  "id": "1301",
+  "slug": "cs-maritimo",
+  "tm": "CS Marítimo"
+ },
+ "Farense": {
+  "id": "4294",
+  "slug": "sc-farense",
+  "tm": "SC Farense"
+ },
+ "Ross County": {
+  "id": "2759",
+  "slug": "ross-county-fc",
+  "tm": "Ross County FC"
+ },
+ "Hamilton Academical": {
+  "id": "2999",
+  "slug": "hamilton-academical-fc",
+  "tm": "Hamilton Academical FC"
+ },
+ "Sivasspor": {
+  "id": "2381",
+  "slug": "sivasspor",
+  "tm": "Sivasspor"
+ },
+ "Hatayspor": {
+  "id": "7775",
+  "slug": "hatayspor",
+  "tm": "Hatayspor"
+ },
+ "MKE Ankaragücü": {
+  "id": "868",
+  "slug": "mke-ankaragucu",
+  "tm": "MKE Ankaragücü"
+ },
+ "Yeni Malatyaspor": {
+  "id": "19789",
+  "slug": "yeni-malatyaspor",
+  "tm": "Yeni Malatyaspor"
+ },
+ "Denizlispor": {
+  "id": "833",
+  "slug": "denizlispor",
+  "tm": "Denizlispor"
+ },
+ "Lokeren": {
+  "id": "7773",
+  "slug": "ksc-lokeren-temse",
+  "tm": "KSC Lokeren"
+ },
+ "Lierse": {
+  "id": "204",
+  "slug": "lierse-sk",
+  "tm": "Lierse SK (-2018)"
+ },
+ "MK Dons": {
+  "id": "991",
+  "slug": "milton-keynes-dons",
+  "tm": "Milton Keynes Dons"
+ },
+ "Yeovil Town": {
+  "id": "972",
+  "slug": "yeovil-town",
+  "tm": "Yeovil Town"
+ },
+ "Hartlepool United": {
+  "id": "2577",
+  "slug": "hartlepool-united",
+  "tm": "Hartlepool United"
+ },
+ "Dagenham & Redbridge": {
+  "id": "3696",
+  "slug": "fc-dagenham-amp-redbridge",
+  "tm": "Dagenham & Redbridge FC"
+ },
+ "Bury": {
+  "id": "2413",
+  "slug": "fc-bury",
+  "tm": "Bury FC"
+ },
+ "Torquay United": {
+  "id": "1218",
+  "slug": "torquay-united",
+  "tm": "Torquay United"
+ },
+ "Aldershot Town": {
+  "id": "3717",
+  "slug": "aldershot-town",
+  "tm": "Aldershot Town"
+ },
+ "Macclesfield Town": {
+  "id": "2436",
+  "slug": "macclesfield-town-aufgel-",
+  "tm": "Macclesfield Town (- 2020)"
+ },
+ "Hereford United": {
+  "id": "3064",
+  "slug": "hereford-united-aufgel-",
+  "tm": "Hereford United (- 2014)"
+ },
+ "Sporting Gijón": {
+  "id": "2448",
+  "slug": "sporting-gijon",
+  "tm": "Sporting Gijón"
+ },
+ "Málaga": {
+  "id": "1084",
+  "slug": "fc-malaga",
+  "tm": "Málaga CF"
+ },
+ "Racing Santander": {
+  "id": "630",
+  "slug": "racing-santander",
+  "tm": "Racing Santander"
+ },
+ "Real Zaragoza": {
+  "id": "142",
+  "slug": "real-saragossa",
+  "tm": "Real Zaragoza"
+ },
+ "Deportivo La Coruña": {
+  "id": "897",
+  "slug": "deportivo-la-coruna",
+  "tm": "Deportivo A Coruña"
+ },
+ "Hércules": {
+  "id": "7971",
+  "slug": "hercules-alicante",
+  "tm": "Hércules CF"
+ },
+ "Almería": {
+  "id": "3302",
+  "slug": "ud-almeria",
+  "tm": "UD Almería"
+ },
+ "Spartak Moscow": {
+  "id": "232",
+  "slug": "spartak-moskau",
+  "tm": "Spartak Moscow"
+ },
+ "Rubin Kazan": {
+  "id": "2698",
+  "slug": "rubin-kazan",
+  "tm": "Rubin Kazan"
+ },
+ "Panathinaikos": {
+  "id": "265",
+  "slug": "panathinaikos-athen",
+  "tm": "Panathinaikos"
+ },
+ "CFR Cluj": {
+  "id": "7769",
+  "slug": "cfr-cluj",
+  "tm": "CFR Cluj"
+ },
+ "Hapoel Tel Aviv": {
+  "id": "1017",
+  "slug": "hapoel-tel-aviv",
+  "tm": "Hapoel Tel Aviv"
+ },
+ "Žilina": {
+  "id": "1443",
+  "slug": "msk-zilina",
+  "tm": "MSK Zilina"
+ },
+ "Partizan": {
+  "id": "669",
+  "slug": "fk-partizan-belgrad",
+  "tm": "FK Partizan Belgrade"
+ },
+ "Rosenborg": {
+  "id": "195",
+  "slug": "rosenborg-bk",
+  "tm": "Rosenborg BK"
+ },
+ "Sochaux": {
+  "id": "750",
+  "slug": "fc-sochaux-montbeliard",
+  "tm": "FC Sochaux-Montbéliard"
+ },
+ "Valenciennes": {
+  "id": "1423",
+  "slug": "fc-valenciennes",
+  "tm": "Valenciennes FC"
+ },
+ "Nancy": {
+  "id": "143207",
+  "slug": "nancy-fc",
+  "tm": "Nancy FC"
+ },
+ "Caen": {
+  "id": "1162",
+  "slug": "sm-caen",
+  "tm": "SM Caen"
+ },
+ "Hannover 96": {
+  "id": "42",
+  "slug": "hannover-96",
+  "tm": "Hannover 96"
+ },
+ "1. FC Nürnberg": {
+  "id": "4",
+  "slug": "1-fc-nurnberg",
+  "tm": "1.FC Nuremberg"
+ },
+ "1. FC Kaiserslautern": {
+  "id": "2",
+  "slug": "1-fc-kaiserslautern",
+  "tm": "1.FC Kaiserslautern"
+ },
+ "1899 Hoffenheim": {
+  "id": "533",
+  "slug": "tsg-1899-hoffenheim",
+  "tm": "TSG 1899 Hoffenheim"
+ },
+ "Palermo": {
+  "id": "458",
+  "slug": "palermo-fc",
+  "tm": "Palermo FC"
+ },
+ "Chievo": {
+  "id": "862",
+  "slug": "chievo-verona",
+  "tm": "Chievo Verona"
+ },
+ "Catania": {
+  "id": "1627",
+  "slug": "catania-calcio",
+  "tm": "Catania FC"
+ },
+ "Cesena": {
+  "id": "1429",
+  "slug": "cesena-fc",
+  "tm": "Cesena FC"
+ },
+ "Brescia": {
+  "id": "132806",
+  "slug": "union-brescia",
+  "tm": "Union Brescia"
+ },
+ "Bari": {
+  "id": "332",
+  "slug": "ssc-bari",
+  "tm": "SSC Bari"
+ },
+ "Roda JC": {
+  "id": "192",
+  "slug": "roda-jc-kerkrade",
+  "tm": "Roda JC Kerkrade"
+ },
+ "De Graafschap": {
+  "id": "642",
+  "slug": "de-graafschap-doetinchem",
+  "tm": "De Graafschap Doetinchem"
+ },
+ "Olhanense": {
+  "id": "4750",
+  "slug": "sc-olhanense",
+  "tm": "SC Olhanense"
+ },
+ "Académica": {
+  "id": "2990",
+  "slug": "academica-coimbra",
+  "tm": "Académica Coimbra"
+ },
+ "União de Leiria": {
+  "id": "58227",
+  "slug": "uniao-leiria-u17",
+  "tm": "União de Leiria Sub-17"
+ },
+ "Beira-Mar": {
+  "id": "1436",
+  "slug": "sc-beira-mar",
+  "tm": "SC Beira-Mar"
+ },
+ "Inverness Caledonian Thistle": {
+  "id": "2451",
+  "slug": "inverness-caledonian-thistle-fc",
+  "tm": "Inverness Caledonian Thistle FC"
+ },
+ "Bursaspor": {
+  "id": "20",
+  "slug": "bursaspor",
+  "tm": "Bursaspor"
+ },
+ "Gaziantepspor": {
+  "id": "524",
+  "slug": "gaziantepspor",
+  "tm": "Gaziantepspor (1969-2020)"
+ },
+ "Eskişehirspor": {
+  "id": "825",
+  "slug": "eskisehirspor",
+  "tm": "Eskisehirspor"
+ },
+ "Kardemir Karabükspor": {
+  "id": "1506",
+  "slug": "kardemir-karabukspor",
+  "tm": "Kardemir Karabükspor"
+ },
+ "Manisaspor": {
+  "id": "1267",
+  "slug": "manisaspor",
+  "tm": "Manisaspor"
+ },
+ "Bucaspor": {
+  "id": "44286",
+  "slug": "bucaspor-1928",
+  "tm": "Bucaspor 1928"
+ },
+ "Mouscron": {
+  "id": "112610",
+  "slug": "stade-mouscronnois",
+  "tm": "Stade Mouscronnois"
+ },
+ "Beveren": {
+  "id": "28643",
+  "slug": "waasland-beveren",
+  "tm": "SK Beveren"
+ },
+ "Heusden-Zolder": {
+  "id": "3231",
+  "slug": "kvv-heusden-zolder",
+  "tm": "KVV Heusden-Zolder"
+ },
+ "Mons": {
+  "id": "42546",
+  "slug": "mons-calpe-sc",
+  "tm": "Mons Calpe SC"
+ },
+ "Darlington": {
+  "id": "37486",
+  "slug": "fc-darlington",
+  "tm": "Darlington FC"
+ },
+ "Boston United": {
+  "id": "3489",
+  "slug": "boston-united",
+  "tm": "Boston United"
+ },
+ "Chester City": {
+  "id": "3613",
+  "slug": "chester-city-aufgel-",
+  "tm": "Chester City (- 2010)"
+ },
+ "Rushden & Diamonds": {
+  "id": "46946",
+  "slug": "afc-rushden-amp-diamonds",
+  "tm": "AFC Rushden & Diamonds"
+ },
+ "Kidderminster Harriers": {
+  "id": "1195",
+  "slug": "kidderminster-harriers",
+  "tm": "Kidderminster Harriers"
+ },
+ "Numancia": {
+  "id": "2296",
+  "slug": "cd-numancia",
+  "tm": "CD Numancia"
+ },
+ "Albacete": {
+  "id": "1532",
+  "slug": "albacete-balompie",
+  "tm": "Albacete Balompié"
+ },
+ "AEK Athens": {
+  "id": "2441",
+  "slug": "aek-athen",
+  "tm": "AEK Athens"
+ },
+ "Maccabi Tel Aviv": {
+  "id": "119",
+  "slug": "maccabi-tel-aviv",
+  "tm": "Maccabi Tel Aviv"
+ },
+ "Brøndby": {
+  "id": "206",
+  "slug": "brondby-if",
+  "tm": "Bröndby IF"
+ },
+ "Steaua București": {
+  "id": "139720",
+  "slug": "steaua-bucuresti-1947-1998-",
+  "tm": "Steaua București (1947-1998)"
+ },
+ "Austria Wien": {
+  "id": "4383",
+  "slug": "young-violets-austria-wien",
+  "tm": "Young Violets Austria Wien"
+ },
+ "Ajaccio": {
+  "id": "1147",
+  "slug": "ac-ajaccio",
+  "tm": "AC Ajaccio"
+ },
+ "Bastia": {
+  "id": "595",
+  "slug": "sc-bastia",
+  "tm": "SC Bastia"
+ },
+ "Istres": {
+  "id": "2580",
+  "slug": "istres-football-club",
+  "tm": "Istres Football Club"
+ },
+ "VfL Bochum": {
+  "id": "80",
+  "slug": "vfl-bochum",
+  "tm": "VfL Bochum"
+ },
+ "Hansa Rostock": {
+  "id": "30",
+  "slug": "fc-hansa-rostock",
+  "tm": "FC Hansa Rostock"
+ },
+ "Messina": {
+  "id": "38995",
+  "slug": "fc-messina",
+  "tm": "FC Messina"
+ },
+ "Livorno": {
+  "id": "1210",
+  "slug": "as-livorno",
+  "tm": "US Livorno 1915"
+ },
+ "Reggina": {
+  "id": "1386",
+  "slug": "reggina-1914",
+  "tm": "Reggina 1914"
+ },
+ "Siena": {
+  "id": "1387",
+  "slug": "acn-siena-1904",
+  "tm": "Siena FC"
+ },
+ "RBC Roosendaal": {
+  "id": "1227",
+  "slug": "rbc-roosendaal",
+  "tm": "RBC Roosendaal"
+ },
+ "FC Den Bosch": {
+  "id": "404",
+  "slug": "fc-den-bosch",
+  "tm": "FC Den Bosch"
+ },
+ "Belenenses": {
+  "id": "68608",
+  "slug": "cf-os-belenenses",
+  "tm": "CF Os Belenenses"
+ },
+ "Penafiel": {
+  "id": "3327",
+  "slug": "fc-penafiel",
+  "tm": "FC Penafiel"
+ },
+ "Dunfermline Athletic": {
+  "id": "1270",
+  "slug": "dunfermline-athletic-fc",
+  "tm": "Dunfermline Athletic FC"
+ },
+ "Ankaragücü": {
+  "id": "868",
+  "slug": "mke-ankaragucu",
+  "tm": "MKE Ankaragücü"
+ },
+ "Sakaryaspor": {
+  "id": "2463",
+  "slug": "sakaryaspor",
+  "tm": "Sakaryaspor"
+ },
+ "Malatyaspor": {
+  "id": "1264",
+  "slug": "malatyaspor",
+  "tm": "Malatyaspor"
+ },
+ "Diyarbakırspor": {
+  "id": "845",
+  "slug": "diyarbakirspor",
+  "tm": "Diyarbakirspor"
+ },
+ "Akçaabat Sebatspor": {
+  "id": "1511",
+  "slug": "akcaabat-sebatspor",
+  "tm": "Akcaabat Sebatspor"
+ },
+ "Ankaraspor": {
+  "id": "2944",
+  "slug": "ankaraspor",
+  "tm": "Ankaraspor"
+ },
+ "Royal Antwerp": {
+  "id": "1096",
+  "slug": "royal-antwerpen-fc",
+  "tm": "Royal Antwerp FC"
+ },
+ "Lommel": {
+  "id": "5026",
+  "slug": "lommel-sk",
+  "tm": "Lommel SK"
+ },
+ "Eendracht Aalst": {
+  "id": "1111",
+  "slug": "sc-eendracht-aalst",
+  "tm": "SC Eendracht Aalst (-2024)"
+ },
+ "Wimbledon": {
+  "id": "3884",
+  "slug": "afc-wimbledon",
+  "tm": "AFC Wimbledon"
+ },
+ "Halifax Town": {
+  "id": "1127",
+  "slug": "fc-halifax-town",
+  "tm": "FC Halifax Town"
+ },
+ "York City": {
+  "id": "1252",
+  "slug": "york-city",
+  "tm": "York City"
+ },
+ "Las Palmas": {
+  "id": "472",
+  "slug": "ud-las-palmas",
+  "tm": "UD Las Palmas"
+ },
+ "Tenerife": {
+  "id": "648",
+  "slug": "cd-teneriffa",
+  "tm": "CD Tenerife"
+ },
+ "Troyes": {
+  "id": "1095",
+  "slug": "es-troyes-ac",
+  "tm": "ESTAC Troyes"
+ },
+ "Sedan": {
+  "id": "1081",
+  "slug": "cs-sedan-ardennes",
+  "tm": "CS Sedan-Ardennes"
+ },
+ "Guingamp": {
+  "id": "855",
+  "slug": "ea-guingamp",
+  "tm": "EA Guingamp"
+ },
+ "1860 Munich": {
+  "id": "72",
+  "slug": "tsv-1860-munchen",
+  "tm": "TSV 1860 Munich"
+ },
+ "Energie Cottbus": {
+  "id": "25",
+  "slug": "fc-energie-cottbus",
+  "tm": "FC Energie Cottbus"
+ },
+ "Perugia": {
+  "id": "839",
+  "slug": "ac-perugia-calcio",
+  "tm": "AC Perugia Calcio"
+ },
+ "Piacenza": {
+  "id": "1408",
+  "slug": "piacenza-calcio-1919",
+  "tm": "Piacenza Calcio 1919"
+ },
+ "Venezia": {
+  "id": "607",
+  "slug": "venezia-fc",
+  "tm": "Venezia FC"
+ },
+ "Varzim": {
+  "id": "4297",
+  "slug": "varzim-sc",
+  "tm": "Varzim SC"
+ },
+ "Salgueiros": {
+  "id": "2434",
+  "slug": "sc-salgueiros",
+  "tm": "SC Salgueiros"
+ },
+ "İstanbulspor": {
+  "id": "924",
+  "slug": "istanbulspor",
+  "tm": "Istanbulspor"
+ },
+ "Yozgatspor": {
+  "id": "50350",
+  "slug": "yozgatspor-1959-fk",
+  "tm": "Yozgatspor 1959 FK"
+ },
+ "Altay": {
+  "id": "2375",
+  "slug": "altay-sk",
+  "tm": "Altay SK"
+ },
+ "Harelbeke": {
+  "id": "10370",
+  "slug": "racing-harelbeke",
+  "tm": "Racing Club Harelbeke"
+ },
+ "Scarborough": {
+  "id": "57521",
+  "slug": "scarborough-sc",
+  "tm": "Scarborough SC"
+ },
+ "Extremadura": {
+  "id": "811",
+  "slug": "cf-extremadura-aufgel-",
+  "tm": "CF Extremadura (- 2010)"
+ },
+ "Salamanca": {
+  "id": "42039",
+  "slug": "salamanca-cf-uds",
+  "tm": "Salamanca CF UDS"
+ },
+ "Sturm Graz": {
+  "id": "122",
+  "slug": "sk-sturm-graz",
+  "tm": "SK Sturm Graz"
+ },
+ "HJK Helsinki": {
+  "id": "1008",
+  "slug": "hjk-helsinki",
+  "tm": "HJK Helsinki"
+ },
+ "Grasshoppers": {
+  "id": "136785",
+  "slug": "grasshoppers-fc-1901-",
+  "tm": "Grasshoppers FC (-1901)"
+ },
+ "Legia Warsaw": {
+  "id": "255",
+  "slug": "legia-warschau",
+  "tm": "Legia Warszawa"
+ },
+ "Maccabi Haifa": {
+  "id": "1064",
+  "slug": "maccabi-haifa",
+  "tm": "Maccabi Haifa"
+ },
+ "MSV Duisburg": {
+  "id": "52",
+  "slug": "msv-duisburg",
+  "tm": "MSV Duisburg"
+ },
+ "Vicenza": {
+  "id": "2655",
+  "slug": "lr-vicenza-virtus",
+  "tm": "LR Vicenza"
+ },
+ "Salernitana": {
+  "id": "380",
+  "slug": "us-salernitana-1919",
+  "tm": "US Salernitana 1919"
+ },
+ "Empoli": {
+  "id": "749",
+  "slug": "fc-empoli",
+  "tm": "FC Empoli"
+ },
+ "MVV": {
+  "id": "384",
+  "slug": "mvv-maastricht",
+  "tm": "MVV Maastricht"
+ },
+ "Cambuur": {
+  "id": "133",
+  "slug": "sc-cambuur-leeuwarden",
+  "tm": "SC Cambuur Leeuwarden"
+ },
+ "Estrela da Amadora": {
+  "id": "59558",
+  "slug": "cf-estrela-amadora-u15",
+  "tm": "CF Estrela da Amadora Sub-15"
+ },
+ "Campomaiorense": {
+  "id": "59",
+  "slug": "sc-campomaiorense",
+  "tm": "SC Campomaiorense (-2013)"
+ },
+ "Chaves": {
+  "id": "3325",
+  "slug": "gd-chaves",
+  "tm": "GD Chaves"
+ },
+ "Erzurumspor": {
+  "id": "39722",
+  "slug": "buyuksehir-belediye-erzurumspor",
+  "tm": "Erzurumspor FK"
+ },
+ "Karşıyaka": {
+  "id": "2330",
+  "slug": "karsiyaka",
+  "tm": "Karsiyaka"
+ },
+ "Vanspor": {
+  "id": "40181",
+  "slug": "vanspor",
+  "tm": "Vanspor (1974-2003)"
+ },
+ "Seraing": {
+  "id": "70857",
+  "slug": "fc-seraing-9310-",
+  "tm": "FC Seraing(9310) (-2009)"
+ },
+ "Waregem": {
+  "id": "3508",
+  "slug": "sv-zulte-waregem",
+  "tm": "Zulte Waregem"
+ },
+ "RWD Molenbeek": {
+  "id": "2973",
+  "slug": "rwd-molenbeek-bis-2002-",
+  "tm": "RWD Molenbeek (- 2002)"
+ },
+ "Compostela": {
+  "id": "2855",
+  "slug": "sd-compostela",
+  "tm": "SD Compostela"
+ },
+ "Logroñés": {
+  "id": "16557",
+  "slug": "logrones-cf-aufgel-",
+  "tm": "Logroñés CF (- 2008)"
+ },
+ "Hajduk Split": {
+  "id": "447",
+  "slug": "hnk-hajduk-split",
+  "tm": "HNK Hajduk Split"
+ },
+ "Casino Salzburg": {
+  "id": "409",
+  "slug": "red-bull-salzburg",
+  "tm": "Red Bull Salzburg"
+ },
+ "IFK Göteborg": {
+  "id": "801",
+  "slug": "ifk-goteborg",
+  "tm": "IFK Göteborg"
+ },
+ "Levski Sofia": {
+  "id": "156",
+  "slug": "levski-sofia",
+  "tm": "Levski Sofia"
+ },
+ "Cannes": {
+  "id": "895",
+  "slug": "as-cannes",
+  "tm": "AS Cannes"
+ },
+ "Martigues": {
+  "id": "1165",
+  "slug": "fc-martigues",
+  "tm": "FC Martigues"
+ },
+ "Karlsruher SC": {
+  "id": "48",
+  "slug": "karlsruher-sc",
+  "tm": "Karlsruher SC"
+ },
+ "Bayer Uerdingen": {
+  "id": "95",
+  "slug": "kfc-uerdingen-05",
+  "tm": "KFC Uerdingen 05"
+ },
+ "Dynamo Dresden": {
+  "id": "129",
+  "slug": "sg-dynamo-dresden",
+  "tm": "SG Dynamo Dresden"
+ },
+ "Padova": {
+  "id": "3037",
+  "slug": "calcio-padova",
+  "tm": "Calcio Padova"
+ },
+ "Foggia": {
+  "id": "704",
+  "slug": "calcio-foggia-1920",
+  "tm": "Calcio Foggia 1920"
+ },
+ "Reggiana": {
+  "id": "5621",
+  "slug": "ac-reggiana-1919",
+  "tm": "AC Reggiana 1919"
+ },
+ "Dordrecht": {
+  "id": "1455",
+  "slug": "fc-dordrecht",
+  "tm": "FC Dordrecht"
+ },
+ "Leça": {
+  "id": "3267",
+  "slug": "leca-fc",
+  "tm": "Leça FC"
+ },
+ "Tirsense": {
+  "id": "2459",
+  "slug": "fc-tirsense",
+  "tm": "FC Tirsense"
+ },
+ "Partick Thistle": {
+  "id": "2760",
+  "slug": "partick-thistle-fc",
+  "tm": "Partick Thistle FC"
+ },
+ "Petrolofisi": {
+  "id": "23766",
+  "slug": "petrolofisi",
+  "tm": "Petrolofisi (1954-2010)"
+ },
+ "Zeytinburnuspor": {
+  "id": "5745",
+  "slug": "zeytinburnuspor",
+  "tm": "Zeytinburnuspor"
+ },
+ "Sarıyer": {
+  "id": "518",
+  "slug": "sariyer",
+  "tm": "Sariyer"
+ }
+}

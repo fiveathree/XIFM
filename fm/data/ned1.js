@@ -7,7 +7,7 @@ FM.addLeague({
        [1,"Hans Vonk","GK","RSA",1970,70],
        [0,"Erik Edman","LB","SWE",1978,71],
        [0,"Marcus Allbäck","ST","SWE",1973,72],
-       [0,"Jeffrey Talan","RM","NED",1971,67],
+       [0,"Jeffrey Talan","RW","NED",1971,67],
      ]},
     {id:"vit", name:"Vitesse", short:"VIT", country:"NED", stadium:"GelreDome", cap:26600, col:["#FFD700","#000000"], rep:64, bank:3,
      p:[
@@ -22,21 +22,21 @@ FM.addLeague({
     {id:"utr", name:"Utrecht", short:"UTR", country:"NED", stadium:"Stadion Galgenwaard", cap:23750, col:["#E2001A","#FFFFFF"], rep:62, bank:3,
      p:[
        [0,"Jean-Paul de Jong","CM","NED",1970,66],
-       [0,"Dirk Kuyt","ST","NED",1980,74],
-       [0,"Stefaan Tanghe","CM","BEL",1972,64],
+       [0,"Dirk Kuyt","RW","NED",1980,74],
+       [0,"Stefaan Tanghe","AM","BEL",1972,64],
        [0,"Igor Gluščević","ST","SRB",1974,64],
      ]},
     {id:"twe", name:"Twente", short:"TWE", country:"NED", stadium:"Arke Stadion", cap:13250, col:["#E2001A","#FFFFFF"], rep:60, bank:2,
      p:[
        [0,"Sander Boschker","GK","NED",1970,67],
-       [0,"Rahim Ouédraogo","DM","BFA",1980,61],
+       [0,"Rahim Ouédraogo","CD","BFA",1980,61],
      ]},
     {id:"az", name:"AZ", short:"AZ", country:"NED", stadium:"Alkmaarderhout", cap:8390, col:["#E2001A","#FFFFFF"], rep:58, bank:4,
      p:[
        [0,"Henk Timmer","GK","NED",1971,66],
        [0,"Barry van Galen","CM","NED",1970,64],
        [0,"Denny Landzaat","CM","NED",1976,67],
-       [0,"Michael Buskermolen","CD","NED",1972,62],
+       [0,"Michael Buskermolen","CM","NED",1972,62],
      ]},
     {id:"wil", name:"Willem II", short:"WIL", country:"NED", stadium:"Koning Willem II Stadion", cap:14700, col:["#E2001A","#0B3B8C"], rep:59, bank:2,
      p:[

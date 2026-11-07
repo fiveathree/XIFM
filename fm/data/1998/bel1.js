@@ -4,7 +4,7 @@ FM.addLeague({
     {id:"gnk", name:"Genk", short:"GNK", country:"BEL", stadium:"Fenixstadion", cap:22989,
      col:["#0060A9","#FFFFFF"], rep:66, bank:2,
      p:[
-       [0,"Besnik Hasi","CM","ALB",1971,70],
+       [0,"Besnik Hasi","DM","ALB",1971,70],
        [0,"Josip Skoko","CM","AUS",1975,72],
        [0,"Souleymane Oulare","ST","GUI",1972,76],
        [0,"Branko Strupar","ST","BEL",1970,76],
@@ -14,13 +14,13 @@ FM.addLeague({
      p:[
        [0,"Dany Verlinden","GK","BEL",1963,76],
        [0,"Lorenzo Staelens","CM","BEL",1964,74],
-       [0,"Gert Verheyen","RM","BEL",1970,76],
+       [0,"Gert Verheyen","RW","BEL",1970,76],
      ]},
     {id:"and", name:"Anderlecht", short:"AND", country:"BEL", stadium:"Constant Vanden Stock Stadium", cap:28063,
      col:["#4B2D7F","#FFFFFF"], rep:76, bank:5,
      p:[
        [0,"Filip De Wilde","GK","BEL",1964,76],
-       [0,"Bertrand Crasson","CD","BEL",1971,74],
+       [0,"Bertrand Crasson","RB","BEL",1971,74],
        [0,"Walter Baseggio","CM","BEL",1978,74],
        [0,"Bart Goor","LM","BEL",1973,78],
        [0,"Pär Zetterberg","AM","SWE",1970,78],
