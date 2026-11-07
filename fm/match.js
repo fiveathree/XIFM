@@ -6,14 +6,15 @@
 const INJN = ['腿筋拉傷', '腳踝扭傷', '膝傷', '腹股溝拉傷', '小腿拉傷', '大腿撞傷', '背傷', '腳趾骨裂', '肩膊脫臼', '十字韌帶撕裂'];
 const SEG = [{ b: 0, len: 45 }, { b: 45, len: 45 }, { b: 90, len: 15 }, { b: 105, len: 15 }];
 
-const MAXSUBS = 5;   // substitutions per side per match
+// substitutions per side per match, as in that season: 3 until five subs came in (2020/21; the English leagues 2022/23)
+const subsMax = cid => { const y = G.season, lg = (G.clubs[cid] && G.clubs[cid].lg) || ''; return y >= (lg.startsWith('eng') ? 2022 : 2020) ? 5 : 3; };
 function buildSide(cid, key) {
   const c = G.clubs[cid];
   if (!isUser(cid) || lineupProblems(cid).length) { if (!isUser(cid)) autoPick(cid); else patchLineup(cid); }
   const slots = FORMS[c.form];
   const on = c.xi.map((pid, i) => ({ pid: pid && avail(pid) ? pid : null, slot: slots[i][0], x: slots[i][1], y: slots[i][2] }));
   const used = new Set(on.map(o => o.pid).filter(Boolean));
-  return { cid, key, on, sp: { ...(c.sp || {}) }, bench: c.sb.filter(p => p && avail(p) && !used.has(p)), subs: 0, form: c.form, sty: { ...c.sty }, ord: { ...c.ord },
+  return { cid, key, on, sp: { ...(c.sp || {}) }, bench: c.sb.filter(p => p && avail(p) && !used.has(p)), subs: 0, mx: subsMax(cid), form: c.form, sty: { ...c.sty }, ord: { ...c.ord },
     g: 0, sh: 0, sot: 0, co: 0, fo: 0, yc: 0, rc: 0, pos: 0, susStart: roster(cid).filter(p => pd(p).sus > 0) };
 }
 // user lineup with an injured/suspended player: replace with the best available, keep the rest
@@ -184,7 +185,7 @@ function injure(M, S, o, worse) {
   ev(M, 'inj', S.key, pid, null, `${n}（重傷，休息 ${d.inj} 日）`);
   if (typeof injuryToll === 'function') injuryToll(pid, d.inj, ph);   // a long injury can lower ability for good (fm/life.js)
   const sub = bestSub(S, o.slot);
-  if (sub && S.subs < MAXSUBS) doSub(M, S, o, sub);
+  if (sub && S.subs < S.mx) doSub(M, S, o, sub);
   else o.pid = null;
 }
 function bestSub(S, slot) { return S.bench.filter(p => avail(p)).sort((a, b) => effOf(b, slot) - effOf(a, slot))[0]; }
@@ -197,7 +198,7 @@ function doSub(M, S, o, inPid) {
 }
 function aiSubs(M, S) {
   const tm = SEG[M.seg].b + M.k;
-  if ((M.u === S.key && !M.auto) || S.subs >= MAXSUBS || tm < 58) return;
+  if ((M.u === S.key && !M.auto) || S.subs >= S.mx || tm < 58) return;
   const tired = S.on.filter(o => o.pid && o.slot !== 'GK' && (pd(o.pid).cond < 62 || M.rt[o.pid] < -.6)).sort((a, b) => pd(a.pid).cond - pd(b.pid).cond)[0];
   if (!tired) return;
   const sub = bestSub(S, tired.slot);
@@ -268,7 +269,7 @@ function simFx(f) { const M = newMatch(f, false); M.auto = true; runToEnd(M); re
 // user substitution during a live match
 function userSub(M, outPid, inPid) {
   const S = M[M.u]; const o = S.on.find(x => x.pid === outPid);
-  if (!o || S.subs >= MAXSUBS || !S.bench.includes(inPid)) return false;
+  if (!o || S.subs >= S.mx || !S.bench.includes(inPid)) return false;
   doSub(M, S, o, inPid); return true;
 }
 function userSwap(M, a, b) { const S = M[M.u]; const oa = S.on.find(x => x.pid === a), ob = S.on.find(x => x.pid === b); if (oa && ob) { oa.pid = b; ob.pid = a; } }
