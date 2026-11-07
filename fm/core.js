@@ -178,7 +178,7 @@ function movePlayer(pid, to) {
   if (ROS[from]) ROS[from] = ROS[from].filter(x => x !== pid);
   d.c = to; (ROS[to] = ROS[to] || []).push(pid);
   for (const cid of [from]) { const c = G.clubs[cid]; if (c) { c.xi = c.xi.map(x => x === pid ? null : x); c.sb = c.sb.filter(x => x !== pid); delete c.ord[pid]; } }
-  d.list = 0; delete d.yt; delete d.xs;   // leaving a club ends a youth-team spell or an extra (超額) contract
+  d.list = 0; delete d.yt; delete d.xs; d.jd = G.day;   // jd: joined this club (chemistry, fm/xi.js)   // leaving a club ends a youth-team spell or an extra (超額) contract
   if (isUser(from) && typeof fillExtras === 'function') fillExtras(from);
 }
 // squad limit: players beyond it (超額, d.xs) are under contract but cannot play until a place frees up
@@ -1040,14 +1040,14 @@ function groupsDone(comp) {
 /* ---------- save / load (compact) ---------- */
 const SKEY = s => 'xifm-fm-' + s;
 function pack() {
-  const pl = {}; for (const pid in G.pl) { const d = G.pl[pid]; if (d.c === 'ret') continue; const st = d.s; pl[pid] = [d.c, d.no, d.sk, Math.round(d.cond), d.fm.join('|'), d.inj, d.injn, d.sus, d.w, d.ct, d.list, st.ap, st.gl, st.as, st.yc, st.rc, st.mom, Math.round(st.rt * 10), d.arw ?? 2, d.lin || 0, d.pop == null ? -1 : Math.round(d.pop * 10), d.p2x || '', d.tf || '', d.clv || 0, d.skc ? JSON.stringify([d.skc.a, d.skc.j, d.skh || []]) : '', d.yt || 0, d.xs || 0]; }
+  const pl = {}; for (const pid in G.pl) { const d = G.pl[pid]; if (d.c === 'ret') continue; const st = d.s; pl[pid] = [d.c, d.no, d.sk, Math.round(d.cond), d.fm.join('|'), d.inj, d.injn, d.sus, d.w, d.ct, d.list, st.ap, st.gl, st.as, st.yc, st.rc, st.mom, Math.round(st.rt * 10), d.arw ?? 2, d.lin || 0, d.pop == null ? -1 : Math.round(d.pop * 10), d.p2x || '', d.tf || '', d.clv || 0, d.skc ? JSON.stringify([d.skc.a, d.skc.j, d.skh || []]) : '', d.yt || 0, d.xs || 0, d.jd ?? -1]; }
   const fx = G.fx.map(f => [f.i, f.d, f.c, f.r, f.h, f.a, f.hg, f.ag, f.ko || 0, f.n || 0, f.g ?? -1, f.ph ?? -1, f.pa ?? -1, f.et || 0, f.att || 0, f.sc || 0]);
   return JSON.stringify(Object.assign({}, G, { pl, fx, packed: 1 }));
 }
 function unpack(str) {
   const g = JSON.parse(str);
   const pl = {};
-  for (const pid in g.pl) { const a = g.pl[pid]; pl[pid] = { c: a[0], no: a[1], sk: a[2], cond: a[3], fm: a[4] ? a[4].split('|').map(Number) : [], inj: a[5], injn: a[6], sus: a[7], w: a[8], ct: a[9], list: a[10], s: { ap: a[11], gl: a[12], as: a[13], yc: a[14], rc: a[15], mom: a[16], rt: a[17] / 10 }, arw: a[18] ?? 2, lin: a[19] || 0 }; if (a[20] >= 0) pl[pid].pop = a[20] / 10; if (a[21]) pl[pid].p2x = a[21]; if (a[22]) pl[pid].tf = a[22]; if (a[23]) pl[pid].clv = a[23]; if (a[24]) { const t = JSON.parse(a[24]); pl[pid].skc = { a: t[0], j: t[1] }; if (t[2].length) pl[pid].skh = t[2]; } if (a[25]) pl[pid].yt = 1; if (a[26]) pl[pid].xs = 1; }
+  for (const pid in g.pl) { const a = g.pl[pid]; pl[pid] = { c: a[0], no: a[1], sk: a[2], cond: a[3], fm: a[4] ? a[4].split('|').map(Number) : [], inj: a[5], injn: a[6], sus: a[7], w: a[8], ct: a[9], list: a[10], s: { ap: a[11], gl: a[12], as: a[13], yc: a[14], rc: a[15], mom: a[16], rt: a[17] / 10 }, arw: a[18] ?? 2, lin: a[19] || 0 }; if (a[20] >= 0) pl[pid].pop = a[20] / 10; if (a[21]) pl[pid].p2x = a[21]; if (a[22]) pl[pid].tf = a[22]; if (a[23]) pl[pid].clv = a[23]; if (a[24]) { const t = JSON.parse(a[24]); pl[pid].skc = { a: t[0], j: t[1] }; if (t[2].length) pl[pid].skh = t[2]; } if (a[25]) pl[pid].yt = 1; if (a[26]) pl[pid].xs = 1; if (a[27] != null && a[27] >= 0) pl[pid].jd = a[27]; }
   g.fx = g.fx.map(a => { const f = { i: a[0], d: a[1], c: a[2], r: a[3], h: a[4], a: a[5], hg: a[6], ag: a[7] }; if (a[8]) f.ko = a[8]; if (a[9]) f.n = 1; if (a[10] >= 0) f.g = a[10]; if (a[11] >= 0) { f.ph = a[11]; f.pa = a[12]; } if (a[13]) f.et = 1; if (a[14]) f.att = a[14]; if (a[15]) f.sc = a[15]; return f; });
   g.pl = pl; delete g.packed;
   G = g; reindex(); reindexFx(); ALLP = null; trimYouth();

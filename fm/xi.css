@@ -42,6 +42,7 @@
 .empty b{font-size:1.6em}
 .stag{font-family:var(--f-disp);font-weight:700;font-size:12px;background:rgba(5,15,10,.75);padding:0 6px;border-radius:4px;white-space:nowrap;line-height:1.5;font-variant-numeric:tabular-nums;color:#fff}
 .stag .e1{color:var(--win)}.stag .e2{color:var(--amber)}.stag .e3{color:var(--loss)}
+.stag .lk{font-style:normal;font-size:.8em;background:var(--amber);color:#2a1d00;border-radius:3px;padding:0 3px;margin-left:3px}
 .chem{position:absolute;top:-5px;right:-5px;width:17px;height:17px;border-radius:50%;background:var(--amber);color:#2a1d00;font:800 10px/17px var(--f-disp);text-align:center;z-index:3}
 .capx{position:absolute;top:-5px;left:-5px;width:17px;height:17px;border-radius:50%;background:#fff;color:#06163a;font:900 10px/17px var(--f-disp);text-align:center;z-index:3}
 .sbar{display:block;width:7.2em;height:3px;border-radius:2px;background:rgba(0,0,0,.45);overflow:hidden}.sbar b{display:block;height:100%}

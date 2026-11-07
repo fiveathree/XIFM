@@ -22,7 +22,7 @@ const sbarX = v => `<i class="sbar"><b style="width:${Math.round(v)}%;background
 /* ---------- team evaluation for the board ---------- */
 function boardSide(cid, form, xi) {
   const c = G.clubs[cid], f = FORMS[form || c.form]; xi = xi || c.xi;
-  return { cid, key: 'h', on: f.map((s, i) => ({ pid: xi[i] && avail(xi[i]) ? xi[i] : null, slot: s[0], x: s[1], y: s[2] })), sty: c.sty, ord: c.ord || {}, sp: c.sp || {} };
+  return { cid, key: 'h', form: form || c.form, on: f.map((s, i) => ({ pid: xi[i] && avail(xi[i]) ? xi[i] : null, slot: s[0], x: s[1], y: s[2] })), sty: c.sty, ord: c.ord || {}, sp: c.sp || {} };
 }
 function teamEval(cid, form, xi) {
   const S = boardSide(cid, form, xi), r = sideRatings(S, { f: null }), ch = chemMap(S.on.map(o => o.pid).filter(Boolean));
@@ -32,11 +32,13 @@ function teamEval(cid, form, xi) {
 /* ---------- pitch slots and bench ---------- */
 function slotX(cid, xi, form, i, ch, cap, drag) {
   const pid = xi[i], [pos, x, y] = FORMS[form][i];
-  const f = pid ? fitP(pid, pos) : 1, eff = pid ? Math.round(cardR(pid) * f) + (ch[pid] || 0) : 0, e = f >= 1 ? 'e1' : f >= .9 ? 'e2' : 'e3';
+  const f = pid ? fitP(pid, pos) : 1, S0 = { cid, form }, pb = pid ? prefBonus(S0, pid) : 0, eff = pid ? Math.round(cardR(pid) * f) + (ch[pid] || 0) + pb : 0, e = f >= 1 ? 'e1' : f >= .9 ? 'e2' : 'e3';
+  const pr = pid ? prefOf(pid) : null, c0 = G.clubs[cid], likeT = pr && c0.tac && c0.tac === pr.tac, likeF = pr && pr.form === form;
+  const lk = pid ? chemLinks(pid, xi.filter(Boolean)) : null;
   const out = pid && !avail(pid) ? (pd(pid).inj ? '傷' : '停賽') : '';
   return `<div class="slot ${drag && UI.sel === 'x' + i ? 'selp' : ''}" ${drag ? `data-i="${i}"` : ''} style="left:${x}%;top:${YB(y)}%${y >= 86 ? ';transform:translate(-50%,-36%)' : ''}">
-    ${pid ? `<div style="position:relative">${cardHTML(pid, { cls: out ? 'inj' : '' })}${ch[pid] ? `<span class="chem" title="默契 +${ch[pid]}（同國籍隊友）">+${ch[pid]}</span>` : ''}${pid === cap ? '<span class="capx" title="隊長">C</span>' : ''}<span class="snm">${esc(ps(pid).sn)}</span></div>` : `<div class="empty"><span><b>+</b><br>${pos}</span></div>`}
-    <span class="stag">${pos}${pid ? (out ? ` <span class="e3">${out}</span>` : ` <span class="${e}" title="${f < 1 ? `踢${esc(POSN[pos])}：本位 ${cardR(pid)} × ${Math.round(f * 100)}%` : '本位'}${ch[pid] ? ` + 默契 ${ch[pid]}` : ''}">${eff}</span>`) : ''}</span>${pid && !out && pd(pid).cond < 100 ? sbarX(pd(pid).cond) : ''}</div>`;
+    ${pid ? `<div style="position:relative">${cardHTML(pid, { cls: out ? 'inj' : '' })}${ch[pid] ? `<span class="chem" title="默契 +${ch[pid]}：同國籍 ${lk.nat} 人、老拍檔 ${lk.bond} 人">+${ch[pid]}</span>` : ''}${pid === cap ? '<span class="capx" title="隊長">C</span>' : ''}<span class="snm">${esc(ps(pid).sn)}</span></div>` : `<div class="empty"><span><b>+</b><br>${pos}</span></div>`}
+    <span class="stag">${pos}${pid ? (out ? ` <span class="e3">${out}</span>` : ` <span class="${e}" title="${f < 1 ? `踢${esc(POSN[pos])}：本位 ${cardR(pid)} × ${Math.round(f * 100)}%` : '本位'}${ch[pid] ? ` + 默契 ${ch[pid]}` : ''}${likeT ? ' + 啱戰術 1' : ''}${likeF ? ' + 啱陣式 1' : ''}">${eff}</span>${likeT ? '<i class="lk" title="佢鍾意呢個戰術風格">戰</i>' : ''}${likeF ? '<i class="lk" title="佢鍾意呢個陣式">陣</i>' : ''}`) : ''}</span>${pid && !out && pd(pid).cond < 100 ? sbarX(pd(pid).cond) : ''}</div>`;
 }
 function benchX(c, i) {
   const pid = c.sb[i], sel = UI.sel === 'b' + i ? 'selp' : '';
@@ -65,7 +67,7 @@ SCREENS.squad = () => {
     </div>
     <div class="xr">
       ${pan(`球隊實力 <span class="r">${fname(c.form)}</span>`, `<div class="xstats">${[['總評', T.ovr], ['進攻', T.att], ['中場', T.mid], ['防守', T.def]].map(([k, v]) => `<div class="xstat"><div class="v">${v}</div><div class="k">${k}</div><div class="bar"><i style="width:${clamp((v - 40) / 55 * 100, 0, 100)}%"></i></div></div>`).join('')}</div>
-        <p class="note" style="margin:6px 0 0">默契加成 <b style="color:var(--amber)">+${T.chem}</b> · 戰術風格 <b>${c.tac && TACP[c.tac] ? TACP[c.tac].n : '未揀'}</b>${tx && tx.fit ? `（${tx.fit}）` : ''} · 球隊默契 ${Math.round(cohOf(c))}</p>`)}
+        <p class="note" style="margin:6px 0 0">默契加成 <b style="color:var(--amber)">+${T.chem}</b> · 喜好加成 <b style="color:var(--amber)">+${T.S.on.filter(o => o.pid).reduce((t, o) => t + prefBonus(T.S, o.pid), 0)}</b> ${info('默契：正選入面每個球員同其他十個人嘅聯繫——同國籍 +1；同一間舊球會出身、或者一齊喺呢度踢咗一年以上（老拍檔）+1。3 個聯繫 +1、6 個 +2、9 個 +3。新簽球員要一齊踢一年先會變老拍檔。喜好：每個球員有自己最啱嘅戰術風格同陣式，用中佢鍾意嘅每樣 +1（卡下面標「戰」「陣」）。撳球員睇佢鍾意乜。')} · 戰術風格 <b>${c.tac && TACP[c.tac] ? TACP[c.tac].n : '未揀'}</b>${tx && tx.fit ? `（${tx.fit}）` : ''} · 球隊默契 ${Math.round(cohOf(c))}</p>`)}
       ${pan('陣式', `<div class="row">${FLIST().map(f => `<button class="chip" data-act="pform" data-a="${f}" aria-pressed="${c.form === f}">${f}</button>`).join('')}${c.cust ? `<button class="chip" data-act="pform" data-a="${CUSTK(cid)}" aria-pressed="${isCust(c.form)}">自訂</button>` : ''}</div>`)}
       ${pan(`預備組 <select class="inp" data-ch="sqf" aria-label="篩選位置" style="font-size:12px;padding:2px 4px">${[['', '全部位置'], ['G', '門將'], ['D', '後衛'], ['M', '中場'], ['A', '前鋒'], ...Object.keys(POSN).map(k => [k, `${k} ${POSN[k]}（包括次位置）`])].map(([v, t]) => opt(v, t, sqf)).join('')}</select> <span class="r">${res.length} 人 · 全隊 ${roster(cid).length} 人${yts ? ` · 青年軍 ${yts} 人（喺「合約」升降）` : ''}</span>`, `<div class="plist">${res.map(p => pitemX(p, 'r' + p)).join('') || '<p class="note">冇預備球員。</p>'}</div>`, { st: 'flex:1;min-height:180px' })}
     </div>
@@ -119,11 +121,12 @@ document.addEventListener('dblclick', e => { if (SCR !== 'squad') return; const 
 SCREENS.tactics = () => {
   const c = myClub(), cid = myCid(), f = UI.tf || c.form, T = teamEval(cid, f, f === c.form ? c.xi : Array(11).fill(null)), cap = taker(T.S, 'cap');
   const fits = Object.fromEntries(Object.keys(TACP).map(k => [k, tacFit(k, T.S.on)]));
+  const likes = {}, flikes = {}; for (const p of c.xi.filter(Boolean)) { const pr = prefOf(p); likes[pr.tac] = (likes[pr.tac] || 0) + 1; if (pr.form) flikes[pr.form] = (flikes[pr.form] || 0) + 1; }
   main(`${hdr('戰術', info('戰術風格（嚟自傳奇十一人）：一撳就幫你設定打法，仲會按場上球員特性加減能力：「好適合」加得多，「唔適合」反而會扣。擺大巴同全力進攻係固定加減。之後仍然可以自己再調打法。陣式同打法會影響每分鐘嘅進攻、防守同控球計算，比賽中途都可以改。'))}
   <div class="xsq">
     <div class="xr">
-      ${pan('戰術風格', `<div class="tacs">${Object.entries(TACP).map(([k, t]) => `<button class="chip" data-act="tacp" data-a="${k}" aria-pressed="${c.tac === k}" title="${esc(t.d)}">${t.n}<small>${fits[k].fit || (k === 'bal' ? '冇加減' : k === 'bus' ? '防守 ++ 進攻 −−' : '進攻 ++ 防守 −−')}</small></button>`).join('')}</div>`)}
-      ${pan('陣式', `<div class="row">${[...FLIST(), ...(c.cust ? [CUSTK(cid)] : [])].map(k => `<button class="chip" data-act="tform" data-a="${k}" aria-pressed="${k === f}">${fname(k)}</button>`).join('')}</div>${f !== c.form ? `<div class="row" style="margin-top:8px"><button class="btn y" data-act="setform" data-a="${f}">用 ${fname(f)}</button><span class="note">而家用緊 ${fname(c.form)}</span></div>` : ''}`)}
+      ${pan('戰術風格', `<div class="tacs">${Object.entries(TACP).map(([k, t]) => `<button class="chip" data-act="tacp" data-a="${k}" aria-pressed="${c.tac === k}" title="${esc(t.d)}">${t.n}<small>${fits[k].fit || (k === 'bal' ? '冇加減' : k === 'bus' ? '防守 ++ 進攻 −−' : '進攻 ++ 防守 −−')}${likes[k] ? ` · ${likes[k]} 人鍾意` : ''}</small></button>`).join('')}</div>`)}
+      ${pan('陣式', `<div class="row">${[...FLIST(), ...(c.cust ? [CUSTK(cid)] : [])].map(k => `<button class="chip" data-act="tform" data-a="${k}" aria-pressed="${k === f}" title="${flikes[k] || 0} 個正選鍾意">${fname(k)}${flikes[k] ? ` <small>♥${flikes[k]}</small>` : ''}</button>`).join('')}</div>${f !== c.form ? `<div class="row" style="margin-top:8px"><button class="btn y" data-act="setform" data-a="${f}">用 ${fname(f)}</button><span class="note">而家用緊 ${fname(c.form)}</span></div>` : ''}`)}
       ${pan('打法', `<table><tbody>${Object.entries(STYLE).map(([k, v]) => `<tr><td style="width:120px">${STYLEN[k]} ${info(STYLEI[k])}</td><td><div class="row">${v.map((t, i) => `<button class="chip" data-act="sty" data-a="${k}:${i}" aria-pressed="${c.sty[k] === i}">${t}</button>`).join('')}</div></td></tr>`).join('')}</tbody></table>`)}
       ${pan(`隊長 · 定位球 ${info('揀隊長同各種定位球主罰。揀「自動」或者揀咗嘅人唔喺場上，就由場上最適合嘅人負責。隊長喺場會令全隊表現略為提升。角球同長罰球睇傳球同控球，短罰球（直接射門）睇射門同傳球，十二碼睇射門同控球。')}`, `<table class="spt"><tbody>${Object.entries(SPR).map(([k, t]) => { const ros = roster(cid).filter(p => ps(p).pos !== 'GK').sort((a, b) => SPW[k](b) - SPW[k](a)), curp = (c.sp || {})[k], auto = bestFor(k, c.xi.filter(Boolean)); return `<tr><td style="width:90px">${t}</td><td><select class="inp" data-ch="sp" data-a="${k}" aria-label="${t}"><option value="">自動${auto ? `（${esc(ps(auto).sn)}）` : ''}</option>${ros.map(p => `<option value="${p}" ${p === curp ? 'selected' : ''}>${esc(ps(p).sn)} · ${ps(p).pos} · ${Math.round(k === 'cap' ? pd(p).sk : k === 'pk' ? attrs(p)[5] : k === 'fks' ? (attrs(p)[5] + attrs(p)[4]) / 2 : attrs(p)[4])}</option>`).join('')}</select></td></tr>`; }).join('')}</tbody></table>`)}
       ${pan(`個人指令 ${info('盤扭、傳中、遠射：多啲用嗰種方法進攻。前插：多啲插入禁區，但防守少咗。留守：少啲上前，幫手防守。盯人：貼身跟住對手。')}`, `<table><tbody>${c.xi.filter(Boolean).map(p => `<tr><td class="nm">${pl(p)}</td><td class="n">${ps(p).pos}</td><td><select class="inp" data-ch="ord" data-a="${p}" aria-label="個人指令">${Object.entries(ORDERS).map(([v, t]) => opt(v, t, c.ord[p] || 'n')).join('')}</select></td></tr>`).join('')}</tbody></table>`)}
@@ -354,3 +357,10 @@ Object.assign(CH, { gpnat: el => { UI.gp.nat = el.value; render(); }, gplg: el =
 document.addEventListener('change', e => { const id = e.target.id; if (!['ctn', 'cta', 'cty'].includes(id)) return; const U = UI.ct;
   if (id === 'ctn') U.cn = clamp(+e.target.value || 60, 30, 99); if (id === 'cta') U.ca = e.target.value === '' ? '' : clamp(+e.target.value, 15, 45); if (id === 'cty') U.cy = e.target.checked; U.carm = 0; render(); });
 Object.assign(CH, { sqf: el => { UI.sqf = el.value; render(); } });
+
+// what a player likes (player sheet)
+function prefPanel(pid) {
+  if (ps(pid).pos === 'GK') return '';
+  const pr = prefOf(pid);
+  return `<p class="note" style="margin:6px 0 0">最啱戰術風格：<b>${TACP[pr.tac] ? TACP[pr.tac].n : '均衡'}</b>${pr.form ? ` · 最啱陣式：<b>${pr.form}</b>` : ''} ${info('球隊用中佢鍾意嘅戰術風格或者陣式，每樣佢嘅能力 +1。')}</p>`;
+}

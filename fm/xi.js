@@ -32,13 +32,7 @@ function cardSell(pid, all) {
   const v = dupValue(pid) * n; G.cards[pid] -= n; fin(G.mgr.cid, 'tin', v); return v;
 }
 
-/* ---------- chemistry: links to team-mates of the same nation (the main game also counted same club) ---------- */
-function chemMap(pids) {
-  const out = {}, nat = {};
-  for (const p of pids) { const n = ps(p).nat; nat[n] = (nat[n] || 0) + 1; }
-  for (const p of pids) { const l = nat[ps(p).nat] - 1; out[p] = l >= 6 ? 2 : l >= 3 ? 1 : 0; }
-  return out;
-}
+/* chemistry: see "chemistry 2" further down */
 
 /* ---------- tactic styles (傳奇十一人 TAC) ---------- */
 const TACP = {
@@ -225,3 +219,47 @@ function makeLegend(id) {
 }
 // a legend that has not been pulled yet, as card data for the screens
 const legendCard = id => { const L = legendRow(id); return { name: L[0], sn: L[6] || shortName(L[0]), pos: L[1], nat: L[2], sk: L[3], meta: `${L[4]} ${L[5]}` }; };
+
+/* ---------- player preferences: a favourite tactic style and formation each (+1 rating each when the team uses it) ----------
+   A player's attributes are his overall + a position profile + a fixed personal tilt (attrs in core.js); the style he
+   likes is the one his strongest tilt suits. The formation comes from his position (a winger likes 4-3-3, a wing-back 3-5-2…). */
+const PREFF = {
+  GK: [], CD: ['4-4-2', '3-5-2', '5-3-2', '4-3-3'], RB: ['4-4-2', '4-3-3', '4-2-3-1'], LB: ['4-4-2', '4-3-3', '4-2-3-1'], RWB: ['3-5-2', '5-3-2', '3-4-3'], LWB: ['3-5-2', '5-3-2', '3-4-3'],
+  DM: ['4-2-3-1', '4-1-2-1-2', '4-3-3'], CM: ['4-3-3', '4-4-2', '4-5-1'], RM: ['4-4-2', '4-5-1', '4-4-1-1'], LM: ['4-4-2', '4-5-1', '4-4-1-1'], AM: ['4-2-3-1', '4-1-2-1-2', '4-4-1-1'],
+  RW: ['4-3-3', '4-2-3-1', '3-4-3'], LW: ['4-3-3', '4-2-3-1', '3-4-3'], CF: ['4-4-1-1', '4-2-3-1', '3-5-2'], ST: ['4-4-2', '3-5-2', '4-3-3'],
+};
+const PREFC = new Map();
+function prefOf(pid) {
+  if (PREFC.has(pid)) return PREFC.get(pid);
+  const p = ps(pid), pos = p.pos, t = k => (hsh(p.name + '#' + k) % 11) - 5, L = lineOf(pos), wide = /^[RL]/.test(pos);
+  const cand = pos === 'GK' ? [] : L === 'D' ? [['pos', t(4)], ['press', (t(0) + t(1)) / 2], ['bus', (t(3) + t(2)) / 2]]
+    : L === 'M' ? [['pos', t(4)], ['press', (t(0) + t(1)) / 2], [wide ? 'wing' : 'counter', t(0)]]
+    : [['counter', t(0)], ['wing', wide ? t(0) - .5 : t(6)], ['allout', t(5)], ['press', (t(0) + t(1)) / 2 - .5]];
+  const best = cand.sort((a, b) => b[1] - a[1])[0];
+  const fl = (PREFF[pos] || []).filter(f => FORMS[f]), form = fl.length ? fl[hsh(p.name + '@f') % fl.length] : null;
+  const r = { tac: best && best[1] > 0 ? best[0] : 'bal', form };
+  PREFC.set(pid, r); return r;
+}
+// per-player bonus in a match side: +1 his style, +1 his formation
+function prefBonus(S, pid) {
+  const c = G.clubs[S.cid], pr = prefOf(pid); let b = 0;
+  if (c.tac && c.tac === pr.tac) b++;
+  if (pr.form && S.form === pr.form) b++;
+  return b;
+}
+
+/* ---------- chemistry 2: same nation, old team-mates, time together ----------
+   For each player in the eleven, count links to the other ten: same nation +1, and a bond +1 if they came from the same
+   club (the club in the season data) or have been at this club together for a year. 3+ links → +1, 6+ → +2, 9+ → +3. */
+const origin = pid => /^[a-z]+\d?\.[a-z0-9]+\.\d+$/.test(pid) ? pid.replace(/\.\d+$/, '') : null;
+const longHere = pid => { const d = pd(pid); return d.jd == null || G.day - d.jd >= 364; };
+function chemLinks(pid, pids) {
+  let nat = 0, bond = 0; const n = ps(pid).nat, o = origin(pid), lh = longHere(pid);
+  for (const q of pids) { if (q === pid) continue; if (ps(q).nat === n) nat++; if ((o && origin(q) === o) || (lh && longHere(q))) bond++; }
+  return { nat, bond, n: nat + bond };
+}
+function chemMap(pids) {
+  const out = {};
+  for (const p of pids) { const l = chemLinks(p, pids).n; out[p] = l >= 9 ? 3 : l >= 6 ? 2 : l >= 3 ? 1 : 0; }
+  return out;
+}

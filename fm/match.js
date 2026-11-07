@@ -42,7 +42,7 @@ function sideRatings(S, M) {
   const ch = typeof chemMap === 'function' ? chemMap(S.on.map(o => o.pid).filter(Boolean)) : {};   // fm/xi.js
   for (const o of S.on) {
     if (!o.pid) { L[slotLine(o.slot)].push(28); continue; }
-    L[slotLine(o.slot)].push(effOf(o.pid, o.slot) + (ch[o.pid] || 0));
+    L[slotLine(o.slot)].push(effOf(o.pid, o.slot) + (ch[o.pid] || 0) + (typeof prefBonus === 'function' ? prefBonus(S, o.pid) : 0));
     const od = S.ord[o.pid]; if (od === 'fw') fw++; if (od === 'hd') hd++;
   }
   const capF = S.on.some(o => o.pid && o.pid === taker(S, 'cap')) ? 1.01 : 1, av = a => (a.length ? sum(a) / a.length : 35) * capF;

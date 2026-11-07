@@ -267,7 +267,7 @@ function drawPlayer() {
     <dl class="kv kv2"><dt>身價</dt><dd>${money(valueOf(pid))}</dd><dt>週薪</dt><dd>${money(d.w)}</dd><dt>合約至</dt><dd>${d.c === 'free' ? '—' : d.ct + ' 年 6 月'}</dd><dt>體能</dt><dd>${Math.round(d.cond)}${cbar(d.cond)}</dd><dt>表現</dt><dd>${form(pid) ? form(pid).toFixed(1) : '–'}</dd><dt>傷病</dt><dd>${d.inj ? `${esc(d.injn)}（${d.inj} 日）` : '冇'}</dd></dl>
     <div class="attrs">${an.map((n, k) => `<div><span>${n}</span><b class="num">${a[k]}</b><div class="bar"><i style="width:${a[k]}%;background:${a[k] >= 85 ? 'var(--win)' : a[k] >= 70 ? 'var(--sel)' : a[k] >= 55 ? '#9cc0ff' : 'var(--loss)'}"></i></div></div>`).join('')}</div>
     <table><thead><tr><th class="n">上陣</th><th class="n">入球</th><th class="n">助攻</th><th class="n">黃牌</th><th class="n">紅牌</th><th class="n">最佳</th><th class="n">平均評分</th></tr></thead><tbody><tr><td class="n">${s.ap}</td><td class="n">${s.gl}</td><td class="n">${s.as}</td><td class="n">${s.yc}</td><td class="n">${s.rc}</td><td class="n">${s.mom}</td><td class="n">${s.ap ? (s.rt / s.ap).toFixed(2) : '–'}</td></tr></tbody></table>
-    ${cardPanel(pid)}${skHistPanel(pid)}
+    ${prefPanel(pid)}${cardPanel(pid)}${skHistPanel(pid)}
     <div class="pact">${P.msg ? `<p class="msg">${esc(P.msg)}</p>` : ''}${act}</div>`);
 }
 
