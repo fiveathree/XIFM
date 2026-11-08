@@ -209,10 +209,10 @@ const STYLEI = { ment: '進攻：多人插上，入球多但後防空虛；防�
 // search table columns: [header, sort key, default direction (1 up, -1 down)]
 const POSORD = Object.keys(POSN);
 const SRCOL = {
-  name: ['球員', r => ps(r[0]).name, 1], club: ['球會', r => clubName(pd(r[0]).c), 1], age: ['歲', r => ageOf(r[0]), 1], pos: ['位', r => POSORD.indexOf(ps(r[0]).pos), 1],
+  name: ['球員', r => ps(r[0]).name, 1], star: ['明星', r => (typeof starOf === 'function' ? starOf(r[0]) * 100 : 0) + (typeof popOf === 'function' ? popOf(r[0]) : 0), -1], club: ['球會', r => clubName(pd(r[0]).c), 1], age: ['歲', r => ageOf(r[0]), 1], pos: ['位', r => POSORD.indexOf(ps(r[0]).pos), 1],
   sk: ['能力', r => pd(r[0]).sk, -1], val: ['身價', r => r[1], -1], w: ['週薪', r => pd(r[0]).w, -1], st: ['狀態', r => (pd(r[0]).inj ? -20 : pd(r[0]).lin ? -10 : 0) + (pd(r[0]).arw ?? 2), -1],
 };
-const SRCLS = { name: '', club: 'hm', age: 'n', pos: 'n', sk: 'n', val: 'n', w: 'n hm', st: 'hm' };
+const SRCLS = { name: '', star: 'stc', club: 'hm', age: 'n', pos: 'n', sk: 'n', val: 'n', w: 'n hm', st: 'hm' };
 function srHead() { const f = UI.sr, k = SRCOL[f.sort] ? f.sort : 'sk', dir = f.dir || SRCOL[k][2]; return Object.entries(SRCOL).map(([c, [t]]) => `<th class="${SRCLS[c]} srt ${c === k ? 'on' : ''}" data-act="srs" data-a="${c}" title="撳一下排序，再撳反轉">${t}${c === k ? (dir > 0 ? ' ▲' : ' ▼') : ''}</th>`).join(''); }
 // a club's current squad (live: transfers, injuries, suspensions), from any club name in the search table
 function clubPanel(cid) {
@@ -231,13 +231,14 @@ function searchRows() {
     if (f.pos && lineOf(p.pos) !== f.pos && p.pos !== f.pos) continue;
     if (f.lg === 'free' ? d.c !== 'free' : f.lg && (d.c === 'free' || G.clubs[d.c].lg !== f.lg)) continue;
     if (ageOf(pid) > maxA) continue;
+    if (f.star && (typeof starOf !== 'function' || starOf(pid) < +f.star)) continue;
     if (q && !(p.name.toLowerCase().includes(q) || clubName(d.c).toLowerCase().includes(q))) continue;
     const v = valueOf(pid); if (v > maxV) continue;
     out.push([pid, v]);
   }
   const k = SRCOL[f.sort] ? f.sort : 'sk', dir = f.dir || SRCOL[k][2], key = SRCOL[k][1];
   out.sort((a, b) => { const x = key(a), y = key(b); return (typeof x === 'string' ? x.localeCompare(y) : x - y) * dir || pd(b[0]).sk - pd(a[0]).sk; });
-  return [out.length, out.slice(0, 200).map(([pid, v]) => { const d = pd(pid); return `<tr class="click" data-pl="${pid}"><td class="nm">${esc(ps(pid).name)}</td><td class="nm hm">${d.c !== 'free' ? `<button class="lnk" data-act="clubv" data-a="${d.c}" title="睇 ${esc(clubName(d.c))} 而家嘅陣容">${esc(clubName(d.c))}</button>` : esc(clubName(d.c))}</td><td class="n">${ageOf(pid)}</td><td class="n">${ps(pid).pos}</td><td class="n">${d.sk}</td><td class="n">${money(v)}</td><td class="n hm">${money(d.w)}</td><td class="hm">${pTags(pid)}</td></tr>`; }).join('')];
+  return [out.length, out.slice(0, 200).map(([pid, v]) => { const d = pd(pid); return `<tr class="click" data-pl="${pid}"><td class="nm">${esc(ps(pid).name)}</td><td class="stc">${starTag(pid)}</td><td class="nm hm">${d.c !== 'free' ? `<button class="lnk" data-act="clubv" data-a="${d.c}" title="睇 ${esc(clubName(d.c))} 而家嘅陣容">${esc(clubName(d.c))}</button>` : esc(clubName(d.c))}</td><td class="n">${ageOf(pid)}</td><td class="n">${ps(pid).pos}</td><td class="n">${d.sk}</td><td class="n">${money(v)}</td><td class="n hm">${money(d.w)}</td><td class="hm">${pTags(pid)}</td></tr>`; }).join('')];
 }
 SCREENS.search = () => {
   const f = UI.sr, [n, rows] = searchRows();
@@ -246,6 +247,7 @@ SCREENS.search = () => {
   <div class="row"><input class="inp" data-in="sr" data-a="q" placeholder="姓名或球會" value="${esc(f.q)}" style="flex:1 1 160px">
     <select class="inp" data-ch="sr" data-a="pos" aria-label="位置">${opt('', '全部位置', f.pos)}${[['G', '門將'], ['D', '後衛'], ['M', '中場'], ['A', '前鋒']].map(([v, t]) => opt(v, t, f.pos)).join('')}${Object.entries(POSN).map(([v, t]) => opt(v, v + ' ' + t, f.pos)).join('')}</select>
     <select class="inp" data-ch="sr" data-a="lg" aria-label="聯賽">${opt('', '全部聯賽', f.lg)}${PLG().map(l => opt(l, LG[l].name, f.lg)).join('')}${opt('eur', '歐洲球會', f.lg)}${opt('free', '自由球員', f.lg)}</select>
+    <select class="inp" data-ch="sr" data-a="star" aria-label="明星">${opt('', '全部球員', f.star || '')}${opt('1', '明星或以上', f.star || '')}${opt('2', '只限巨星', f.star || '')}</select>
     <input class="inp num" data-in="sr" data-a="age" placeholder="最大年齡" value="${esc(f.age)}" inputmode="numeric" style="width:90px">
     <input class="inp num" data-in="sr" data-a="val" placeholder="身價上限 £m" value="${esc(f.val)}" inputmode="decimal" style="width:110px">
 </div>
@@ -282,9 +284,9 @@ function drawPlayer() {
 SCREENS.market = () => {
   const t = UI.mk, me = myCid();
   let body;
-  if (t === 'off') body = G.off.length ? `<table><thead><tr><th>球員</th><th>出價球會</th><th class="n">報價</th><th class="n hm">身價</th><th class="n">期限</th><th></th></tr></thead><tbody>${G.off.map(o => `<tr><td class="nm">${pl(o.pid)}</td><td class="nm">${esc(clubName(o.from))}</td><td class="n">${money(o.fee)}</td><td class="n hm">${money(valueOf(o.pid))}</td><td class="n">${fdate(o.exp, 's')}</td><td class="nowrap"><button class="btn sm y" data-act="accept" data-a="${o.id}">接受</button> <button class="btn sm" data-act="cofopen" data-a="${o.id}" ${o.ok ? 'disabled' : ''}>還價</button> <button class="btn sm" data-act="reject" data-a="${o.id}">拒絕</button>${o.ok ? ' <span class="tag t-ls">已傾掂</span>' : o.last ? ' <span class="tag t-ex">最後報價</span>' : ''}</td></tr>`).join('')}</tbody></table>` : '<p class="note">暫時冇報價。放售球員會多啲人問。</p>';
-  else if (t === 'list') { const l = roster(me).filter(p => pd(p).list); body = l.length ? `<table><thead><tr><th>球員</th><th class="n">歲</th><th class="n">能力</th><th class="n">身價</th><th></th></tr></thead><tbody>${l.map(p => `<tr><td class="nm">${pl(p)}</td><td class="n">${ageOf(p)}</td><td class="n">${pd(p).sk}</td><td class="n">${money(valueOf(p))}</td><td><button class="btn sm" data-act="unlist" data-a="${p}">取消放售</button></td></tr>`).join('')}</tbody></table>` : '<p class="note">你冇放售球員。喺球員資料撳「放售」。</p>'; }
-  else body = G.tlog.length ? `<table><thead><tr><th class="n">日期</th><th>球員</th><th class="hm">由</th><th>去</th><th class="n">轉會費</th></tr></thead><tbody>${G.tlog.map(x => `<tr class="${isUser(x.to) || isUser(x.from) ? 'me' : ''}"><td class="n">${fdate(x.d, 's')}</td><td class="nm">${G.pl[x.pid] ? pl(x.pid) : esc(ps(x.pid).sn)}</td><td class="nm hm">${esc(clubName(x.from))}</td><td class="nm">${esc(clubName(x.to))}</td><td class="n">${x.fee ? money(x.fee) : '自由'}</td></tr>`).join('')}</tbody></table>` : '<p class="note">未有轉會。</p>';
+  if (t === 'off') body = G.off.length ? `<table><thead><tr><th>球員</th><th class="stc">明星</th><th>出價球會</th><th class="n">報價</th><th class="n hm">身價</th><th class="n">期限</th><th></th></tr></thead><tbody>${G.off.map(o => `<tr><td class="nm">${pl(o.pid)}</td><td class="stc">${starTag(o.pid)}</td><td class="nm">${esc(clubName(o.from))}</td><td class="n">${money(o.fee)}</td><td class="n hm">${money(valueOf(o.pid))}</td><td class="n">${fdate(o.exp, 's')}</td><td class="nowrap"><button class="btn sm y" data-act="accept" data-a="${o.id}">接受</button> <button class="btn sm" data-act="cofopen" data-a="${o.id}" ${o.ok ? 'disabled' : ''}>還價</button> <button class="btn sm" data-act="reject" data-a="${o.id}">拒絕</button>${o.ok ? ' <span class="tag t-ls">已傾掂</span>' : o.last ? ' <span class="tag t-ex">最後報價</span>' : ''}</td></tr>`).join('')}</tbody></table>` : '<p class="note">暫時冇報價。放售球員會多啲人問。</p>';
+  else if (t === 'list') { const l = roster(me).filter(p => pd(p).list); body = l.length ? `<table><thead><tr><th>球員</th><th class="stc">明星</th><th class="n">歲</th><th class="n">能力</th><th class="n">身價</th><th></th></tr></thead><tbody>${l.map(p => `<tr><td class="nm">${pl(p)}</td><td class="stc">${starTag(p)}</td><td class="n">${ageOf(p)}</td><td class="n">${pd(p).sk}</td><td class="n">${money(valueOf(p))}</td><td><button class="btn sm" data-act="unlist" data-a="${p}">取消放售</button></td></tr>`).join('')}</tbody></table>` : '<p class="note">你冇放售球員。喺球員資料撳「放售」。</p>'; }
+  else body = G.tlog.length ? `<table><thead><tr><th class="n">日期</th><th>球員</th><th class="stc">明星</th><th class="hm">由</th><th>去</th><th class="n">轉會費</th></tr></thead><tbody>${G.tlog.map(x => `<tr class="${isUser(x.to) || isUser(x.from) ? 'me' : ''}"><td class="n">${fdate(x.d, 's')}</td><td class="nm">${G.pl[x.pid] ? pl(x.pid) : esc(ps(x.pid).sn)}</td><td class="stc">${G.pl[x.pid] ? starTag(x.pid) : ''}</td><td class="nm hm">${esc(clubName(x.from))}</td><td class="nm">${esc(clubName(x.to))}</td><td class="n">${x.fee ? money(x.fee) : '自由'}</td></tr>`).join('')}</tbody></table>` : '<p class="note">未有轉會。</p>';
   main(`${hdr('轉會市場', `<span class="mute">${inWindow(G.day) ? '轉會窗開放至 3 月 28 日' : '轉會窗已關，7 月 1 日重開'}</span>`)}
   <div class="tabs">${chips([['off', `收到報價（${G.off.length}）`], ['list', '我放售嘅球員'], ['log', '轉會紀錄']], t, 'mktab')}</div>
   ${pan({ off: '收到報價', list: '放售名單', log: '轉會紀錄' }[t], body, { st: 'flex:1' })}`);
@@ -399,7 +401,7 @@ SCREENS.ratings = () => {
   let right;
   if (K.t === 'pl') {
     const top = rankPlayers(lids, K.k), fmt = v => K.k === 'bp' || K.k === 'fm' ? v.toFixed(2) : v;
-    const colT = part => `<table><tbody>${part.map(([pid, v], i) => `<tr class="${isUser(pd(pid).c) ? 'me' : ''}"><td class="n">${part.base + i + 1}</td><td class="nm">${pl(pid)}<br><small class="mute">${esc(clubShort(pd(pid).c))}</small></td><td class="n">${fmt(v)}</td></tr>`).join('')}</tbody></table>`;
+    const colT = part => `<table><tbody>${part.map(([pid, v], i) => `<tr class="${isUser(pd(pid).c) ? 'me' : ''}"><td class="n">${part.base + i + 1}</td><td class="nm">${pl(pid)}<br><small class="mute">${esc(clubShort(pd(pid).c))}</small></td><td class="stc">${starTag(pid)}</td><td class="n">${fmt(v)}</td></tr>`).join('')}</tbody></table>`;
     const cols = [0, 1, 2].map(k => Object.assign(top.slice(k * 20, k * 20 + 20), { base: k * 20 }));
     right = top.length ? `<div class="rk3">${cols.map(colT).join('')}</div>` : '<p class="note">未有數據。</p>';
   } else if (K.t === 'cl') {
@@ -494,7 +496,7 @@ SCREENS.match = () => { if (!MT) { SCR = 'home'; return SCREENS.home(); } ({ pre
 function lineupList(cid) {
   const c = G.clubs[cid]; if (!isUser(cid)) autoPick(cid);
   const sl = FORMS[c.form];
-  return `<table><thead><tr><th class="n">位</th><th>球員</th><th class="n">能力</th><th>體能</th></tr></thead><tbody>${c.xi.map((p, i) => p ? `<tr><td class="n">${sl[i][0]}</td><td class="nm">${pl(p)} ${pTags(p)}</td><td class="n">${pd(p).sk}</td><td>${Math.round(pd(p).cond)}${cbar(pd(p).cond)}</td></tr>` : `<tr><td class="n">${sl[i][0]}</td><td colspan="3" class="bad">冇人</td></tr>`).join('')}</tbody></table><p class="note" style="margin-top:6px">後備：${c.sb.map(p => esc(ps(p).sn)).join('、') || '—'}</p>`;
+  return `<table><thead><tr><th class="n">位</th><th>球員</th><th class="stc">明星</th><th class="n">能力</th><th>體能</th></tr></thead><tbody>${c.xi.map((p, i) => p ? `<tr><td class="n">${sl[i][0]}</td><td class="nm">${pl(p)} ${pTags(p)}</td><td class="stc">${starTag(p)}</td><td class="n">${pd(p).sk}</td><td>${Math.round(pd(p).cond)}${cbar(pd(p).cond)}</td></tr>` : `<tr><td class="n">${sl[i][0]}</td><td colspan="4" class="bad">冇人</td></tr>`).join('')}</tbody></table><p class="note" style="margin-top:6px">後備：${c.sb.map(p => esc(ps(p).sn)).join('、') || '—'}</p>`;
 }
 function mPre() {
   const f = MT.f, c = myClub(), probs = lineupProblems(myCid()), rd = G.comp[f.c].rd?.[f.r];

@@ -49,7 +49,7 @@ function shopPricesTab() {
         <dt>明星球員</dt><dd>${f(H.starF)} <span class="mute">${H.stars.length ? H.stars.slice(0, 4).map(p => esc(ps(p).sn)).join('、') + (H.stars.length > 4 ? ` 等 ${H.stars.length} 人` : '') : '冇'}</span></dd>
         <dt>宣傳活動</dt><dd>${f(H.promo)} <span class="mute">${(c.promo || []).length ? (c.promo || []).map(p => esc((typeof PROMO !== 'undefined' && PROMO[p.k] && PROMO[p.k].n) || p.k)).join('、') : '冇進行中（去「宣傳」開）'}</span></dd>
         <dt>最近成績</dt><dd>${f(H.form)} <span class="mute">最近 5 場</span></dd></dl>`)}
-      ${pan(`球衣銷量榜 <span class="r">今季 ${totS.toLocaleString()} 件</span>`, top.length ? `<table><tbody>${top.map(([p, u], i) => `<tr><td class="n">${i + 1}</td><td class="n num">${pd(p).no || ''}</td><td class="nm">${pl(p)} ${typeof starOf === 'function' && starOf(p) ? `<span class="tag t-star${starOf(p)}">${starOf(p) === 2 ? '巨星' : '明星'}</span>` : ''}</td><td class="n">${u.toLocaleString()} 件</td><td class="n mute">${Math.round(u / Math.max(1, totS) * 100)}%</td></tr>`).join('')}</tbody></table>` : '<p class="note">今季未有球衣銷售。每個星期一結算一次。</p>', { t: 1, st: 'min-height:0' })}
+      ${pan(`球衣銷量榜 <span class="r">今季 ${totS.toLocaleString()} 件</span>`, top.length ? `<table><tbody>${top.map(([p, u], i) => `<tr><td class="n">${i + 1}</td><td class="n num">${pd(p).no || ''}</td><td class="nm">${pl(p)}</td><td class="stc">${starTag(p)}</td><td class="n">${u.toLocaleString()} 件</td><td class="n mute">${Math.round(u / Math.max(1, totS) * 100)}%</td></tr>`).join('')}</tbody></table>` : '<p class="note">今季未有球衣銷售。每個星期一結算一次。</p>', { t: 1, st: 'min-height:0' })}
     </div>
   </div>`;
 };
@@ -107,13 +107,13 @@ function bizEventTab() {
       <div class="row" style="margin-top:8px"><button class="btn y" data-act="tpgo" ${open && F.days <= days ? '' : 'disabled'}>出發（${F.days} 日）</button><button class="btn" data-act="tpclr">清除</button></div>` : '<p class="note">喺左邊揀地方加入行程（最多 5 站）。次序有關係：連續喺同一洲唔使再搭長途機，轉洲就有時差。</p>';
   const done = L ? `<p><b>${L.plan.map(k => esc(TDEST[k].n)).join(' → ')}</b></p><table class="shopt tres"><tbody>${L.res.map(r => `<tr><td>${esc(TDEST[r.k].n)}</td><td>對 ${esc(r.o)}</td><td class="n"><b>${r.gf}-${r.ga}</b> ${wdl(r.gf > r.ga ? 'W' : r.gf < r.ga ? 'L' : 'D')}</td></tr>`).join('')}</tbody></table><p class="mute">出場費 ${money(L.F.pay)} · 體能 ${sign(L.F.cond)} · 季前體能 ${sign(L.F.psf)} · 默契 +${L.F.coh}${L.hurt.length ? ` · 輕傷：${L.hurt.map(p => esc(ps(p).sn)).join('、')}` : ''}</p>` : '';
   const pls = roster(cid).filter(p => !pd(p).yt).sort((a, b) => popOf(b) - popOf(a)).slice(0, 8);
-  const ad = pls.map(p => { const fee = Math.round(popOf(p) ** 2 * 60 * MS * prF(c) / 1e3) * 1e3, cd = cdLeft(c, 'ad:' + p); return `<tr><td class="nm">${pl(p)} ${starOf(p) ? `<span class="tag t-star${starOf(p)}">${starOf(p) === 2 ? '巨星' : '明星'}</span>` : ''}</td><td class="n">${popOf(p)}</td><td class="n num">${money(fee)}</td><td><button class="btn sm" data-act="bizad" data-a="${p}" ${cd ? 'disabled' : ''}>${cd ? `${cd} 日` : '拍'}</button></td></tr>`; }).join('');
+  const ad = pls.map(p => { const fee = Math.round(popOf(p) ** 2 * 60 * MS * prF(c) / 1e3) * 1e3, cd = cdLeft(c, 'ad:' + p); return `<tr><td class="nm">${pl(p)}</td><td class="stc">${starTag(p)}</td><td class="n">${popOf(p)}</td><td class="n num">${money(fee)}</td><td><button class="btn sm" data-act="bizad" data-a="${p}" ${cd ? 'disabled' : ''}>${cd ? `${cd} 日` : '拍'}</button></td></tr>`; }).join('');
   const status = L ? '今季已經去咗巡迴。' : open ? `開波前仲有 ${days} 日可以用。` : '聯賽就嚟開波，今季冇時間去巡迴。';
   return `<div class="cols c2 m-stack tourw" style="min-height:0">
     ${pan(`季前巡迴 · 揀地方 ${info('每個地方踢一場表演賽，有出場費。長途機同時差令球員攰（體能跌）；炎熱地方耗體能、易受傷；訓練營體能同默契升得多但錢少。豪門對手同夏季邀請（出場費多三成）收得多。去過嘅海外市場，今季球衣賣得多啲。季前體能會令成季每日恢復快啲（或者慢啲）。新球員一齊去巡迴，會快啲同隊友有默契。')}`, `<p class="mute" style="margin:0 0 6px">${status}</p><table class="shopt tdest"><tbody>${dest}</tbody></table>`, { t: 1, st: 'min-height:0' })}
     <div class="cols" style="grid-template-rows:auto minmax(0,1fr);min-height:0">
     ${pan(L ? '今季巡迴結果' : `行程 <span class="r">${plan.length} / 5 站</span>`, L ? done : `<div class="tlegs">${legs}</div>${fx}`, { t: 1, st: 'min-height:0' })}
-    ${pan(`球員代言 ${info('球員幫品牌拍廣告：球會即收代言費（人氣越高越多），球員人氣 +3、心情變好，但體能 −5。每個球員 60 日一次。比賽前拍會影響狀態。')}`, `<table class="shopt"><thead><tr><th>球員</th><th class="n">人氣</th><th class="n">代言費</th><th></th></tr></thead><tbody>${ad}</tbody></table>`, { t: 1, st: 'min-height:0' })}
+    ${pan(`球員代言 ${info('球員幫品牌拍廣告：球會即收代言費（人氣越高越多），球員人氣 +3、心情變好，但體能 −5。每個球員 60 日一次。比賽前拍會影響狀態。')}`, `<table class="shopt"><thead><tr><th>球員</th><th class="stc">明星</th><th class="n">人氣</th><th class="n">代言費</th><th></th></tr></thead><tbody>${ad}</tbody></table>`, { t: 1, st: 'min-height:0' })}
     </div>
   </div>`;
 }

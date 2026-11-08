@@ -178,3 +178,4 @@ tr.mrel{cursor:pointer}tr.mrel:hover td{background:#5a1420!important}
 .tsty{display:flex;flex-wrap:wrap;gap:5px}
 .psty{border:1px solid #3a6ccc;background:#0d1834;padding:3px 8px;border-radius:12px;font-size:12px;cursor:help}
 .psty.plus{border-color:#f2c200;color:#ffe27a;background:#2b2408}
+.stc{white-space:nowrap}

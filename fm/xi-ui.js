@@ -291,10 +291,10 @@ function skHistPanel(pid) {
 /* ---------- 合約: sortable, renew, early termination, youth team ---------- */
 UI.ct = UI.ct || { sort: 'ct', dir: 1, arm: null };
 const CTCOL = {
-  name: ['球員', p => ps(p).name, 1], team: ['隊', p => pd(p).xs ? 2 : inYouth(p) ? 1 : 0, 1], age: ['歲', p => ageOf(p), 1], pos: ['位', p => POSORD.indexOf(ps(p).pos), 1],
+  name: ['球員', p => ps(p).name, 1], star: ['明星', p => starOf(p) * 100 + popOf(p), -1], team: ['隊', p => pd(p).xs ? 2 : inYouth(p) ? 1 : 0, 1], age: ['歲', p => ageOf(p), 1], pos: ['位', p => POSORD.indexOf(ps(p).pos), 1],
   sk: ['能力', p => cardR(p), -1], w: ['週薪', p => pd(p).w, -1], ct: ['到期', p => pd(p).ct, 1], val: ['身價', p => valueOf(p), -1],
 };
-const CTCLS = { name: '', team: '', age: 'n', pos: 'n', sk: 'n', w: 'n', ct: 'n', val: 'n hm' };
+const CTCLS = { name: '', star: 'stc', team: '', age: 'n', pos: 'n', sk: 'n', w: 'n', ct: 'n', val: 'n hm' };
 // players matching the condition-release fields (ability below, optionally older than, youth team only if ticked)
 function condList() { const U = UI.ct, n = U.cn ?? 60, a = U.ca; return roster(myCid()).filter(p => cardR(p) < n && (a == null || a === '' || ageOf(p) > +a) && (U.cy || !inYouth(p))); }
 const relComp = pid => Math.round(pd(pid).w * 52 * Math.max(0, pd(pid).ct - G.season) * .5);
@@ -307,8 +307,8 @@ SCREENS.contracts = () => {
   <div class="row"><span>按條件解約：能力低過</span><input class="inp num" id="ctn" type="number" min="30" max="99" value="${U.cn ?? 60}" style="width:64px"><span>同埋年齡大過</span><input class="inp num" id="cta" type="number" min="15" max="45" value="${U.ca ?? ''}" placeholder="唔限" style="width:64px"><label><input type="checkbox" id="cty" ${U.cy ? 'checked' : ''}> 包括青年軍</label>${(() => { const m = condList(); return `<button class="btn ${U.carm ? 'y' : ''}" data-act="ctcond" ${m.length ? '' : 'disabled'}>${U.carm ? `確認解約 ${m.length} 人 · 賠 ${money(sum(m.map(relComp)))}` : `搵到 ${m.length} 人 · 解約`}</button>`; })()}</div>` : ''}
   ${pan(`合約 · 週薪總數 ${money(sum(l.map(p => pd(p).w)))}`, `<table><thead><tr>${Object.entries(CTCOL).map(([c, [t]]) => `<th class="${CTCLS[c]} srt ${c === k ? 'on' : ''}" data-act="cts" data-a="${c}" title="撳一下排序，再撳反轉">${t}${c === k ? (U.dir > 0 ? ' ▲' : ' ▼') : ''}</th>`).join('')}<th></th></tr></thead><tbody>${l.map(p => { const d = pd(p), y = inYouth(p), armed = U.arm === p;
     const team = d.xs ? '<span class="tag t-inj">超額</span>' : y ? '<span class="tag t-ls">青年軍</span>' : '一隊';
-    if (mass) return `<tr class="click mrel" data-act="ctmass" data-a="${p}" title="撳一下即刻解約"><td class="nm">${esc(ps(p).sn)} ${starTag(p)}</td><td>${team}</td><td class="n">${ageOf(p)}</td><td class="n">${ps(p).pos}</td><td class="n">${cardR(p)}</td><td class="n">${money(d.w)}</td><td class="n ${d.ct <= G.season ? 'bad' : ''}">${d.ct}</td><td class="n hm">${money(valueOf(p))}</td><td class="bad nowrap">✕ 解約 · 賠 ${money(relComp(p))}</td></tr>`;
-    return `<tr class="${y ? 'yt' : ''}"><td class="nm">${pl(p)} ${starTag(p)}</td><td>${team}</td><td class="n">${ageOf(p)}</td><td class="n">${ps(p).pos}</td><td class="n">${cardR(p)}</td><td class="n">${money(d.w)}</td><td class="n ${d.ct <= G.season ? 'bad' : ''}">${d.ct}</td><td class="n hm">${money(valueOf(p))}</td>
+    if (mass) return `<tr class="click mrel" data-act="ctmass" data-a="${p}" title="撳一下即刻解約"><td class="nm">${esc(ps(p).sn)}</td><td class="stc">${starTag(p)}</td><td>${team}</td><td class="n">${ageOf(p)}</td><td class="n">${ps(p).pos}</td><td class="n">${cardR(p)}</td><td class="n">${money(d.w)}</td><td class="n ${d.ct <= G.season ? 'bad' : ''}">${d.ct}</td><td class="n hm">${money(valueOf(p))}</td><td class="bad nowrap">✕ 解約 · 賠 ${money(relComp(p))}</td></tr>`;
+    return `<tr class="${y ? 'yt' : ''}"><td class="nm">${pl(p)}</td><td class="stc">${starTag(p)}</td><td>${team}</td><td class="n">${ageOf(p)}</td><td class="n">${ps(p).pos}</td><td class="n">${cardR(p)}</td><td class="n">${money(d.w)}</td><td class="n ${d.ct <= G.season ? 'bad' : ''}">${d.ct}</td><td class="n hm">${money(valueOf(p))}</td>
       <td class="nowrap"><button class="btn sm" data-act="renewopen" data-a="${p}">續約</button> <button class="btn sm ${armed ? 'y' : ''}" data-act="ctrel" data-a="${p}">${armed ? `確認解約 · 賠 ${money(relComp(p))}` : '解約'}</button> ${d.xs ? `<button class="btn sm" data-act="ctxs" data-a="${p}">登記上陣</button>` : y ? `<button class="btn sm" data-act="ctup" data-a="${p}">升一隊</button>` : ageOf(p) <= YTAGE ? `<button class="btn sm" data-act="ctdown" data-a="${p}">落青年軍</button>` : ''}</td></tr>`; }).join('')}</tbody></table>`, { st: 'flex:1' })}`);
 };
 Object.assign(ACT, {
@@ -363,7 +363,7 @@ SCREENS.youth = a => {
       ${pan('青訓營', `<dl class="kv"><dt>青訓設施</dt><dd><span class="num" style="color:var(--sel)">${'★'.repeat(yaOf(c))}${'☆'.repeat(5 - yaOf(c))}</span> ${YANAME[yaOf(c)]} ${yaOf(c) < 5 ? `<button class="btn sm" data-act="yaup">升級 · ${money(yaCost(c))}</button>` : ''}</dd>
         <dt>青訓教練</dt><dd>${coach ? `${esc(coach.n)} ${'★'.repeat(coach.lv)}` : '<span class="bad">懸空</span>（去「職員」請）'}</dd>
         <dt>U18 聯賽</dt><dd>${rec('u18')}</dd><dt>U21 聯賽</dt><dd>${rec('u21')}</dd><dt>${YCUP.n}</dt><dd>${cupTxt}</dd><dt>下次新秀</dt><dd>7 月 1 日</dd><dt>青年軍人數</dt><dd>${ys.length} 人</dd></dl>`)}
-      ${pan(`可以落青年軍嘅一隊球員（${YTAGE} 歲或以下）`, can.length ? `<table><tbody>${can.map(p => `<tr><td class="nm">${pl(p)}</td><td class="n">${ps(p).pos}</td><td class="n">${ageOf(p)}</td><td class="n">${cardR(p)}</td><td><button class="btn sm" data-act="ctdown" data-a="${p}">落青年軍</button></td></tr>`).join('')}</tbody></table>` : '<p class="note">一隊冇 21 歲或以下嘅球員。</p>', { t: 1 })}
+      ${pan(`可以落青年軍嘅一隊球員（${YTAGE} 歲或以下）`, can.length ? `<table><tbody>${can.map(p => `<tr><td class="nm">${pl(p)}</td><td class="stc">${starTag(p)}</td><td class="n">${ps(p).pos}</td><td class="n">${ageOf(p)}</td><td class="n">${cardR(p)}</td><td><button class="btn sm" data-act="ctdown" data-a="${p}">落青年軍</button></td></tr>`).join('')}</tbody></table>` : '<p class="note">一隊冇 21 歲或以下嘅球員。</p>', { t: 1 })}
     </div>
     ${pan(`青年軍名單 <span class="r">${ys.length} 人</span>`, ys.length ? `<div class="ygrid">${ys.map(ycard).join('')}</div>` : '<p class="note">青年軍冇人。等 7 月 1 日新秀加入，或者將一隊後生仔落青年軍。</p>', { t: 1, st: 'min-height:0' })}
   </div>`;
