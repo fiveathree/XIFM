@@ -270,12 +270,13 @@ function drawPlayer() {
       act = `<div class="row"><span class="mute">球員意願</span><span class="tag wl${wl}">${WILLN[wl]}</span>${info('睇球會大細、會唔會有正選、合約剩幾耐、有冇放售、年紀等等。「唔會去」出幾多都冇用；「唔太想」會要求高啲人工；「好想去」人工可以少少。')}${d.c !== 'free' ? `<span class="mute">賣方心目中約 ${money(askingPrice(pid))}</span>${info('後生、正選主力、合約仲長嘅球員，球會會要溢價先肯放。')}` : ''}</div>
       <div class="row">轉會費 £<input class="inp num mny" id="pf" value="${nfi(P.fee ?? (d.c === 'free' ? 0 : valueOf(pid)))}" style="width:120px" inputmode="numeric" ${d.c === 'free' ? 'disabled' : ''}>${d.c !== 'free' ? `<select class="inp" id="pn" aria-label="付款">${[[1, '一次過'], [2, '分 2 年'], [3, '分 3 年']].map(([v, t]) => opt(v, t, P.n || 1)).join('')}</select><select class="inp" id="psw" aria-label="加球員交換" style="max-width:200px"><option value="">唔加球員</option>${mine2.map(x => `<option value="${x}" ${x === P.swap ? 'selected' : ''}>+ ${esc(ps(x).sn)} · ${ps(x).pos} · ${pd(x).sk} · ${money(valueOf(x))}</option>`).join('')}</select>${info('分期：今日只付第一期，其餘喺之後每季開季時自動付；賣方會當遲收嘅錢少少折扣，所以總數要多啲。加球員：將你一個球員一齊交換，賣方需要嗰個位置會計足身價，唔需要就打折；嗰個球員自己都要肯去。')}` : ''}<button class="btn y" data-act="bid">${d.c === 'free' ? '傾合約' : '出價'}</button>${P.counter ? `<button class="btn" data-act="bidc">出 ${money(P.counter)}</button>` : ''}</div>`; }
   }
-  modal(`${esc(p.name)}`, `<div class="pf">${d.c !== 'free' && d.c !== 'ret' ? badgeSVG(d.c, 64) : ''}<div><div class="D" style="font-size:20px">${esc(clubName(d.c))}</div><div class="mute">${POSN[p.pos]}（${p.pos}）${pos2P(pid).length ? `，次位置 ${pos2P(pid).map(q => `${POSN[q]}（${q}）`).join('、')}` : ''} · ${ageOf(pid)} 歲 · ${esc(natName(p.nat))} · #${d.no || '—'}</div><div>${pTags(pid)}</div></div><div class="pfx">${cardHTML(pid)}</div></div>
+  modal(`${esc(p.name)}`, `<div class="pgrid"><div class="pcol"><div class="pf">${d.c !== 'free' && d.c !== 'ret' ? badgeSVG(d.c, 64) : ''}<div><div class="D" style="font-size:20px">${esc(clubName(d.c))}</div><div class="mute">${POSN[p.pos]}（${p.pos}）${pos2P(pid).length ? `，次位置 ${pos2P(pid).map(q => `${POSN[q]}（${q}）`).join('、')}` : ''} · ${ageOf(pid)} 歲 · ${esc(natName(p.nat))} · #${d.no || '—'}</div><div>${pTags(pid)}</div></div><div class="pfx">${cardHTML(pid)}</div></div>
     <dl class="kv kv2"><dt>身價</dt><dd>${money(valueOf(pid))}</dd><dt>週薪</dt><dd>${money(d.w)}</dd><dt>合約至</dt><dd>${d.c === 'free' ? '—' : d.ct + ' 年 6 月'}</dd><dt>體能</dt><dd>${Math.round(d.cond)}${cbar(d.cond)}</dd><dt>表現</dt><dd>${form(pid) ? form(pid).toFixed(1) : '–'}</dd><dt>傷病</dt><dd>${d.inj ? `${esc(d.injn)}（${d.inj} 日）` : '冇'}</dd></dl>
     <div class="attrs">${an.map((n, k) => `<div><span>${n}</span><b class="num">${a[k]}</b><div class="bar"><i style="width:${a[k]}%;background:${a[k] >= 85 ? 'var(--win)' : a[k] >= 70 ? 'var(--sel)' : a[k] >= 55 ? '#9cc0ff' : 'var(--loss)'}"></i></div></div>`).join('')}</div>
     <table><thead><tr><th class="n">上陣</th><th class="n">入球</th><th class="n">助攻</th><th class="n">黃牌</th><th class="n">紅牌</th><th class="n">最佳</th><th class="n">平均評分</th></tr></thead><tbody><tr><td class="n">${s.ap}</td><td class="n">${s.gl}</td><td class="n">${s.as}</td><td class="n">${s.yc}</td><td class="n">${s.rc}</td><td class="n">${s.mom}</td><td class="n">${s.ap ? (s.rt / s.ap).toFixed(2) : '–'}</td></tr></tbody></table>
-    ${prefPanel(pid)}${cardPanel(pid)}${skHistPanel(pid)}
-    <div class="pact">${P.msg ? `<p class="msg">${esc(P.msg)}</p>` : ''}${act}</div>`);
+    ${prefPanel(pid)}
+    <div class="pact">${P.msg ? `<p class="msg">${esc(P.msg)}</p>` : ''}${act}</div></div>
+    <div class="pcol">${typeof traitPanel === 'function' ? traitPanel(pid) : ''}${cardPanel(pid)}</div></div>${skHistPanel(pid)}`, 'pmod');
 }
 
 /* ---------- 轉會市場 ---------- */
@@ -432,6 +433,34 @@ SCREENS.history = () => {
 };
 
 /* ---------- 收件箱 ---------- */
+// mails: 「screen」 / 「screen → tab」 and players' names become links (works for old mails too)
+const MAILTAB = () => ({ shop: typeof BIZTAB !== 'undefined' ? BIZTAB : [], youth: [['list', '青訓營'], ['u18', 'U18 聯賽'], ['u21', 'U21 聯賽'], ['cup', '青年足總盃']] });
+function mailLinks(b, m) {
+  const scr = {}; for (const [k, v] of Object.entries(TITLE)) scr[v] = k;
+  const tabs = MAILTAB();
+  const parts = String(b).split(/(<[^>]+>)/), names = [];
+  // players: anyone in the game whose full name is in the mail, and your squad's short names
+  const txt = parts.filter(x => x[0] !== '<').join(' ');
+  for (const pid in G.pl) { const p = ps(pid); if (!p) continue; const n = esc(p.name); if (n.length >= 5 && txt.includes(n)) names.push([n, pid]); }
+  for (const pid of myCid() ? roster(myCid()) : []) { const n = esc(ps(pid).sn); if (n.length >= 4 && txt.includes(n) && !names.some(x => x[0].includes(n))) names.push([n, pid]); }
+  if (m && m.act && m.act.pid && G.pl[m.act.pid]) { const n = esc(ps(m.act.pid).sn); if (!names.some(x => x[1] === m.act.pid)) names.push([n, m.act.pid]); }
+  names.sort((a, b) => b[0].length - a[0].length);
+  const done = new Set();
+  return parts.map(x => {
+    if (x[0] === '<') return x;
+    x = x.replace(/「([^」]{1,24})」/g, (all, s) => {
+      const [a, t] = s.split(/\s*→\s*/), k = scr[a]; if (!k || !SCREENS[k]) return all;
+      const tab = t && tabs[k] ? (tabs[k].find(z => z[1] === t) || [''])[0] : '';
+      return `<a class="lk" data-go="${k}"${tab ? ` data-a="${tab}"` : ''}>「${s}」</a>`;
+    });
+    const segs = x.split(/(<a [^>]*>[^<]*<\/a>)/);
+    return segs.map(sg => {
+      if (sg.startsWith('<a ')) return sg;
+      for (const [n, pid] of names) { if (done.has(pid)) continue; const i = sg.indexOf(n); if (i < 0) continue; done.add(pid); sg = sg.slice(0, i) + '\u0001' + pid + '\u0002' + sg.slice(i + n.length); }
+      return sg.replace(/\u0001([^\u0002]+)\u0002/g, (_, pid) => `<a class="pl" data-pl="${pid}">${esc(ps(pid).name.length > 22 ? ps(pid).sn : ps(pid).name)}</a>`);
+    }).join('');
+  }).join('');
+}
 SCREENS.mail = a => {
   if (a != null) UI.mail = +a;
   const m = G.mail.find(x => x.id === UI.mail) || G.mail[0];
@@ -440,7 +469,7 @@ SCREENS.mail = a => {
   main(`${hdr('收件箱', `<span class="mute">${G.mail.filter(x => !x.rd).length} 封未讀</span>`)}
   <div class="cols c2 m-stack" style="grid-template-columns:minmax(0,1fr) minmax(0,1.4fr)">
     ${pan('郵件', `<div class="mlist">${G.mail.map(x => `<button class="mi ${x === m ? 'on' : ''} ${x.rd ? '' : 'un'}" data-go="mail" data-a="${x.id}"><span class="num mute">${fdate(x.d, 's')}</span><span>${esc(x.t)}</span></button>`).join('') || '<p class="note">冇郵件。</p>'}</div>`)}
-    ${pan(m ? esc(m.t) : '—', m ? `<p class="mute num" style="margin-top:0">${fdate(m.d)}</p><div class="mbody">${m.b}</div>${off ? `<div class="row" style="margin-top:12px"><button class="btn y" data-act="accept" data-a="${off.id}">接受報價</button><button class="btn" data-act="cofopen" data-a="${off.id}" ${off.ok ? 'disabled' : ''}>還價</button><button class="btn" data-act="reject" data-a="${off.id}">拒絕</button><button class="btn" data-pl="${off.pid}">睇球員</button></div>` : m.act && m.act.k === 'offer' ? '<p class="note">報價已經處理或者過期。</p>' : ''}` : '', { t: 1 })}
+    ${pan(m ? esc(m.t) : '—', m ? `<p class="mute num" style="margin-top:0">${fdate(m.d)}</p><div class="mbody">${mailLinks(m.b, m)}</div>${off ? `<div class="row" style="margin-top:12px"><button class="btn y" data-act="accept" data-a="${off.id}">接受報價</button><button class="btn" data-act="cofopen" data-a="${off.id}" ${off.ok ? 'disabled' : ''}>還價</button><button class="btn" data-act="reject" data-a="${off.id}">拒絕</button><button class="btn" data-pl="${off.pid}">睇球員</button></div>` : m.act && m.act.k === 'offer' ? '<p class="note">報價已經處理或者過期。</p>' : ''}` : '', { t: 1 })}
   </div>`);
 };
 

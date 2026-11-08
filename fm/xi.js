@@ -13,7 +13,7 @@ const cardR = pid => pd(pid).sk + clvOf(pid);
 const owns = pid => (G.cards && G.cards[pid]) || 0;
 function cardsInit() {   // old saves: the squad counts as collected
   G.cards = G.cards || {};
-  if (G.mgr.cid) { for (const p of roster(G.mgr.cid)) { if (!G.cards[p]) G.cards[p] = 1; if (typeof skTrack === 'function') skTrack(p); } if (seedYouth(G.mgr.cid)) mail('真實青年軍名單', `${esc(clubName(G.mgr.cid))} 嘅 U18 / U21 而家用返真實球員名單（${roster(G.mgr.cid).filter(p => ps(p).real).length} 人），原本虛構嘅新秀已經移除。去「青年軍」頁睇。`); }
+  if (G.mgr.cid) { for (const p of roster(G.mgr.cid)) { if (!G.cards[p]) G.cards[p] = 1; if (typeof skTrack === 'function') skTrack(p); } if (seedYouth(G.mgr.cid)) mail('真實青年軍名單', `${esc(clubName(G.mgr.cid))} 嘅 U18 / U21 而家用返真實球員名單（${roster(G.mgr.cid).filter(p => ps(p).real).length} 人），原本虛構嘅新秀已經移除。去「青年軍」睇。`); }
 }
 const DUPF = { C: .1, R: .3, SR: 1.2, SSR: 5, UR: 30 }, UPF = { C: .2, R: .4, SR: 1, SSR: 3, UR: 10 };
 const dupValue = pid => Math.round(pullCost(1) * DUPF[gradeOf(pid)] / 1e3) * 1e3;

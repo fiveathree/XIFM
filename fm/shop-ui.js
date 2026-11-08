@@ -144,7 +144,8 @@ function bizPrizeTab() {
     </div>
   </div>`;
 }
-SCREENS.shop = () => {
+SCREENS.shop = a => {
+  if (a && BIZTAB.some(t => t[0] === a)) UI.biz = a;
   const t = UI.biz, body = t === 'spon' ? bizSponTab() : t === 'event' ? bizEventTab() : t === 'prize' ? bizPrizeTab() : shopPricesTab();
   main(`${hdr('商業', `<span class="mute">資金 ${G.inf ? '∞' : money(myClub().cash)}</span>`)}
   <div class="tabs">${chips(BIZTAB, t, 'biztab')}</div>

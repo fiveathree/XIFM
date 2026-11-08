@@ -2,7 +2,7 @@
    a page holds one era at a time (switching era reloads the page with ?era=YYYY). Only list an era once all its files exist.
    cl: real Champions League groups for that season (club names as in the data; missing clubs are filled by reputation).
    ueEng: the real English UEFA Cup entrants. Without them the first season's European places go by reputation. */
-const ERA_FILES = ['eng1', 'eng2', 'eng3', 'eng4', 'sco1', 'esp1', 'ita1', 'ger1', 'fra1', 'ned1', 'por1', 'tur1', 'bel1', 'eur', 'pos2', 'youth'];   // pos2 and youth are optional
+const ERA_FILES = ['eng1', 'eng2', 'eng3', 'eng4', 'sco1', 'esp1', 'ita1', 'ger1', 'fra1', 'ned1', 'por1', 'tur1', 'bel1', 'eur', 'pos2', 'youth', 'bio'];   // pos2, youth and bio are optional
 FM.ERAS = {
   2004: {
     n: '2004/05', d: '摩連奴第一季帶車路士封王；利物浦伊斯坦堡奇蹟；朗拿甸奴、舍甫琴科、亨利當打。',
@@ -42,7 +42,7 @@ FM.ERAS = {
   },
   2001: {
     n: '2001/02', d: '朗拿度、施丹、碧咸年代：曼聯三連霸之後，阿仙奴雙冠王；皇馬銀河艦隊初成。',
-    dir: 'fm/data/', files: ['eng1', 'eng2', 'eng3', 'eng4', 'sco1', 'esp1', 'ita1', 'ger1', 'fra1', 'eur', 'ned1', 'por1', 'tur1', 'bel1', 'pos2', 'youth'],
+    dir: 'fm/data/', files: ['eng1', 'eng2', 'eng3', 'eng4', 'sco1', 'esp1', 'ita1', 'ger1', 'fra1', 'eur', 'ned1', 'por1', 'tur1', 'bel1', 'pos2', 'youth', 'bio'],
   },
   1999: {
     n: '1999/00', d: '曼聯輕鬆衛冕英超；皇馬奪歐聯；拉素意甲封王；拉科魯尼亞首奪西甲。',

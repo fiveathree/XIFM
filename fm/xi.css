@@ -164,3 +164,17 @@ tr.mrel{cursor:pointer}tr.mrel:hover td{background:#5a1420!important}
 .tlegs{display:flex;flex-direction:column;gap:4px;margin-bottom:8px}.tleg{display:flex;align-items:center;gap:6px}.tleg>b{width:20px;text-align:center;color:var(--sel)}.tleg>span{flex:1;min-width:0}
 @media (max-width:760px){.tourw{grid-template-columns:1fr}}
 .tres td{white-space:normal}
+.mbody a.lk,.mbody a.pl{color:var(--sel);text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+.mbody a.lk:hover,.mbody a.pl:hover{color:#fff}
+/* player sheet: two columns, everything shown */
+.mbox.pmod{width:min(1180px,100%);height:auto;max-height:100%}
+.pmod .mb>.pgrid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:14px;align-items:start}
+.pmod .pcol{display:flex;flex-direction:column;gap:10px;min-width:0}
+.pmod .pan{flex:none;min-height:auto}.pmod .pan .pb{overflow:visible;max-height:none}
+.pmod .pcol>.pan:first-child{margin-top:0!important}
+@media (max-width:900px){.pmod .mb>.pgrid{grid-template-columns:1fr}}
+/* 球員檔案 (fm/traits.js) */
+.trole{margin:8px 0 6px}.trole b{color:var(--sel);font-size:15px}
+.tsty{display:flex;flex-wrap:wrap;gap:5px}
+.psty{border:1px solid #3a6ccc;background:#0d1834;padding:3px 8px;border-radius:12px;font-size:12px;cursor:help}
+.psty.plus{border-color:#f2c200;color:#ffe27a;background:#2b2408}

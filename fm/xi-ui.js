@@ -347,7 +347,8 @@ function yTeamTab(t) {
       ${pan('最近賽果', yLog(Y[t].log, t.toUpperCase()))}
     </div></div>`;
 }
-SCREENS.youth = () => {
+SCREENS.youth = a => {
+  if (a && ['list', 'u18', 'u21', 'cup'].includes(a)) { UI.yt.tab = a; UI.yt.sel = null; }
   const c = myClub(), me = myCid(), tab = UI.yt.tab, Y = c.yc && c.yc.s === G.season ? c.yc : yNew(c, me);
   const ys = roster(me).filter(inYouth).sort((a, b) => (potSeen(b) || pd(b).sk) - (potSeen(a) || pd(a).sk));
   const can = roster(me).filter(p => !inYouth(p) && ageOf(p) <= YTAGE).sort((a, b) => ageOf(a) - ageOf(b)), coach = staffOf(c, 'yth');

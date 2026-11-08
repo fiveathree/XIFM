@@ -174,6 +174,10 @@ function valueOf(pid) {
   let v = 20000 * Math.exp((d.sk - 40) * .155);
   v *= a <= 19 ? 1.4 : a <= 22 ? 1.25 : a <= 27 ? 1 : a <= 29 ? .8 : a <= 31 ? .55 : a <= 33 ? .32 : .18;
   if (d.c !== 'free' && d.ct - G.season <= 1) v *= .75;
+  // like the EA FC / sofifa valuation: keepers and centre-backs cost less than attackers; famous players more
+  v *= { GK: .7, CD: .88, DM: .95, RB: .92, LB: .92, RWB: .92, LWB: .92, AM: 1.08, RW: 1.08, LW: 1.08, CF: 1.1, ST: 1.12 }[ps(pid).pos] || 1;
+  if (typeof popOf === 'function') v *= 1 + Math.max(0, popOf(pid) - 60) / 100;
+  if (a <= 21 && G.y && G.y[pid] && G.y[pid].pot) v *= 1 + Math.max(0, G.y[pid].pot - d.sk - 8) / 25;   // known high potential
   return Math.max(5000, roundMoney(v));
 }
 function money(x) {
