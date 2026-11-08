@@ -213,7 +213,10 @@ const SRCOL = {
   sk: ['能力', r => pd(r[0]).sk, -1], val: ['身價', r => r[1], -1], w: ['週薪', r => pd(r[0]).w, -1], st: ['狀態', r => (pd(r[0]).inj ? -20 : pd(r[0]).lin ? -10 : 0) + (pd(r[0]).arw ?? 2), -1],
 };
 const SRCLS = { name: '', star: 'stc', club: 'hm', age: 'n', pos: 'n', sk: 'n', val: 'n', w: 'n hm', st: 'hm' };
-function srHead() { const f = UI.sr, k = SRCOL[f.sort] ? f.sort : 'sk', dir = f.dir || SRCOL[k][2]; return Object.entries(SRCOL).map(([c, [t]]) => `<th class="${SRCLS[c]} srt ${c === k ? 'on' : ''}" data-act="srs" data-a="${c}" title="撳一下排序，再撳反轉">${t}${c === k ? (dir > 0 ? ' ▲' : ' ▼') : ''}</th>`).join(''); }
+function srHead() { const f = UI.sr, k = SRCOL[f.sort] ? f.sort : 'sk', dir = f.dir || SRCOL[k][2]; return Object.entries(SRCOL).map(([c, [t]]) => `<th class="${SRCLS[c]} srt ${c === k ? 'on' : ''}" data-act="srs" data-a="${c}" title="撳一下排序，再撳反轉">${t}<span class="sar">${c === k ? (dir > 0 ? '▲' : '▼') : ''}</span></th>`).join(''); }
+// fixed column widths (%) so sorting never changes the layout
+const SRW = { name: 19, star: 9, club: 15, age: 6, pos: 6, sk: 8, val: 11, w: 11, st: 15 };
+const colg = (cols, W, C) => `<colgroup>${Object.keys(cols).map(c => `<col class="${C[c] || ''}" style="width:${W[c]}%">`).join('')}</colgroup>`;
 // a club's current squad (live: transfers, injuries, suspensions), from any club name in the search table
 function clubPanel(cid) {
   const c = G.clubs[cid], ros = [...roster(cid)].sort((a, b) => POSORD.indexOf(ps(a).pos) - POSORD.indexOf(ps(b).pos) || pd(b).sk - pd(a).sk);
@@ -251,7 +254,7 @@ SCREENS.search = () => {
     <input class="inp num" data-in="sr" data-a="age" placeholder="最大年齡" value="${esc(f.age)}" inputmode="numeric" style="width:90px">
     <input class="inp num" data-in="sr" data-a="val" placeholder="身價上限 £m" value="${esc(f.val)}" inputmode="decimal" style="width:110px">
 </div>
-  ${pan('結果', `<table><thead><tr>${srHead()}</tr></thead><tbody id="srt">${rows}</tbody></table>`, { st: 'flex:1' })}`);
+  ${pan('結果', `<table class="fixt">${colg(SRCOL, SRW, SRCLS)}<thead><tr>${srHead()}</tr></thead><tbody id="srt">${rows}</tbody></table>`, { st: 'flex:1' })}`);
 };
 
 /* ---------- player profile modal ---------- */
