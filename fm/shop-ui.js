@@ -100,7 +100,7 @@ function bizEventTab() {
 function bizPrizeTab() {
   const cid = myCid(), c = myClub(), lg = c.lg, n = (G.lgm[lg] || []).length, S = c.fin.s, v = k => S[k] || 0;
   const inc = [['比賽日（門票、小食、泊車）', v('gate') + v('food') + v('park')], ['商業（球衣紀念品、贊助）', v('merch') + v('spon')], ['電視轉播', v('tv')], ['獎金', v('prize')], ['賣人', v('tin')]];
-  const out = [['球員薪金', v('wage')], ['職員', v('staff')], ['買人', v('tout')], ['球場工程', v('build')], ['球探、宣傳', v('scout') + v('pr')]];
+  const out = [['球員薪金', v('wage')], ['職員', v('staff')], ['營運開支', v('ops')], ['買人', v('tout')], ['球場工程', v('build')], ['球探、宣傳', v('scout') + v('pr')]];
   const row = ([nm, x]) => `<tr><td>${nm}</td><td class="n ${x > 0 ? 'good' : x < 0 ? 'bad' : ''}">${money(x)}</td></tr>`;
   const lp = i => Math.round((n - i) * 5.5e5 * (TIERF[lg] || .7) ** 2), net = sum([...inc, ...out].map(x => x[1]));
   const cups = Object.values(G.comp).filter(x => x.t !== 'L' && !PRIZE[x.id] && !/^po\d/.test(x.id) && (lg.startsWith('eng') ? ['fac', 'lc'].includes(x.id) : x.id === lg.replace(/\d$/, '_c')));

@@ -260,7 +260,7 @@ function drawPlayer() {
   if (!myCid()) act = '<p class="note">你而家待業，唔可以買賣球員。</p>';
   else if (d.c === 'ret') act = '<p class="note">已退休。</p>';
   else if (mine) {
-    if (P.step === 'renew') { const dem = Math.max(d.w, roundMoney(wageFor(d.sk, myClub().lg) * 1.05 / 10) * 10); act = `<div class="row">週薪 £<input class="inp num mny" id="pw" value="${nfi(P.wage ?? dem)}" style="width:100px" inputmode="numeric"> 年期 <select class="inp" id="py">${[1, 2, 3, 4, 5].map(y => opt(y, y + ' 年', P.yrs)).join('')}</select><button class="btn y" data-act="renew">提出續約</button><button class="btn" data-act="pstep" data-a="">取消</button></div>`; }
+    if (P.step === 'renew') { const dem = Math.max(d.w, roundMoney(wageFor(d.sk, myClub().lg, myCid()) * 1.05 / 10) * 10); act = `<div class="row">週薪 £<input class="inp num mny" id="pw" value="${nfi(P.wage ?? dem)}" style="width:100px" inputmode="numeric"> 年期 <select class="inp" id="py">${[1, 2, 3, 4, 5].map(y => opt(y, y + ' 年', P.yrs)).join('')}</select><button class="btn y" data-act="renew">提出續約</button><button class="btn" data-act="pstep" data-a="">取消</button></div>`; }
     else if (P.step === 'rel') act = `<div class="row"><span class="bad">確定同 ${esc(p.sn)} 解約？要賠 ${money(Math.round(d.w * 52 * Math.max(0, d.ct - G.season) * .5))}。</span><button class="btn r" data-act="release">確定解約</button><button class="btn" data-act="pstep" data-a="">取消</button></div>`;
     else act = `<div class="row"><button class="btn" data-act="list">${d.list ? '取消放售' : '放售'}</button><button class="btn" data-act="pstep" data-a="renew">續約</button><button class="btn r" data-act="pstep" data-a="rel">解約</button></div>`;
   } else {
@@ -301,7 +301,7 @@ SCREENS.contracts = () => {
 };
 
 /* ---------- 財政 ---------- */
-const FINK = [['gate', '門票'], ['tv', '電視轉播'], ['merch', '球衣紀念品'], ['food', '小食部'], ['park', '停車場'], ['spon', '贊助'], ['prize', '獎金'], ['tin', '賣人收入'], ['wage', '球員薪金'], ['staff', '職員'], ['tout', '買人支出'], ['scout', '球探'], ['build', '球場工程'], ['pr', '宣傳活動']];
+const FINK = [['gate', '門票'], ['tv', '電視轉播'], ['merch', '球衣紀念品'], ['food', '小食部'], ['park', '停車場'], ['spon', '贊助'], ['prize', '獎金'], ['tin', '賣人收入'], ['wage', '球員薪金'], ['staff', '職員'], ['ops', '營運開支'], ['tout', '買人支出'], ['scout', '球探'], ['build', '球場工程'], ['pr', '宣傳活動']];
 SCREENS.finance = () => {
   const c = myClub(), cid = myCid(), att = attendance(cid, null, c.lg);
   const col = o => FINK.map(([k, n]) => `<tr><td>${n}</td><td class="n ${(o[k] || 0) < 0 ? 'bad' : (o[k] || 0) > 0 ? 'good' : ''}">${money(o[k] || 0)}</td></tr>`).join('') + `<tr class="me"><td>合計</td><td class="n">${money(sum(Object.values(o)))}</td></tr>`;

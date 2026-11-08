@@ -147,7 +147,27 @@ const DEFPRICE = { eng1: 25, eng2: 17, eng3: 14, eng4: 12, sco1: 18, esp1: 22, i
 const TV = { eng1: 550e3, eng2: 70e3, eng3: 25e3, eng4: 15e3, sco1: 60e3, esp1: 350e3, ita1: 420e3, ger1: 300e3, fra1: 220e3, ned1: 120e3, por1: 100e3, tur1: 90e3, bel1: 70e3 };
 // European places per league: [Champions League, UEFA Cup] (cup winners add more in England)
 const QSPOTS = { eng1: [4, 2], esp1: [4, 3], ita1: [4, 3], ger1: [4, 3], fra1: [3, 3], sco1: [2, 2], ned1: [2, 2], por1: [2, 2], tur1: [2, 2], bel1: [1, 2] };
-function wageFor(sk, lg) { return Math.max(150, Math.round(2500 * Math.exp(.11 * (sk - 60)) * (TIERF[lg] || .7) / 10) * 10); }
+// Wages: each club's wage bill is about 80% of its normal income, as in real football. G.wk[club] is worked out once per
+// career (calibWages), so every era and league fits whatever its player ratings are; a rich club pays more for the same player.
+const rawWage = (sk, lg) => 2500 * Math.exp(.11 * (sk - 60)) * (TIERF[lg] || .7);
+function wageFor(sk, lg, cid) { const k = G && G.wk ? (cid && G.wk[cid]) || G.wk[lg] || 2.5 : 2.5; return Math.max(150, Math.round(rawWage(sk, lg) * k / 10) * 10); }
+function estRevenue(cid) {   // a normal season at standard prices, mid-table
+  const c = G.clubs[cid], n = (G.lgm[c.lg] || []).length || 20, home = n - 1 + 2, fill = clamp(.32 + c.rep / 150, .12, 1), price = DEFPRICE[c.lg] || 18;
+  const gate = c.cap * fill * price * home;
+  const base = gate * 1.12 + (TV[c.lg] || 1e5) * 2 * (n - 1) + (.0034 + .002) * c.rep ** 4 * 52 + n / 2 * 5.5e5 * (TIERF[c.lg] || .7) ** 2;
+  return base * (1 + clamp((c.rep - 65) / 50, -.1, .6));   // big clubs also earn from Europe, cups, stars and shirts
+}
+function calibWages(list) {   // list: [[pid, skill, club id], ...]
+  const raw = {}, n = {};
+  for (const [, sk, cid] of list) { const c = G.clubs[cid]; if (!c) continue; raw[cid] = (raw[cid] || 0) + rawWage(sk, c.lg); n[cid] = (n[cid] || 0) + 1; }
+  G.wk = {}; const byLg = {};
+  for (const cid of CLUBS) {
+    const c = G.clubs[cid]; if (c.lg === 'eur' || !raw[cid] || n[cid] < 11) continue;
+    G.wk[cid] = clamp(Math.round(.78 * estRevenue(cid) / raw[cid] / 52 * 100) / 100, .8, 12);
+    (byLg[c.lg] = byLg[c.lg] || []).push(G.wk[cid]);
+  }
+  for (const lg in byLg) { const a = byLg[lg].sort((x, y) => x - y); G.wk[lg] = a[a.length >> 1]; }   // the league's median, for clubs without their own
+}
 function roundMoney(v) { return v < 1e5 ? Math.round(v / 5e3) * 5e3 : v < 1e6 ? Math.round(v / 25e3) * 25e3 : Math.round(v / 5e4) * 5e4; }
 function valueOf(pid) {
   const d = pd(pid), a = ageOf(pid);
@@ -422,7 +442,7 @@ function mkYouth(cid, pos, sk) {
   (ROS[cid] = ROS[cid] || []).push(pid);
   return pid;
 }
-function newPl(cid, sk, ct, no) { return { c: cid, no, sk, cond: 100, fm: [], inj: 0, injn: '', lin: 0, arw: rArw(), sus: 0, w: wageFor(sk, CL[cid] ? G.clubs[cid]?.lg || CL[cid].lg0 : 'eng3'), ct, list: 0, s: newStats() }; }
+function newPl(cid, sk, ct, no) { return { c: cid, no, sk, cond: 100, fm: [], inj: 0, injn: '', lin: 0, arw: rArw(), sus: 0, w: wageFor(sk, CL[cid] ? G.clubs[cid]?.lg || CL[cid].lg0 : 'eng3', cid), ct, list: 0, s: newStats() }; }
 // how short a club is in each line; wingers and attacking mids above the three forwards a club needs also cover midfield
 function lineShort(ids) {
   const cnt = { G: 0, D: 0, M: 0, A: 0 }; ids.forEach(p => cnt[lineOf(ps(p).pos)]++);
@@ -611,6 +631,11 @@ function weekly() {
     const c = G.clubs[cid]; c.fin.w = {};
     fin(cid, 'wage', -(wage[cid] || 0));
     fin(cid, 'staff', -Math.round(sum(Object.values(c.st).map(l => l * l)) * 350 * (TIERF[c.lg] || .7)));
+    fin(cid, 'ops', -Math.round((c.cap * 1.1 + 2e4) * (TIERF[c.lg] || .7)));   // running the club: ground upkeep, stewards, travel, offices
+    if (isUser(cid) && !G.inf && c.cash < 0) {   // in debt: the board loses patience
+      c.conf = clamp(c.conf - (c.cash < -5e6 * (TIERF[c.lg] || .7) ? 3 : 1.5), 0, 100);
+      if (!c.debtM || G.day - c.debtM >= 28) { c.debtM = G.day; mail('董事局擔心財政', `球會資金係 ${money(c.cash)}。董事局要求你盡快扭虧：賣人、減薪、改售價或者搵贊助。負債越多，信心跌得越快。`); }
+    }
     const lm = typeof lifeMerch === 'function' ? lifeMerch(cid) : { f: 1, star: 0, boost: 0 };   // fans, stars and campaigns (fm/life.js)
     if (typeof shopWeek === 'function') shopWeek(cid);   // shirts (fm/shop.js)
     else fin(cid, 'merch', Math.round(.0034 * c.rep ** 4 * lm.f * (1 + lm.boost)) + lm.star);
@@ -628,7 +653,7 @@ function transfer(pid, to, fee, wage, years, paid = fee) {
   movePlayer(pid, to);
   if (isUser(to)) { G.cards = G.cards || {}; if (!G.cards[pid]) G.cards[pid] = 1; if (typeof skTrack === 'function') skTrack(pid); }   // your players go into the album (fm/xi.js)
   if (isUser(to)) { const k = G.clubs[to].coh ?? 60; G.clubs[to].coh = Math.max(Math.min(k, 45), k - 3); }   // a new face: cohesion dips, but signings alone never push it below 45 (fm/life.js)
-  d.w = wage || wageFor(d.sk, G.clubs[to]?.lg || 'eng3');
+  d.w = wage || wageFor(d.sk, G.clubs[to]?.lg || 'eng3', to);
   d.ct = G.season + (years || ri(2, 4));
   d.no = squadNo(to);
   G.tlog.unshift({ d: G.day, pid, from, to, fee }); if (G.tlog.length > 120) G.tlog.length = 120;
@@ -660,7 +685,7 @@ function willing(pid, buyer) {
 }
 function wageDemand(pid, buyer) {
   const d = pd(pid), from = d.c;
-  const base = wageFor(d.sk, G.clubs[buyer].lg);
+  const base = wageFor(d.sk, G.clubs[buyer].lg, buyer);
   const repGap = from !== 'free' ? (G.clubs[from].rep - G.clubs[buyer].rep) / 100 : 0;
   const star = typeof starOf === 'function' && starOf(pid) ? 1 + (popOf(pid) - 65) / 100 : 1;   // stars ask for more
   return Math.max(d.c === buyer ? d.w : 0, roundMoney(base * clamp(1.12 + repGap, .9, 1.7) * star / 10) * 10 || base);
@@ -799,7 +824,7 @@ function completeSigning(pid, fee, wage, years, n = 1, spid = null) {
   mail(`簽入 ${ps(pid).sn}`, `${esc(ps(pid).name)} 正式加盟，轉會費 ${money(fee)}${n > 1 ? `（今日付 ${money(now)}，其餘 ${n - 1} 期喺之後每季開季時付）` : ''}${spid ? `，${esc(ps(spid).name)} 作為交換轉投 ${esc(clubName(seller))}` : ''}，週薪 ${money(wage)}，合約至 ${G.season + years} 年 6 月。`);
 }
 function renewContract(pid, wage, years) {
-  const d = pd(pid), dem = Math.max(d.w, roundMoney(wageFor(d.sk, G.clubs[d.c].lg) * 1.05 / 10) * 10);
+  const d = pd(pid), dem = Math.max(d.w, roundMoney(wageFor(d.sk, G.clubs[d.c].lg, d.c) * 1.05 / 10) * 10);
   if (wage >= dem * (.95 + R() * .08)) { d.w = wage; d.ct = G.season + years; return { ok: true, msg: `${ps(pid).sn} 續約 ${years} 年，週薪 ${money(wage)}。` }; }
   return { ok: false, dem, msg: `${ps(pid).sn} 想要大約 ${money(dem)}／週先肯續約。` };
 }
@@ -854,7 +879,7 @@ function gachaPull(n, o = {}) {
     o2.n = G.cards[o2.pid] = (G.cards[o2.pid] || 0) + 1;
     if (o2.from === me) { o2.dup = 1; continue; }   // already yours: a spare copy for card upgrades
     const full = activeCount(me) >= SQMAX;
-    transfer(o2.pid, me, 0, Math.round(wageFor(pd(o2.pid).sk, G.clubs[me].lg) * 1.05 / 10) * 10, ri(2, 4));
+    transfer(o2.pid, me, 0, Math.round(wageFor(pd(o2.pid).sk, G.clubs[me].lg, me) * 1.05 / 10) * 10, ri(2, 4));
     if (full) { pd(o2.pid).xs = 1; o2.full = 1; }
   }
   G.stats.pulls += n;
@@ -960,7 +985,7 @@ function rollover() {
       if (isUser(d.c)) { mail(`${ps(pid).sn} 約滿離隊`, `${esc(ps(pid).name)} 嘅合約已經完結，以自由身離開。`); movePlayer(pid, 'free'); }
       else if (d.c !== 'free') { const avg = lineAvg(d.c)[lineOf(ps(pid).pos)]; if (R() < (d.sk >= avg - 8 ? .8 : .35)) d.ct = ns + ri(1, 3); else movePlayer(pid, 'free'); }
     }
-    if (d.c !== 'free') d.w = Math.max(d.w, Math.round(wageFor(d.sk, G.clubs[d.c].lg) * .9 / 10) * 10);
+    if (d.c !== 'free') d.w = Math.max(d.w, Math.round(wageFor(d.sk, G.clubs[d.c].lg, d.c) * .9 / 10) * 10);
     d.s = newStats(); d.fm = []; d.cond = 100; d.sus = 0;
   }
   if (track.length) mail('球員能力變化', '今季完結，你嘅球員能力有以下變化（撳球員睇「能力紀錄」）：<br>' + track.sort((a, b) => (pd(b).sk - pd(b).skh.at(-1)[1]) - (pd(a).sk - pd(a).skh.at(-1)[1])).map(p => { const h = pd(p).skh.at(-1); return `${esc(ps(p).sn)} ${h[1]} → ${h[7]}（${h[7] - h[1] > 0 ? '+' : ''}${h[7] - h[1]}）`; }).join('<br>'));
@@ -1002,7 +1027,7 @@ function takeJob(cid) {
 /* ---------- new game ---------- */
 function newGame(name, cid, slot) {
   const s0 = ERA.y;
-  G = { v: 2, era: s0, plg: [...PLAY_LG], slot, mgr: { name, cid, rep: clamp(CL[cid].rep - 5, 20, 80) }, season: s0, day: CAL.start + off(s0), inf: false, clubs: {}, pl: {}, y: {}, comp: {}, fx: [], nfx: 1, nid: 1, mail: [], news: [], off: [], tlog: [], hist: [], trophies: [], jobs: [], lgm: null, qual: null, stats: { pulls: 0 } };
+  G = { wk2: 1, v: 2, era: s0, plg: [...PLAY_LG], slot, mgr: { name, cid, rep: clamp(CL[cid].rep - 5, 20, 80) }, season: s0, day: CAL.start + off(s0), inf: false, clubs: {}, pl: {}, y: {}, comp: {}, fx: [], nfx: 1, nid: 1, mail: [], news: [], off: [], tlog: [], hist: [], trophies: [], jobs: [], lgm: null, qual: null, stats: { pulls: 0 } };
   G.lgm = Object.fromEntries(Object.values(LG).map(L => [L.id, [...L.cids]]));
   for (const id of CLUBS) {
     const c = CL[id];
@@ -1015,6 +1040,9 @@ function newGame(name, cid, slot) {
   }
   reindex();
   for (const cid of CLUBS) fillYouth(cid, 18);
+  // wages so far used the default scale (2.5): now fit each club's wage bill to its income
+  calibWages(Object.keys(G.pl).filter(p => G.clubs[G.pl[p].c]).map(p => [p, G.pl[p].sk, G.pl[p].c]));
+  for (const pid in G.pl) { const d = G.pl[pid]; if (G.clubs[d.c]) d.w = Math.max(150, Math.round(d.w * (G.wk[d.c] || G.wk[G.clubs[d.c].lg] || 2.5) / 2.5 / 10) * 10); }
   for (const cid of CLUBS) { const used = new Set(); for (const p of roster(cid)) { const d = pd(p); if (!d.no || used.has(d.no)) d.no = 0; used.add(d.no); } for (const p of roster(cid)) if (!pd(p).no) pd(p).no = squadNo(cid); }
   stadiumStart();
   setupSeason(s0);
@@ -1140,6 +1168,13 @@ function unpack(str) {
   g.fx = g.fx.map(a => { const f = { i: a[0], d: a[1], c: a[2], r: a[3], h: a[4], a: a[5], hg: a[6], ag: a[7] }; if (a[8]) f.ko = a[8]; if (a[9]) f.n = 1; if (a[10] >= 0) f.g = a[10]; if (a[11] >= 0) { f.ph = a[11]; f.pa = a[12]; } if (a[13]) f.et = 1; if (a[14]) f.att = a[14]; if (a[15]) f.sc = a[15]; return f; });
   g.pl = pl; delete g.packed;
   G = g; reindex(); reindexFx(); ALLP = null; trimYouth();
+  if (!G.wk2) {   // 2026-11 finance rebalance: wages rose to about 80% of income (calibWages); old saves get the same, once
+    const old = Object.keys(G.pl).filter(p => G.clubs[G.pl[p].c] && !G.pl[p].yt);
+    calibWages(old.map(p => [p, G.pl[p].sk, G.pl[p].c]));
+    for (const pid in G.pl) { const d = G.pl[pid], c = G.clubs[d.c]; if (c) d.w = Math.round(d.w * (G.wk[d.c] || G.wk[c.lg] || 2.5) / 10) * 10; }
+    G.wk2 = 1;
+    if (G.mgr.cid) mail('聯賽財政改革', '全聯賽球員薪金上調，而家約佔球會正常收入八成，另外多咗球場同營運開支。要賺錢就要靠成績、商業同買賣球員：去「商業」頁睇。資金變負數，董事局信心會逐個星期跌。');
+  }
 }
 function saveGame() {
   try { localStorage.setItem(SKEY(G.slot), pack()); const m = loadMeta(); m[G.slot] = { mgr: G.mgr.name, cid: G.mgr.cid, cn: G.mgr.cid ? clubName(G.mgr.cid) : '', era: G.era || 2001, day: G.day, season: G.season }; localStorage.setItem('xifm-fm-meta', JSON.stringify(m)); return true; }

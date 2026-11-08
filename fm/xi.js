@@ -106,7 +106,7 @@ function makeProspect(cid) {
   const pot = clamp(sk + ri(10, 28) + ya * 2 + (R() < .04 + ya * .01 ? ri(8, 16) : 0), sk + 5, 96);
   const n = G.nid++, pid = 'y' + n, name = youthName(nat);
   G.y[pid] = { no: 0, name, pos: pick(YPOS), nat, by: G.season - ri(15, 17), sk, sn: shortName(name), yth: 1, pro: 1, pot };
-  G.pl[pid] = newPl(cid, sk, G.season + 3, 0); G.pl[pid].yt = 1; G.pl[pid].w = Math.max(150, Math.round(wageFor(sk, c.lg) * .3 / 10) * 10);
+  G.pl[pid] = newPl(cid, sk, G.season + 3, 0); G.pl[pid].yt = 1; G.pl[pid].w = Math.max(150, Math.round(wageFor(sk, c.lg, cid) * .3 / 10) * 10);
   (ROS[cid] = ROS[cid] || []).push(pid);
   G.cards = G.cards || {}; G.cards[pid] = 1; if (typeof skTrack === 'function') skTrack(pid);
   return pid;
@@ -278,7 +278,7 @@ function seedYouth(cid) {
     if (have.has(name)) return;
     const pid = 'yr.' + cid + '.' + k;
     G.y[pid] = { no: 0, name, pos, nat, by, sk, sn: shortName(name), yth: 1, pro: 1, real: 1, pot, yteam: team };
-    G.pl[pid] = newPl(cid, sk, G.season + 2, no || 0); G.pl[pid].yt = 1; G.pl[pid].w = Math.max(150, Math.round(wageFor(sk, c.lg) * .25 / 10) * 10);
+    G.pl[pid] = newPl(cid, sk, G.season + 2, no || 0); G.pl[pid].yt = 1; G.pl[pid].w = Math.max(150, Math.round(wageFor(sk, c.lg, cid) * .25 / 10) * 10);
     (ROS[cid] = ROS[cid] || []).push(pid); G.cards = G.cards || {}; G.cards[pid] = 1; if (typeof skTrack === 'function') skTrack(pid);
   });
   c.yseed = 1;
@@ -304,7 +304,7 @@ function yLegPool(o = {}) {
 }
 function yJoin(pid, me, sk) {
   G.pl[pid] = newPl(me, sk, G.season + 3, 0); G.pl[pid].yt = 1; G.pl[pid].jd = G.day;
-  G.pl[pid].w = Math.max(150, Math.round(wageFor(sk, G.clubs[me].lg) * .3 / 10) * 10);
+  G.pl[pid].w = Math.max(150, Math.round(wageFor(sk, G.clubs[me].lg, me) * .3 / 10) * 10);
   (ROS[me] = ROS[me] || []).push(pid); if (typeof skTrack === 'function') skTrack(pid);
 }
 function makeYouthCard(g, o, me) {
