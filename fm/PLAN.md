@@ -171,3 +171,4 @@ FM.addSeason(2002, { clubs: {
 - Player sheet (`pmod` modal): two columns (info, attributes, stats, actions | 球員檔案, card), ability record full width below; nothing scrolls on desktop.
 - 球員檔案 (fm/traits.js): height + foot from Transfermarkt (`node tools/fm-bio.js` → fm/data/<era>/bio.js, `FM.BIO`, optional era file; from the cached squad pages only), else estimated; weight, body type, role (`roleOf`), weak foot / skill moves, playstyles (`PSTYLE` / `GSTYLE`, ★ version for the top two at 94+). Display only.
 - `valueOf`: position factor (GK .7 … ST 1.12), popularity, known youth potential — the top of the list matches sofifa's order.
+- Starting money (`startBudget`, EA FC style): normal-season income (`estRev`) × 12–42% by reputation; era data above 1.3× (rich owner) is kept, below 0.4× (money trouble) gives 60%. Starting capacity (`stadCap0`) takes the stadium history when the name differs or the capacity is >10% off.

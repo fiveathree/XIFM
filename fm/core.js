@@ -152,10 +152,21 @@ const QSPOTS = { eng1: [4, 2], esp1: [4, 3], ita1: [4, 3], ger1: [4, 3], fra1: [
 const rawWage = (sk, lg) => 2500 * Math.exp(.11 * (sk - 60)) * (TIERF[lg] || .7);
 function wageFor(sk, lg, cid) { const k = G && G.wk ? (cid && G.wk[cid]) || G.wk[lg] || 2.5 : 2.5; return Math.max(150, Math.round(rawWage(sk, lg) * k / 10) * 10); }
 function estRevenue(cid) {   // a normal season at standard prices, mid-table
-  const c = G.clubs[cid], n = (G.lgm[c.lg] || []).length || 20, home = n - 1 + 2, fill = clamp(.32 + c.rep / 150, .12, 1), price = DEFPRICE[c.lg] || 18;
+  const c = G.clubs[cid]; return estRev(c.rep, c.cap, c.lg, (G.lgm[c.lg] || []).length || 20);
+}
+function estRev(rep, cap, lg, n) {
+  const c = { rep, cap, lg }, home = n - 1 + 2, fill = clamp(.32 + c.rep / 150, .12, 1), price = DEFPRICE[c.lg] || 18;
   const gate = c.cap * fill * price * home;
   const base = gate * 1.12 + (TV[c.lg] || 1e5) * 2 * (n - 1) + (.0034 + .002) * c.rep ** 4 * 52 + n / 2 * 5.5e5 * (TIERF[c.lg] || .7) ** 2;
   return base * (1 + clamp((c.rep - 65) / 50, -.1, .6));   // big clubs also earn from Europe, cups, stars and shirts
+}
+// starting money, the way EA FC sets transfer budgets: a share of a normal season's income that grows with the club's
+// standing (small clubs ~12%, mid-table ~25%, the giants ~40%). A club whose era data gives it more (a rich owner) keeps that;
+// one the data puts far below (money trouble, e.g. Barcelona 2025) gets 60%.
+function startBudget(cid, cap) {
+  const c = CL[cid], L = LG[c.lg0], n = L ? L.cids.length : 20, rev = estRev(c.rep, cap || c.cap, c.lg0, n);
+  const share = .12 + clamp((c.rep - 50) / 150, 0, .3), v = rev * share, own = c.bank * 1e6;
+  return Math.round((own > v * 1.3 ? own : own < v * .4 ? v * .6 : v) / 5e4) * 5e4;   // far below: the era data knows of money trouble
 }
 function calibWages(list) {   // list: [[pid, skill, club id], ...]
   const raw = {}, n = {};
@@ -559,7 +570,7 @@ function attendance(cid, oppCid, comp) {
 function stadHist(name, y) { const h = FM.STADIA && FM.STADIA[name]; if (!h) return null; let r = null; for (const e of h) if (e[0] <= y) r = e; return r; }
 function stadCapHist(name, y) { const h = FM.STADIA && FM.STADIA[name]; if (!h) return 0; let r = 0; for (const e of h) if (e[0] <= y && e[2]) r = e[2]; return r; }
 function stadName(cid, y) { const c = CL[cid]; if (!c) return ''; if (!y && G && G.clubs[cid] && typeof namingOf === 'function' && namingOf(cid)) return namingOf(cid); const e = stadHist(c.name, y || (G ? G.season : ERA.y)); return e ? e[1] : c.stadium; }
-function stadCap0(cid, y) { const c = CL[cid], e = stadHist(c.name, y); return e && e[1] !== c.stadium && stadCapHist(c.name, y) || c.cap; }   // capacity at the start of a career
+function stadCap0(cid, y) { const c = CL[cid], e = stadHist(c.name, y), h = stadCapHist(c.name, y); return e && h && (e[1] !== c.stadium || Math.abs(h - c.cap) > c.cap * .1) ? h : c.cap; }   // capacity at the start of a career
 // start of a career: where the era's data has an older name for the ground, take the capacity from the history too
 function stadiumStart() {
   for (const cid of CLUBS) G.clubs[cid].cap = stadCap0(cid, G.season);
@@ -1036,7 +1047,7 @@ function newGame(name, cid, slot) {
   G.lgm = Object.fromEntries(Object.values(LG).map(L => [L.id, [...L.cids]]));
   for (const id of CLUBS) {
     const c = CL[id];
-    G.clubs[id] = { lg: c.lg0, cash: Math.round(c.bank * 1e6), cap: c.cap, price: DEFPRICE[c.lg0] || 18, rep: c.rep, form: aiForm(id), sty: { ment: 1, pass: 1, tempo: 1, mark: 0, trap: 0 }, xi: [], sb: [], ord: {}, tr: { int: 1, foc: 'bal' }, st: { coach: 2, physio: 2, scout: 1 }, conf: 65, exp: 10, build: null, fin: { w: {}, s: {} } };
+    G.clubs[id] = { lg: c.lg0, cash: startBudget(id, stadCap0(id, s0)), cap: c.cap, price: DEFPRICE[c.lg0] || 18, rep: c.rep, form: aiForm(id), sty: { ment: 1, pass: 1, tempo: 1, mark: 0, trap: 0 }, xi: [], sb: [], ord: {}, tr: { int: 1, foc: 'bal' }, st: { coach: 2, physio: 2, scout: 1 }, conf: 65, exp: 10, build: null, fin: { w: {}, s: {} } };
   }
   for (const pid in PS) {
     if (/^s\d{4}\./.test(pid)) continue;
