@@ -384,6 +384,7 @@ function maybeDraw(comp, day) {
   if (comp.t === 'G' && !comp.gdone) return;
   if (comp.cur >= 0 && !roundDone(comp, comp.cur)) return;
   if (comp.cur >= 0) comp.alive = comp.ties.filter(t => t.r === comp.cur).map(t => t.w);
+  if (comp.cur >= 0 && comp.alive.length > 1 && typeof prizeAdvance === 'function' && !(comp.paid = comp.paid || {})[comp.cur]) { comp.paid[comp.cur] = 1; prizeAdvance(comp, comp.cur, comp.alive); }
   if (comp.cur >= 0 && comp.alive.length === 1) { comp.done = true; comp.win = comp.alive[0]; cupWon(comp); return; }
   let r = nextRoundIdx(comp);
   if (r >= comp.rd.length) r = comp.rd.length - 1;
@@ -406,6 +407,7 @@ function cupWon(comp) {
   news(`🏆 ${clubName(w)} 贏得${comp.nm}`);
   if (isUser(w)) { mail(`恭喜！贏得${comp.nm}`, `你帶領 ${esc(clubName(w))} 捧走${comp.nm}！董事局非常滿意。`); G.clubs[w].conf = clamp(G.clubs[w].conf + 15, 0, 100); G.mgr.rep = clamp(G.mgr.rep + 6, 0, 100); }
   G.trophies.push({ s: G.season, c: comp.id, nm: comp.nm, w });
+  if (typeof prizeWin === 'function') prizeWin(comp);
 }
 
 /* ---------- squads, youth ---------- */
@@ -522,7 +524,7 @@ function attendance(cid, oppCid, comp) {
   const c = G.clubs[cid], base = DEFPRICE[c.lg] || 18;
   const pos = G.comp[c.lg]?.t === 'L' ? standings(G.comp[c.lg].tab).findIndex(x => x.c === cid) / Math.max(1, G.comp[c.lg].cl.length) : .5;
   let fill = .32 + c.rep / 150 + (.5 - pos) * .2 + (oppCid ? G.clubs[oppCid].rep / 900 : 0) + (comp && comp !== c.lg ? .08 : 0) + (typeof lifeGate === 'function' ? lifeGate(cid) : 0);
-  fill *= Math.pow(base / Math.max(1, c.price), .6);
+  fill *= Math.pow(base / Math.max(1, c.price), c.price > base ? 1.4 : .6);   // dearer than normal: fans drop off faster
   return Math.round(c.cap * clamp(fill, .12, 1));
 }
 /* ---------- stadium (球場): names by season, stands, expansions ----------
@@ -532,7 +534,7 @@ function attendance(cid, oppCid, comp) {
    [{ st, k, seats, cost, done, shut }] (an upper tier shuts part of the stand while it is built). */
 function stadHist(name, y) { const h = FM.STADIA && FM.STADIA[name]; if (!h) return null; let r = null; for (const e of h) if (e[0] <= y) r = e; return r; }
 function stadCapHist(name, y) { const h = FM.STADIA && FM.STADIA[name]; if (!h) return 0; let r = 0; for (const e of h) if (e[0] <= y && e[2]) r = e[2]; return r; }
-function stadName(cid, y) { const c = CL[cid]; if (!c) return ''; const e = stadHist(c.name, y || (G ? G.season : ERA.y)); return e ? e[1] : c.stadium; }
+function stadName(cid, y) { const c = CL[cid]; if (!c) return ''; if (!y && G && G.clubs[cid] && typeof namingOf === 'function' && namingOf(cid)) return namingOf(cid); const e = stadHist(c.name, y || (G ? G.season : ERA.y)); return e ? e[1] : c.stadium; }
 function stadCap0(cid, y) { const c = CL[cid], e = stadHist(c.name, y); return e && e[1] !== c.stadium && stadCapHist(c.name, y) || c.cap; }   // capacity at the start of a career
 // start of a career: where the era's data has an older name for the ground, take the capacity from the history too
 function stadiumStart() {
@@ -610,8 +612,9 @@ function weekly() {
     fin(cid, 'wage', -(wage[cid] || 0));
     fin(cid, 'staff', -Math.round(sum(Object.values(c.st).map(l => l * l)) * 350 * (TIERF[c.lg] || .7)));
     const lm = typeof lifeMerch === 'function' ? lifeMerch(cid) : { f: 1, star: 0, boost: 0 };   // fans, stars and campaigns (fm/life.js)
-    fin(cid, 'merch', Math.round(.0034 * c.rep ** 4 * lm.f * (1 + lm.boost)) + lm.star);
-    fin(cid, 'spon', Math.round(.002 * c.rep ** 4 * lm.f));
+    if (typeof shopWeek === 'function') shopWeek(cid);   // shirts (fm/shop.js)
+    else fin(cid, 'merch', Math.round(.0034 * c.rep ** 4 * lm.f * (1 + lm.boost)) + lm.star);
+    fin(cid, 'spon', isUser(cid) && typeof dealsWeek === 'function' ? dealsWeek(cid) : Math.round(.002 * c.rep ** 4 * lm.f));   // your club: deals (fm/biz.js)
     if (c.build && G.day >= c.build.done) { c.cap += c.build.seats; if (isUser(cid)) mail('球場擴建完成', `新看台已經落成，球場容量增加 ${c.build.seats.toLocaleString()} 個座位，而家係 ${c.cap.toLocaleString()}。`); c.build = null; }
     finishBuilds(cid);
   }
@@ -905,6 +908,7 @@ function rollover() {
     const n = comp.fin.length;
     comp.fin.forEach((cid, i) => fin(cid, 'prize', Math.round((n - i) * 5.5e5 * (TIERF[lid] || .7) ** 2)));
   }
+  if (me && typeof dealsSeasonEnd === 'function') { const order = G.comp[G.clubs[me].lg].fin || []; dealsSeasonEnd(me, order.indexOf(me) + 1, order.length); }
   // awards
   const aw = [];
   for (const lid of PLG()) {
@@ -1096,11 +1100,12 @@ function recordResult(f) {
   }
   // gate & TV
   const neu = f.n, hc = G.clubs[f.h];
-  if (hc && !neu) { const att = attendance(f.h, f.a, f.c); f.att = att; fin(f.h, 'gate', att * hc.price); }
+  if (hc && !neu) { const att = attendance(f.h, f.a, f.c); f.att = att; fin(f.h, 'gate', att * hc.price); if (typeof shopMatchday === 'function') shopMatchday(f.h, att, f); }
   if (neu) { const att = 50000 + ri(0, 25000); f.att = att; fin(f.h, 'gate', att * 12); fin(f.a, 'gate', att * 12); }
   const tv = comp.t === 'L' ? TV[f.c] || 1e5 : f.c === 'cl' ? 5e5 : f.c === 'uefa' ? 1.5e5 : 6e4;
   fin(f.h, 'tv', tv); fin(f.a, 'tv', tv);
-  if (f.c === 'cl') { if (h > a) fin(f.h, 'prize', 3e5); else if (a > h) fin(f.a, 'prize', 3e5); }
+  if (typeof prizeEuroGame === 'function') prizeEuroGame(f, h, a);   // fm/biz.js
+  else if (f.c === 'cl') { if (h > a) fin(f.h, 'prize', 3e5); else if (a > h) fin(f.a, 'prize', 3e5); }
   // board mood after the user's games
   for (const side of ['h', 'a']) {
     const cid = f[side]; if (!isUser(cid)) continue;

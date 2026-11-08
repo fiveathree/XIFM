@@ -301,7 +301,7 @@ SCREENS.contracts = () => {
 };
 
 /* ---------- 財政 ---------- */
-const FINK = [['gate', '門票'], ['tv', '電視轉播'], ['merch', '商品'], ['spon', '贊助'], ['prize', '獎金'], ['tin', '賣人收入'], ['wage', '球員薪金'], ['staff', '職員'], ['tout', '買人支出'], ['scout', '球探'], ['build', '球場工程'], ['pr', '宣傳活動']];
+const FINK = [['gate', '門票'], ['tv', '電視轉播'], ['merch', '球衣紀念品'], ['food', '小食部'], ['park', '停車場'], ['spon', '贊助'], ['prize', '獎金'], ['tin', '賣人收入'], ['wage', '球員薪金'], ['staff', '職員'], ['tout', '買人支出'], ['scout', '球探'], ['build', '球場工程'], ['pr', '宣傳活動']];
 SCREENS.finance = () => {
   const c = myClub(), cid = myCid(), att = attendance(cid, null, c.lg);
   const col = o => FINK.map(([k, n]) => `<tr><td>${n}</td><td class="n ${(o[k] || 0) < 0 ? 'bad' : (o[k] || 0) > 0 ? 'good' : ''}">${money(o[k] || 0)}</td></tr>`).join('') + `<tr class="me"><td>合計</td><td class="n">${money(sum(Object.values(o)))}</td></tr>`;
