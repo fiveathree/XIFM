@@ -86,16 +86,43 @@ function bizSponTab() {
     <p class="mute" style="margin:0">今季贊助總收入大約 <b class="num">${money(tot)}</b>（其中本地小贊助 ${money(small)}） ${info('贊助費跟球會聲望、球迷人氣、隊中明星同有冇踢歐聯：成績好、人氣高，下次簽約傾到更多。空咗嘅位會有三間公司出價：穩陣長約年期長；有獎金嘅底薪低啲，但達到目標季尾有獎金；短約高價錢多但好快要再簽。合約完咗會收到郵件。')}</p>
     <div class="dealg">${Object.keys(DEALS).map(card).join('')}</div></div>`;
 }
+UI.tp = UI.tp || [];
 function bizEventTab() {
-  const cid = myCid(), c = myClub(), open = tourOpen(cid);
-  const tours = Object.entries(TOURS).map(([k, T]) => `<div class="gopt"><div class="gtop"><b>${T.n}</b><span class="num">${money(tourPay(cid, k))}</span></div><div class="mute">${T.d}</div>
-    <div class="row"><span class="${T.cond < 0 ? 'bad' : 'good'}">體能 ${T.cond > 0 ? '+' : ''}${T.cond}</span><span class="good">默契 +${T.coh}</span><span class="good">球迷 +${T.fans}</span><button class="btn sm y" data-act="biztour" data-a="${k}" ${open ? '' : 'disabled'} style="margin-left:auto">${open ? '出發' : c.tour === G.season ? '今季做咗' : '聯賽開咗波'}</button></div></div>`).join('');
+  const cid = myCid(), c = myClub(), open = tourOpen(cid), days = tourDays(cid), inv = tourInvites(cid), plan = UI.tp.filter(k => TDEST[k]), F = tourPlanFx(cid, plan);
+  const fresh = roster(cid).filter(p => !pd(p).yt && pd(p).jd != null && G.day - pd(p).jd < 364).length;
+  const tagsOf = (k, T) => [inv.includes(k) ? '<span class="tag t-star1">邀請 +30%</span>' : '', T.camp >= 2 ? `<span class="tag t-ls">訓練營${T.camp >= 3 ? '★' : ''}</span>` : '', T.heat ? `<span class="tag t-inj">${'炎熱'.repeat(1)}${T.heat > 1 ? '+' : ''}</span>` : '', T.dist >= 2 ? `<span class="tag">${T.dist >= 3 ? '超長途' : '長途'}</span>` : '', T.mkt ? `<span class="tag t-ex">${TMKT[T.mkt]}市場</span>` : ''].join('');
+  const full = plan.length >= 5;
+  const dest = Object.entries(TDEST).map(([k, T]) => `<tr title="${esc(T.d)}"><td class="nm">${esc(T.n)}<div class="ttags"><span class="mute">${T.days} 日</span>${tagsOf(k, T)}</div></td><td class="n num">${money(tourFee(cid, k))}</td><td><button class="btn sm" data-act="tpadd" data-a="${k}" ${!open || full || plan.includes(k) ? 'disabled' : ''}>${plan.includes(k) ? '✓' : '＋'}</button></td></tr>`).join('');
+  const sign = v => (v > 0 ? '+' : '') + v;
+  const legs = plan.map((k, n) => `<div class="tleg"><b>${n + 1}</b><span>${esc(TDEST[k].n)}${F.legs[n].jet ? ' <span class="bad">時差</span>' : ''}${F.legs[n].travel ? ' <span class="mute">✈ +1 日</span>' : ''}</span><button class="btn sm" data-act="tpup" data-a="${n}" ${n ? '' : 'disabled'} aria-label="提前">↑</button><button class="btn sm" data-act="tprm" data-a="${n}" aria-label="移除">✕</button></div>`).join('');
+  const L = c.tourLog && c.tourLog.s === G.season ? c.tourLog : null;
+  const fx = plan.length ? `<dl class="kv"><dt>日數</dt><dd class="${F.days > days ? 'bad' : ''}">${F.days} 日（開波前有 ${Math.max(0, days)} 日）</dd>
+      <dt>出場費</dt><dd class="good num">${money(F.pay)}</dd>
+      <dt>體能</dt><dd class="${F.cond < 0 ? 'bad' : 'good'}">全隊 ${sign(F.cond)}</dd>
+      <dt>季前體能</dt><dd class="${F.psf < 0 ? 'bad' : 'good'}">${sign(F.psf)}（今季每日恢復 ${sign(Math.round(F.psf * 8) / 100)}）</dd>
+      <dt>默契</dt><dd class="good">+${F.coh}${fresh ? `，${fresh} 個新球員融入快啲` : ''}</dd>
+      <dt>海外市場</dt><dd>${Object.keys(F.mkt).length ? Object.entries(F.mkt).map(([m, v]) => `${TMKT[m]}球衣 +${Math.round(v * 100)}%`).join('、') : '—'}</dd>
+      <dt>球員心情</dt><dd class="${F.mood > 0 ? 'good' : F.mood < 0 ? 'bad' : ''}">${F.mood > 0 ? '行程短，球員開心' : F.mood < 0 ? '行程太長，球員攰悶' : '冇影響'}</dd>
+      <dt>受傷機會</dt><dd class="${F.inj > .25 ? 'bad' : ''}">大約 ${Math.round(F.inj * 100)}% 有人輕傷</dd></dl>
+      <div class="row" style="margin-top:8px"><button class="btn y" data-act="tpgo" ${open && F.days <= days ? '' : 'disabled'}>出發（${F.days} 日）</button><button class="btn" data-act="tpclr">清除</button></div>` : '<p class="note">喺左邊揀地方加入行程（最多 5 站）。次序有關係：連續喺同一洲唔使再搭長途機，轉洲就有時差。</p>';
+  const done = L ? `<p><b>${L.plan.map(k => esc(TDEST[k].n)).join(' → ')}</b></p><table class="shopt tres"><tbody>${L.res.map(r => `<tr><td>${esc(TDEST[r.k].n)}</td><td>對 ${esc(r.o)}</td><td class="n"><b>${r.gf}-${r.ga}</b> ${wdl(r.gf > r.ga ? 'W' : r.gf < r.ga ? 'L' : 'D')}</td></tr>`).join('')}</tbody></table><p class="mute">出場費 ${money(L.F.pay)} · 體能 ${sign(L.F.cond)} · 季前體能 ${sign(L.F.psf)} · 默契 +${L.F.coh}${L.hurt.length ? ` · 輕傷：${L.hurt.map(p => esc(ps(p).sn)).join('、')}` : ''}</p>` : '';
   const pls = roster(cid).filter(p => !pd(p).yt).sort((a, b) => popOf(b) - popOf(a)).slice(0, 8);
-  const ad = pls.map(p => { const fee = Math.round(popOf(p) ** 2 * 60 * prF(c) / 1e3) * 1e3, cd = cdLeft(c, 'ad:' + p); return `<tr><td class="nm">${pl(p)} ${starOf(p) ? `<span class="tag t-star${starOf(p)}">${starOf(p) === 2 ? '巨星' : '明星'}</span>` : ''}</td><td class="n">${popOf(p)}</td><td class="n num">${money(fee)}</td><td class="n">${Math.round(pd(p).cond)}</td><td><button class="btn sm" data-act="bizad" data-a="${p}" ${cd ? 'disabled' : ''}>${cd ? `${cd} 日` : '拍'}</button></td></tr>`; }).join('');
-  return `<div class="cols c2 m-stack" style="min-height:0">
-    ${pan(`季前熱身 ${info('每季一次，要喺第一場聯賽之前。巡迴賺得多但球員好攰，開季頭幾場會受影響；本地熱身賺少啲，但體能同默契最好。隊中明星越多，巡迴收入越高。')}`, `${open ? '' : `<p class="note">${c.tour === G.season ? '今季已經做咗季前熱身。' : '聯賽已經開咗波，下季先可以再揀。'}</p>`}<div class="gopts">${tours}</div>`, { t: 1, st: 'min-height:0' })}
-    ${pan(`球員代言 ${info('球員幫品牌拍廣告：球會即收代言費（人氣越高越多），球員人氣 +3、心情變好，但體能 −5。每個球員 60 日一次。比賽前拍會影響狀態。')}`, `<table class="shopt"><thead><tr><th>球員</th><th class="n">人氣</th><th class="n">代言費</th><th class="n">體能</th><th></th></tr></thead><tbody>${ad}</tbody></table>`, { t: 1, st: 'min-height:0' })}
+  const ad = pls.map(p => { const fee = Math.round(popOf(p) ** 2 * 60 * prF(c) / 1e3) * 1e3, cd = cdLeft(c, 'ad:' + p); return `<tr><td class="nm">${pl(p)} ${starOf(p) ? `<span class="tag t-star${starOf(p)}">${starOf(p) === 2 ? '巨星' : '明星'}</span>` : ''}</td><td class="n">${popOf(p)}</td><td class="n num">${money(fee)}</td><td><button class="btn sm" data-act="bizad" data-a="${p}" ${cd ? 'disabled' : ''}>${cd ? `${cd} 日` : '拍'}</button></td></tr>`; }).join('');
+  const status = L ? '今季已經去咗巡迴。' : open ? `開波前仲有 ${days} 日可以用。` : '聯賽就嚟開波，今季冇時間去巡迴。';
+  return `<div class="cols c2 m-stack tourw" style="min-height:0">
+    ${pan(`季前巡迴 · 揀地方 ${info('每個地方踢一場表演賽，有出場費。長途機同時差令球員攰（體能跌）；炎熱地方耗體能、易受傷；訓練營體能同默契升得多但錢少。豪門對手同夏季邀請（出場費多三成）收得多。去過嘅海外市場，今季球衣賣得多啲。季前體能會令成季每日恢復快啲（或者慢啲）。新球員一齊去巡迴，會快啲同隊友有默契。')}`, `<p class="mute" style="margin:0 0 6px">${status}</p><table class="shopt tdest"><tbody>${dest}</tbody></table>`, { t: 1, st: 'min-height:0' })}
+    <div class="cols" style="grid-template-rows:auto minmax(0,1fr);min-height:0">
+    ${pan(L ? '今季巡迴結果' : `行程 <span class="r">${plan.length} / 5 站</span>`, L ? done : `<div class="tlegs">${legs}</div>${fx}`, { t: 1, st: 'min-height:0' })}
+    ${pan(`球員代言 ${info('球員幫品牌拍廣告：球會即收代言費（人氣越高越多），球員人氣 +3、心情變好，但體能 −5。每個球員 60 日一次。比賽前拍會影響狀態。')}`, `<table class="shopt"><thead><tr><th>球員</th><th class="n">人氣</th><th class="n">代言費</th><th></th></tr></thead><tbody>${ad}</tbody></table>`, { t: 1, st: 'min-height:0' })}
+    </div>
   </div>`;
+}
+async function tourGo() {
+  if (BUSY) return;
+  const cid = myCid(), r = doTourPlan(cid, UI.tp); if (r.err) return toast(r.err);
+  UI.tp = []; BUSY = true; MT = null; toast('出發巡迴…');
+  try { for (let k = 0; k < r.F.days; k++) { nextDay(); if (userFxToday()) break; if (k % 4 === 3) await new Promise(x => setTimeout(x, 0)); } } finally { BUSY = false; }
+  afterAdvance(); toast(`巡迴完成：出場費 ${money(r.F.pay)}`);
 }
 function bizPrizeTab() {
   const cid = myCid(), c = myClub(), lg = c.lg, n = (G.lgm[lg] || []).length, S = c.fin.s, v = k => S[k] || 0;
@@ -126,6 +153,10 @@ SCREENS.shop = () => {
 Object.assign(ACT, {
   biztab: el => { UI.biz = el.dataset.a; render(); },
   bizsign: el => { const [s, i] = el.dataset.a.split(':'), err = signDeal(myCid(), s, +i); if (err) return toast(err); save(); render(); toast('簽約成功！'); },
-  biztour: el => { const err = doTour(myCid(), el.dataset.a); if (err) return toast(err); save(); render(); toast(`${TOURS[el.dataset.a].n}完成`); },
+  tpadd: el => { if (UI.tp.length < 5 && !UI.tp.includes(el.dataset.a)) UI.tp.push(el.dataset.a); render(); },
+  tprm: el => { UI.tp.splice(+el.dataset.a, 1); render(); },
+  tpup: el => { const n = +el.dataset.a; if (n > 0) [UI.tp[n - 1], UI.tp[n]] = [UI.tp[n], UI.tp[n - 1]]; render(); },
+  tpclr: () => { UI.tp = []; render(); },
+  tpgo: () => tourGo(),
   bizad: el => { const err = doPPromo(el.dataset.a, 'ad'); if (err) return toast(err); save(); render(); toast('拍完廣告，代言費已入帳'); },
 });

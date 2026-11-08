@@ -70,26 +70,108 @@ function dealsSeasonEnd(cid, pos, n) {
   }
 }
 
-/* pre-season tours (季前熱身): once a season, before the first league game. Money (more with stars) vs tired legs. */
-const TOURS = {
-  asia: { n: '亞洲巡迴', m: 1, cond: -10, coh: 2, fans: 3, d: '去亞洲踢 3 場表演賽。收入高，球迷人氣上升，但長途機好攰。' },
-  usa: { n: '美國巡迴', m: 1.25, cond: -12, coh: 2, fans: 2, d: '美國大球場表演賽，收入最高，最攰。' },
-  eur: { n: '歐洲邀請賽', m: .55, cond: -6, coh: 4, fans: 1, d: '同歐洲球會踢邀請賽：中等收入，默契上升。' },
-  home: { n: '本地熱身賽', m: .12, cond: 6, coh: 6, fans: 1, d: '同本地細會踢熱身：收入少，但體能同默契最好。' },
+/* ---------- pre-season tour (季前巡迴): once a season, between 1 July and the first league game ----------
+   You build a trip of 1–5 stops (TDEST). Each stop is a few days and one friendly. Every stop pays an appearance fee
+   (club fame × stars × the place; summer invitations pay 30% more) and changes:
+   · condition (體能): long flights, jet lag between continents and heat cost condition; training camps give it back
+   · pre-season fitness (季前體能 c.psf, this season): camps build it, heat and long trips cost it; it adds to daily recovery
+   · cohesion (默契) for every stop, more at camps; new signings settle in (their days at the club count ~25 more per stop)
+   · overseas fans: shirt sales this season +% for each market visited (c.tmkt)
+   · players' mood: a short trip lifts it, a long one (over 18 days) wears it down
+   · injuries: each friendly can bring a knock (more in heat and after long flights)
+   The trip takes its days on the calendar (the screen runs them). */
+const TDEST = {
+  home: { n: '本地熱身賽', r: '本地', fee: .12, dist: 0, heat: 0, camp: 1, days: 3, opp: 'small', d: '同本地細會踢，唔使飛，最輕鬆。' },
+  aut: { n: '奧地利訓練營', r: '歐洲', fee: .1, dist: 1, heat: 0, camp: 3, days: 6, opp: 'small', d: '山區訓練營，天氣涼，設施好：體能同默契升得最多，錢最少。' },
+  sui: { n: '瑞士阿爾卑斯訓練營', r: '歐洲', fee: .1, dist: 1, heat: 0, camp: 3, days: 6, opp: 'small', d: '高原訓練，季前體能大升。' },
+  ger: { n: '慕尼黑邀請賽', r: '歐洲', fee: .55, dist: 1, heat: 0, camp: 1, days: 3, opp: 'big', d: '四隊邀請賽，對手係歐洲豪門，有獎盃。' },
+  ned: { n: '阿姆斯特丹邀請賽', r: '歐洲', fee: .45, dist: 1, heat: 0, camp: 1, days: 3, opp: 'big', d: '歐洲傳統夏季邀請賽。' },
+  alg: { n: '葡萄牙阿爾加維', r: '歐洲', fee: .3, dist: 1, heat: 1, camp: 2, days: 5, opp: 'mid', d: '海邊訓練營加熱身賽，有少少熱。' },
+  usae: { n: '美國東岸（紐約、華盛頓）', r: '美洲', fee: .9, dist: 2, heat: 1, camp: 2, days: 6, opp: 'big', mkt: 'usa', d: '大球場、大贊助商，美國球迷市場。' },
+  usaw: { n: '美國西岸（洛杉磯、三藩市）', r: '美洲', fee: .85, dist: 2, heat: 1, camp: 2, days: 6, opp: 'big', mkt: 'usa', d: '大學球場訓練設施好，同豪門踢表演賽。' },
+  jpn: { n: '日本（東京、大阪）', r: '亞洲', fee: .8, dist: 2, heat: 1, camp: 1, days: 5, opp: 'local', mkt: 'asia', d: '球迷熱情，濕熱，時差大。' },
+  kor: { n: '韓國首爾', r: '亞洲', fee: .7, dist: 2, heat: 1, camp: 1, days: 4, opp: 'local', mkt: 'asia', d: '對 K 聯賽明星隊。' },
+  chn: { n: '中國（上海、北京）', r: '亞洲', fee: .95, dist: 2, heat: 2, camp: 0, days: 5, opp: 'local', mkt: 'asia', d: '最大嘅市場、最高出場費，但好熱，行程密。' },
+  hkg: { n: '香港', r: '亞洲', fee: .7, dist: 2, heat: 2, camp: 0, days: 4, opp: 'local', mkt: 'asia', d: '大球場表演賽，又熱又濕。' },
+  sgp: { n: '新加坡', r: '亞洲', fee: .7, dist: 2, heat: 2, camp: 1, days: 4, opp: 'big', mkt: 'asia', d: '國際冠軍盃式表演賽，對手係豪門。' },
+  tha: { n: '泰國曼谷', r: '亞洲', fee: .6, dist: 2, heat: 2, camp: 0, days: 4, opp: 'local', mkt: 'asia', d: '球迷多，好熱。' },
+  aus: { n: '澳洲（墨爾本、悉尼）', r: '澳洲', fee: .85, dist: 3, heat: 0, camp: 2, days: 6, opp: 'big', mkt: 'asia', d: '冬天涼爽好訓練，但係最遠，時差最大。' },
+  mde: { n: '中東（杜拜、利雅得）', r: '中東', fee: 1, dist: 2, heat: 2, camp: 1, days: 4, opp: 'big', mkt: 'mde', d: '出場費最高，但極熱。' },
 };
-function tourOpen(cid) {
-  const c = G.clubs[cid]; if (c.tour === G.season) return false;
-  const first = G.fx.filter(f => f.c === c.lg && (f.h === cid || f.a === cid)).sort((a, b) => a.d - b.d)[0];
-  return !first || G.day < first.d;
+const TMKT = { usa: '美國', asia: '亞洲', mde: '中東' };
+const LOCALXI = { jpn: 'J 聯賽明星隊', kor: 'K 聯賽明星隊', chn: '中超明星隊', hkg: '港超明星隊', tha: '泰超明星隊' };
+function tourDays(cid) {   // days free before the first league game (2 to rest at the end)
+  const c = G.clubs[cid], first = G.fx.filter(f => f.c === c.lg && (f.h === cid || f.a === cid) && f.hg == null).sort((a, b) => a.d - b.d)[0];
+  return first ? first.d - G.day - 2 : 0;
 }
-const tourPay = (cid, k) => Math.round(bizV0(cid) * .25 * TOURS[k].m * (typeof shopHype === 'function' ? shopHype(cid).starF : 1) / 1e4) * 1e4;
-function doTour(cid, k) {
-  const c = G.clubs[cid], T = TOURS[k]; if (!tourOpen(cid)) return '今季已經做過季前熱身，或者聯賽已經開咗波';
-  const pay = tourPay(cid, k); fin(cid, 'spon', pay);
-  for (const p of roster(cid)) if (!pd(p).yt) pd(p).cond = clamp(pd(p).cond + T.cond, 40, 100);
-  c.coh = clamp((c.coh ?? 60) + T.coh, 0, 100); c.fans = clamp((c.fans ?? c.rep) + T.fans, 1, 100); c.tour = G.season;
-  mail(T.n, `季前熱身完成：收入 ${money(pay)}，全隊體能 ${T.cond > 0 ? '+' : ''}${T.cond}，默契 +${T.coh}，球迷人氣 +${T.fans}。`);
-  return null;
+function tourOpen(cid) { const c = G.clubs[cid]; return c.tour !== G.season && tourDays(cid) >= 3; }
+// summer invitations: three places that pay 30% more this season (mailed when the season starts)
+function tourInvites(cid) {
+  const c = G.clubs[cid];
+  if (!c.tinv || c.tinv.s !== G.season) { const ks = Object.keys(TDEST).filter(k => k !== 'home'); const pickN = []; while (pickN.length < 3) { const k = pick(ks); if (!pickN.includes(k)) pickN.push(k); } c.tinv = { s: G.season, k: pickN }; }
+  return c.tinv.k;
+}
+const tourFee = (cid, k) => Math.round(bizV0(cid) * .07 * TDEST[k].fee * (typeof shopHype === 'function' ? shopHype(cid).starF : 1) * (tourInvites(cid).includes(k) ? 1.3 : 1) * (TDEST[k].opp === 'big' ? 1.15 : 1) / 1e4) * 1e4;
+// what a plan would do (no randomness: the screen shows it before you go)
+function tourPlanFx(cid, plan) {
+  const c = G.clubs[cid], out = { pay: 0, days: 0, cond: 0, psf: 0, coh: 0, mkt: {}, inj: 0, mood: 0, legs: [] };
+  let prev = null;
+  for (const k of plan) {
+    const T = TDEST[k], jet = prev && T.dist >= 2 && TDEST[prev].r !== T.r ? 1 : 0, fly = !prev ? T.dist : TDEST[prev].r === T.r ? 0 : Math.max(T.dist, TDEST[prev].dist);
+    const travel = fly >= 2 ? 1 : 0;
+    out.days += T.days + travel; out.pay += tourFee(cid, k);
+    out.cond += -Math.round(fly ** 1.5 * 2.5) - T.heat * 2 - jet * 4 + T.camp * 1.5;
+    out.psf += T.camp * 1.2 - T.heat * .6 - (fly >= 2 ? .6 : 0);
+    out.coh += 2 + T.camp;
+    if (T.mkt) out.mkt[T.mkt] = Math.min(.15, (out.mkt[T.mkt] || 0) + T.fee * .05);
+    out.inj += .04 + T.heat * .03 + fly * .015;
+    out.legs.push({ k, travel, jet });
+    prev = k;
+  }
+  if (prev && TDEST[prev].dist >= 2) out.days += 1;   // the flight home
+  out.mood = plan.length && out.days <= 12 ? 1 : out.days > 18 ? -1 : 0;
+  out.cond = Math.round(clamp(out.cond, -30, 12)); out.psf = Math.round(clamp(out.psf, -4, 10) * 10) / 10; out.coh = Math.min(20, Math.round(out.coh));
+  out.inj = Math.min(.9, out.inj);
+  return out;
+}
+const clubStr = cid => { const s = roster(cid).filter(p => !pd(p).yt).map(p => pd(p).sk).sort((a, b) => b - a).slice(0, 11); return s.length ? sum(s) / s.length : 50; };
+function tourOpp(cid, k) {
+  const T = TDEST[k], me = G.clubs[cid];
+  if (T.opp === 'local') return { n: LOCALXI[k] || '當地明星隊', s: 58 + me.rep * .1 };
+  const pool = GCL().filter(x => x !== cid && G.clubs[x].lg !== 'eur' && (T.opp === 'big' ? G.clubs[x].rep >= 82 : T.opp === 'mid' ? G.clubs[x].rep >= 60 && G.clubs[x].rep < 80 : G.clubs[x].lg === me.lg.replace(/\d$/, '') + '3' || G.clubs[x].lg === me.lg.replace(/\d$/, '') + '4' || G.clubs[x].rep < 50));
+  const o = pool.length ? pick(pool) : null;
+  return o ? { n: clubName(o), s: clubStr(o) } : { n: '當地球會', s: 55 };
+}
+// back home after the trip: tired legs (or fresh ones from a camp) — applied on the day you return
+function tourReturn(cid) {
+  const c = G.clubs[cid], b = c.tourBack; if (!b || G.day < b.d) return;
+  for (const p of roster(cid)) if (!pd(p).yt) pd(p).cond = clamp(pd(p).cond + b.cond, 45, 100);
+  c.tourBack = null;
+}
+// go: money, condition, fitness, cohesion, new signings, markets, mood, friendlies and knocks. Returns the summary.
+function doTourPlan(cid, plan) {
+  const c = G.clubs[cid];
+  if (!plan.length || plan.length > 5) return { err: '揀 1 至 5 站' };
+  if (!tourOpen(cid)) return { err: '今季已經去過巡迴，或者聯賽就嚟開波' };
+  const F = tourPlanFx(cid, plan); if (F.days > tourDays(cid)) return { err: `行程要 ${F.days} 日，開波前得 ${tourDays(cid)} 日` };
+  fin(cid, 'spon', F.pay);
+  const pl = roster(cid).filter(p => !pd(p).yt);
+  for (const p of pl) { const d = pd(p); if (F.mood && R() < .5) d.arw = clamp((d.arw ?? 2) + F.mood, 0, 4); if (d.jd != null && G.day - d.jd < 364) d.jd -= 25 * plan.length; }
+  c.coh = clamp((c.coh ?? 60) + F.coh, 0, 100);
+  c.psf = F.psf; c.psfS = G.season;
+  c.tmkt = { s: G.season, b: sum(Object.values(F.mkt)), m: F.mkt };
+  c.fans = clamp((c.fans ?? c.rep) + (plan.some(k => TDEST[k].dist <= 1) ? 1 : 0), 1, 100);
+  // the friendlies
+  const res = [], hurt = [], my = clubStr(cid);
+  for (const k of plan) {
+    const o = tourOpp(cid, k), gap = (my - o.s) / 8, gf = Math.max(0, Math.round(1.3 + gap * .6 + (R() - .5) * 2.4)), ga = Math.max(0, Math.round(1.1 - gap * .5 + (R() - .5) * 2.2));
+    res.push({ k, o: o.n, gf, ga });
+    if (R() < .04 + TDEST[k].heat * .03 + TDEST[k].dist * .015) { const p = pick(pl.filter(x => !pd(x).inj)); if (p) { pd(p).lin = Math.max(pd(p).lin || 0, ri(4, 12)); pd(p).injn = '季前友誼賽撞傷'; hurt.push(p); } }
+  }
+  const w = res.filter(r => r.gf > r.ga).length; if (w >= Math.ceil(res.length / 2)) c.fans = clamp(c.fans + 1, 1, 100);
+  c.tour = G.season; c.tourLog = { s: G.season, plan, res, hurt, F }; c.tourBack = { d: G.day + F.days, cond: F.cond };
+  mail('季前巡迴完成', `${plan.map(k => TDEST[k].n).join(' → ')}（${F.days} 日）<br>${res.map(r => `${esc(TDEST[r.k].n)}：對 ${esc(r.o)} <b>${r.gf}-${r.ga}</b>`).join('<br>')}<br>出場費 ${money(F.pay)} · 體能 ${F.cond > 0 ? '+' : ''}${F.cond} · 季前體能 ${F.psf > 0 ? '+' : ''}${F.psf} · 默契 +${F.coh}${Object.keys(F.mkt).length ? ` · 球衣銷量 ${Object.entries(F.mkt).map(([m, v]) => `${TMKT[m]} +${Math.round(v * 100)}%`).join('、')}` : ''}${hurt.length ? `<br>受傷：${hurt.map(p => esc(ps(p).sn)).join('、')}（輕傷）` : ''}`);
+  return { F, res, hurt };
 }
 
 /* prize money (獎金): Europe pays to take part, per result and per round reached; domestic cups per round reached.

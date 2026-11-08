@@ -158,3 +158,9 @@ tr.mrel{cursor:pointer}tr.mrel:hover td{background:#5a1420!important}
 .shopw{grid-template-columns:minmax(0,1.7fr) minmax(0,1fr)}
 .shopt{font-size:13px}.shopt .pstep .inp{width:50px}
 @media (max-width:760px){.shopw{grid-template-columns:1fr}}
+.tourw{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}
+.ttags{display:flex;flex-wrap:wrap;gap:3px;margin-top:2px}.ttags .tag{font-size:10px}
+.tdest td{padding-top:4px;padding-bottom:4px}
+.tlegs{display:flex;flex-direction:column;gap:4px;margin-bottom:8px}.tleg{display:flex;align-items:center;gap:6px}.tleg>b{width:20px;text-align:center;color:var(--sel)}.tleg>span{flex:1;min-width:0}
+@media (max-width:760px){.tourw{grid-template-columns:1fr}}
+.tres td{white-space:normal}

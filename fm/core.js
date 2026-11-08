@@ -903,6 +903,7 @@ function setupSeason(s) {
     const c = G.clubs[me], n = G.lgm[c.lg].length;
     const goal = c.exp <= 1 ? '爭奪聯賽冠軍' : c.exp <= 4 ? '打入前四' : c.exp <= n / 2 ? '前半部完成' : c.exp <= n - 4 ? '安全護級' : '避免降班';
     c.goal = goal;
+    if (typeof tourInvites === 'function') { const iv = tourInvites(me); mail('季前商業邀請', `今個夏天有 ${iv.length} 個地方邀請你哋去踢表演賽，出場費多三成：<br>${iv.map(k => `· <b>${esc(TDEST[k].n)}</b>：${money(tourFee(me, k))} 一場`).join('<br>')}<br>可以自己揀去邊、去幾多站，要喺第一場聯賽之前出發。去「商業 → 活動」規劃季前巡迴。`); }
     mail(`${s}/${String(s + 1).slice(2)} 球季開始`, `董事局對今季嘅目標係：<b>${goal}</b>（預期第 ${c.exp} 名）。<br>轉會市場開放至 3 月 28 日。祝你好運！`);
   }
 }
@@ -1066,9 +1067,10 @@ function nextDay() {
     if (x === DEADLINE - 7) mail('轉會截止前一個星期', '轉會市場 3 月 28 日截止。要買、要賣，就要趁呢個星期。');
     if (x === DEADLINE - 1) mail('聽日轉會截止', '轉會市場聽日截止，之後要等到 7 月 1 日先再開。');
   }
+  const me0 = G.mgr.cid;
   // recovery & injuries
   const rec = {};
-  for (const cid of GCL()) { const c = G.clubs[cid]; rec[cid] = [7, 6, 4.5][c.tr.int] + c.st.physio * .4 + (c.st.fit || 0) * .3; }
+  for (const cid of GCL()) { const c = G.clubs[cid]; rec[cid] = [7, 6, 4.5][c.tr.int] + c.st.physio * .4 + (c.st.fit || 0) * .3 + (c.psfS === G.season ? (c.psf || 0) * .08 : 0); }   // psf: pre-season fitness (fm/biz.js)
   for (const pid in G.pl) {
     const p = G.pl[pid]; if (p.c === 'ret') continue;
     p.cond = Math.min(100, p.cond + (rec[p.c] || 7));
@@ -1077,6 +1079,7 @@ function nextDay() {
     driftArw(pid);
   }
   if (G.inst && G.inst.length) G.inst = G.inst.filter(x => { if (x.d > d) return true; fin(x.from, 'tout', -x.amt); fin(x.to, 'tin', x.amt); if (isUser(x.from)) mail('轉會分期付款', `已付 ${esc(clubName(x.to))} ${money(x.amt)}（${esc(ps(x.pid).sn)} 轉會費分期）。`); return false; });
+  if (me0 && typeof tourReturn === 'function') tourReturn(me0);
   if (wday(d) === 1) { weekly(); training(); if (typeof lifeWeekly === 'function') lifeWeekly(); if (typeof youthWeek === 'function') youthWeek(); }
   if (inWindow(d)) { aiMarket(); aiOffers(); }
   for (const id in G.comp) { const c = G.comp[id]; if (c.t !== 'L') maybeDraw(c, d); }
