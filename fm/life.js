@@ -61,7 +61,7 @@ const SNAMES = {
   SCO: [['Alex', 'Craig', 'Ally', 'Gordon', 'Kenny', 'Walter'], ['McLeish', 'Smith', 'Brown', 'Stewart', 'Robertson', 'Campbell']],
 };
 function staffName(nat) { const L = SNAMES[nat] || SNAMES.ENG; return pick(L[0]) + ' ' + pick(L[1]); }
-const staffFee = (lv, c) => Math.round(lv * lv * 4e4 * (TIERF[c.lg] || .7) / 1e3) * 1e3;
+const staffFee = (lv, c) => Math.round(lv * lv * 4e4 * MS * (TIERF[c.lg] || .7) / 1e3) * 1e3;
 const staffWage = (lv, c) => Math.round(lv * lv * 350 * (TIERF[c.lg] || .7));
 function staffNat(c) { const n = (CL[myCid()] || {}).country; return SNAMES[n] && R() < .65 ? n : pick(Object.keys(SNAMES)); }
 function staffOf(c, k) {   // the person in a job (old saves had levels only: give them a name)
@@ -154,8 +154,8 @@ function lifeWeekly() {
 // extra weekly merchandise from fans and stars (core's weekly() calls this per club)
 function lifeMerch(cid) {
   const c = G.clubs[cid], f = clamp(1 + (fansOf(c) - c.rep) / 120, .6, 1.6);
-  let star = 0; for (const pid of roster(cid)) { const p = popOf(pid); if (p > 65) star += (p - 65) ** 2 * 60; }
-  let boost = 0; for (const p of c.promo || []) if (p.k === 'kit') boost += .3; else if (p.k === 'shirt' && G.pl[p.pid] && pd(p.pid).c === cid) star += popOf(p.pid) ** 2 * 8;
+  let star = 0; for (const pid of roster(cid)) { const p = popOf(pid); if (p > 65) star += (p - 65) ** 2 * 60 * MS; }
+  let boost = 0; for (const p of c.promo || []) if (p.k === 'kit') boost += .3; else if (p.k === 'shirt' && G.pl[p.pid] && pd(p.pid).c === cid) star += popOf(p.pid) ** 2 * 8 * MS;
   return { f, star: Math.round(star), boost };
 }
 const lifeGate = cid => { const c = G.clubs[cid]; return (fansOf(c) - c.rep) / 250 + roster(cid).filter(p => starOf(p)).length * .008; };
@@ -167,7 +167,7 @@ const TEAMB = {
   camp: { n: '海外集訓營', cost: 6e5, cd: 120, d: '默契 +15，六成球員狀態升一級，全隊體能 −8；後生球員有機會進步。', go(c, me) { c.coh = clamp(cohOf(c) + 15, 0, 100); moodAll(me, .6, 1); for (const p of roster(me)) { pd(p).cond = Math.max(40, pd(p).cond - 8); if (ageOf(p) <= 23 && R() < .25) pd(p).sk++; } } },
   charity: { n: '社區慈善日', cost: 5e4, cd: 30, d: '球迷人氣 +3，領隊聲望 +1，默契 +3。', go(c, me) { c.fans = clamp(fansOf(c) + 3 * prF(c), 1, 100); G.mgr.rep = clamp(G.mgr.rep + 1, 1, 100); c.coh = clamp(cohOf(c) + 3, 0, 100); } },
 };
-const tierCost = (c, v) => Math.round(v * (TIERF[c.lg] || .7) / 1e3) * 1e3;
+const tierCost = (c, v) => Math.round(v * MS * (TIERF[c.lg] || .7) / 1e3) * 1e3;
 const prF = c => 1 + stLv(c, 'pr') * .1;
 function moodAll(cid, share, step) { for (const p of roster(cid)) if (R() < share) pd(p).arw = clamp((pd(p).arw ?? 2) + step, 0, 4); }
 const cdLeft = (c, k) => Math.max(0, ((c.cd || {})[k] || 0) - G.day);
@@ -184,7 +184,6 @@ const PROMO = {
   local: { n: '本地宣傳', cost: 1e5, wks: 4, d: '4 個星期，每星期球迷人氣 +1。', wk(c) { c.fans = clamp(fansOf(c) + 1 * prF(c), 1, 100); } },
   social: { n: '社交媒體推廣', cost: 2.5e5, wks: 6, d: '6 個星期，每星期球迷人氣 +1.2，人氣最高三個球員人氣上升。', wk(c) { c.fans = clamp(fansOf(c) + 1.2 * prF(c), 1, 100); for (const p of roster(myCid()).sort((a, b) => popOf(b) - popOf(a)).slice(0, 3)) pd(p).pop = Math.min(99, popOf(p) + .8); } },
   kit: { n: '新球衣發佈', cost: 3e5, wks: 8, d: '8 個星期，商品收入 +30%。' },
-  tour: { n: '海外巡迴賽', cost: 0, wks: 0, d: '只可以喺 7 月季前做，每季一次：即收出場費，球迷人氣 +6，默契 +4，但全隊體能 −10。', once: 1 },
 };
 function doPromo(k) {
   const c = myClub(), P = PROMO[k], cost = tierCost(c, P.cost);
@@ -216,7 +215,7 @@ function doPPromo(pid, k) {
   if (k === 'shirt' && (c.promo || []).some(p => p.k === 'shirt')) return '已經有球員做緊球衣主打';
   if (!G.inf && c.cash < cost) return '資金唔夠';
   if (cost) fin(myCid(), 'pr', -cost);
-  if (k === 'ad') { const fee = Math.round(popOf(pid) ** 2 * 60 * prF(c) / 1e3) * 1e3; fin(myCid(), 'spon', fee); d.pop = Math.min(99, popOf(pid) + 3); d.arw = clamp((d.arw ?? 2) + 1, 0, 4); d.cond = Math.max(40, d.cond - 5); mail(`${ps(pid).sn} 拍廣告`, `${esc(ps(pid).name)} 接咗一個代言，球會分到 ${money(fee)}。`); }
+  if (k === 'ad') { const fee = Math.round(popOf(pid) ** 2 * 60 * MS * prF(c) / 1e3) * 1e3; fin(myCid(), 'spon', fee); d.pop = Math.min(99, popOf(pid) + 3); d.arw = clamp((d.arw ?? 2) + 1, 0, 4); d.cond = Math.max(40, d.cond - 5); mail(`${ps(pid).sn} 拍廣告`, `${esc(ps(pid).name)} 接咗一個代言，球會分到 ${money(fee)}。`); }
   if (k === 'feat') d.pop = Math.min(99, popOf(pid) + 6 * prF(c));
   if (k === 'shirt') { d.pop = Math.min(99, popOf(pid) + 2); (c.promo = c.promo || []).push({ k, pid, end: G.day + P.wks * 7 }); }
   c.cd = c.cd || {}; c.cd[key] = G.day + P.cd;

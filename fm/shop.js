@@ -37,7 +37,7 @@ function shopEst(cid, k, p, att) {
   if (k === 'food') u = shopUnits(c, k, att * .45 * (.9 + .1 * H.form), p);
   else if (k === 'souv') u = shopUnits(c, k, att * .08 * H.all, p);
   else if (k === 'park') u = Math.min(Math.round(c.cap * .06), shopUnits(c, k, att * .15, p));
-  else { const M0 = .0034 * c.rep ** 4 * H.lm.f * (1 + H.lm.boost) + H.lm.star; u = shopUnits(c, k, M0 / (base * K.cost) * H.form * H.starF ** .5 * (1 + .05 * (typeof kitTier === 'function' ? kitTier(cid) : 0)) * (1 + (c.tmkt && c.tmkt.s === G.season ? c.tmkt.b : 0)), p); }
+  else { const M0 = .0034 * MS * c.rep ** 4 * H.lm.f * (1 + H.lm.boost) + H.lm.star; u = shopUnits(c, k, M0 / (base * K.cost) * H.form * H.starF ** .5 * (1 + .05 * (typeof kitTier === 'function' ? kitTier(cid) : 0)) * (1 + (c.tmkt && c.tmkt.s === G.season ? c.tmkt.b : 0)), p); }
   u = Math.max(0, Math.round(u));
   return { u, rev: Math.round(u * p), net: Math.round(u * (p - base * K.cost)) };
 }

@@ -144,7 +144,12 @@ const ageOf = pid => G.season - ps(pid).by;
 const isUser = cid => G && G.mgr.cid === cid;
 const TIERF = { eng1: 1, eng2: .7, eng3: .55, eng4: .45, sco1: .6, esp1: 1, ita1: 1.05, ger1: .95, fra1: .8, ned1: .72, por1: .68, tur1: .66, bel1: .6, eur: .65 };
 const DEFPRICE = { eng1: 25, eng2: 17, eng3: 14, eng4: 12, sco1: 18, esp1: 22, ita1: 24, ger1: 18, fra1: 18, ned1: 18, por1: 15, tur1: 15, bel1: 14, eur: 15 };
-const TV = { eng1: 550e3, eng2: 70e3, eng3: 25e3, eng4: 15e3, sco1: 60e3, esp1: 350e3, ita1: 420e3, ger1: 300e3, fra1: 220e3, ned1: 120e3, por1: 100e3, tur1: 90e3, bel1: 70e3 };
+// MS: money scale (2026-11): incomes and costs ×2.6 so clubs can afford players at real market values (valueOf)
+const MS = 2.6;
+const TV0 = { eng1: 550e3, eng2: 70e3, eng3: 25e3, eng4: 15e3, sco1: 60e3, esp1: 350e3, ita1: 420e3, ger1: 300e3, fra1: 220e3, ned1: 120e3, por1: 100e3, tur1: 90e3, bel1: 70e3 };
+const TV = Object.fromEntries(Object.entries(TV0).map(([k, v]) => [k, v * MS]));
+// premium seats & hospitality: 4% of the ground at ten times the ticket price
+const hospitality = (cid, att) => { const c = G.clubs[cid]; return Math.round(Math.min(att, c.cap * .04) * c.price * 10); };
 // European places per league: [Champions League, UEFA Cup] (cup winners add more in England)
 const QSPOTS = { eng1: [4, 2], esp1: [4, 3], ita1: [4, 3], ger1: [4, 3], fra1: [3, 3], sco1: [2, 2], ned1: [2, 2], por1: [2, 2], tur1: [2, 2], bel1: [1, 2] };
 // Wages: each club's wage bill is about 80% of its normal income, as in real football. G.wk[club] is worked out once per
@@ -157,7 +162,7 @@ function estRevenue(cid) {   // a normal season at standard prices, mid-table
 function estRev(rep, cap, lg, n) {
   const c = { rep, cap, lg }, home = n - 1 + 2, fill = clamp(.32 + c.rep / 150, .12, 1), price = DEFPRICE[c.lg] || 18;
   const gate = c.cap * fill * price * home;
-  const base = gate * 1.12 + (TV[c.lg] || 1e5) * 2 * (n - 1) + (.0034 + .002) * c.rep ** 4 * 52 + n / 2 * 5.5e5 * (TIERF[c.lg] || .7) ** 2;
+  const base = gate * 1.12 + Math.min(cap * fill, cap * .04) * price * 10 * home + (TV[c.lg] || 1e5 * MS) * 2 * (n - 1) + (.0034 + .002) * MS * c.rep ** 4 * 52 + n / 2 * 5.5e5 * MS * (TIERF[c.lg] || .7) ** 2;
   return base * (1 + clamp((c.rep - 65) / 50, -.1, .6));   // big clubs also earn from Europe, cups, stars and shirts
 }
 // starting money, the way EA FC sets transfer budgets: a share of a normal season's income that grows with the club's
@@ -180,14 +185,20 @@ function calibWages(list) {   // list: [[pid, skill, club id], ...]
   for (const lg in byLg) { const a = byLg[lg].sort((x, y) => x - y); G.wk[lg] = a[a.length >> 1]; }   // the league's median, for clubs without their own
 }
 function roundMoney(v) { return v < 1e5 ? Math.round(v / 5e3) * 5e3 : v < 1e6 ? Math.round(v / 25e3) * 25e3 : Math.round(v / 5e4) * 5e4; }
+// market value fitted on 5,990 players' Transfermarkt values (2025/26) against their ability, age and position
+const VPOS = { GK: -.1535, CD: -.0767, RB: -.0921, LB: -.0921, RWB: -.0921, LWB: -.0921, DM: -.0757, CM: -.0798, AM: -.0779, RM: -.0779, LM: -.0779, RW: -.0779, LW: -.0779 };
+function valueFit(sk, age, pos) {
+  const s = (sk - 70) / 10, a = (clamp(age, 22, 30) - 26) / 4, o = Math.max(0, age - 30) / 3, y = Math.max(0, 22 - age) / 3;
+  return Math.exp(14.5796 + 2.323 * s - .0949 * s * s - .8131 * a - .0273 * a * a - .7567 * o + .0403 * o * o + .6523 * y - .0747 * s * y + (VPOS[pos] || 0));
+}
 function valueOf(pid) {
   const d = pd(pid), a = ageOf(pid);
-  let v = 20000 * Math.exp((d.sk - 40) * .155);
-  v *= a <= 19 ? 1.4 : a <= 22 ? 1.25 : a <= 27 ? 1 : a <= 29 ? .8 : a <= 31 ? .55 : a <= 33 ? .32 : .18;
+  let v = valueFit(d.sk, a, ps(pid).pos);
+  if (a < 24) v = Math.min(v, valueFit(d.sk, 24, ps(pid).pos) * 1.2);   // young stars: at most 20% above their prime value
   if (d.c !== 'free' && d.ct - G.season <= 1) v *= .75;
   // like the EA FC / sofifa valuation: keepers and centre-backs cost less than attackers; famous players more
-  v *= { GK: .7, CD: .88, DM: .95, RB: .92, LB: .92, RWB: .92, LWB: .92, AM: 1.08, RW: 1.08, LW: 1.08, CF: 1.1, ST: 1.12 }[ps(pid).pos] || 1;
-  if (typeof popOf === 'function') v *= 1 + Math.max(0, popOf(pid) - 60) / 100;
+  if (typeof popOf === 'function') v *= 1 + Math.max(0, popOf(pid) - 75) / 150;   // fame on top
+  if (v > 8e7) v = 8e7 + (v - 8e7) * .6;   // the very top flattens out, as real values do
   if (a <= 21 && G.y && G.y[pid] && G.y[pid].pot) v *= 1 + Math.max(0, G.y[pid].pot - d.sk - 8) / 25;   // known high potential
   return Math.max(5000, roundMoney(v));
 }
@@ -645,16 +656,16 @@ function weekly() {
   for (const cid of GCL()) {
     const c = G.clubs[cid]; c.fin.w = {};
     fin(cid, 'wage', -(wage[cid] || 0));
-    fin(cid, 'staff', -Math.round(sum(Object.values(c.st).map(l => l * l)) * 350 * (TIERF[c.lg] || .7)));
-    fin(cid, 'ops', -Math.round((c.cap * 1.1 + 2e4) * (TIERF[c.lg] || .7)));   // running the club: ground upkeep, stewards, travel, offices
+    fin(cid, 'staff', -Math.round(sum(Object.values(c.st).map(l => l * l)) * 350 * MS * (TIERF[c.lg] || .7)));
+    fin(cid, 'ops', -Math.round((c.cap * 1.1 + 2e4) * MS * (TIERF[c.lg] || .7)));   // running the club: ground upkeep, stewards, travel, offices
     if (isUser(cid) && !G.inf && c.cash < 0) {   // in debt: the board loses patience
       c.conf = clamp(c.conf - (c.cash < -5e6 * (TIERF[c.lg] || .7) ? 3 : 1.5), 0, 100);
       if (!c.debtM || G.day - c.debtM >= 28) { c.debtM = G.day; mail('董事局擔心財政', `球會資金係 ${money(c.cash)}。董事局要求你盡快扭虧：賣人、減薪、改售價或者搵贊助。負債越多，信心跌得越快。`); }
     }
     const lm = typeof lifeMerch === 'function' ? lifeMerch(cid) : { f: 1, star: 0, boost: 0 };   // fans, stars and campaigns (fm/life.js)
     if (typeof shopWeek === 'function') shopWeek(cid);   // shirts (fm/shop.js)
-    else fin(cid, 'merch', Math.round(.0034 * c.rep ** 4 * lm.f * (1 + lm.boost)) + lm.star);
-    fin(cid, 'spon', isUser(cid) && typeof dealsWeek === 'function' ? dealsWeek(cid) : Math.round(.002 * c.rep ** 4 * lm.f));   // your club: deals (fm/biz.js)
+    else fin(cid, 'merch', Math.round(.0034 * MS * c.rep ** 4 * lm.f * (1 + lm.boost)) + lm.star);
+    fin(cid, 'spon', isUser(cid) && typeof dealsWeek === 'function' ? dealsWeek(cid) : Math.round(.002 * MS * c.rep ** 4 * lm.f));   // your club: deals (fm/biz.js)
     if (c.build && G.day >= c.build.done) { c.cap += c.build.seats; if (isUser(cid)) mail('球場擴建完成', `新看台已經落成，球場容量增加 ${c.build.seats.toLocaleString()} 個座位，而家係 ${c.cap.toLocaleString()}。`); c.build = null; }
     finishBuilds(cid);
   }
@@ -851,7 +862,7 @@ function releasePlayer(pid) {
 
 /* ---------- scout gacha (抽卡球探) ---------- */
 const GRATES = [['UR', .6], ['SSR', 4], ['SR', 14], ['R', 33], ['C', 48.4]];
-const PULLCOST = { eng1: 5e5, eng2: 2.5e5, eng3: 1e5, eng4: 5e4, sco1: 1.5e5, esp1: 5e5, ita1: 5e5, ger1: 4e5, fra1: 3e5, ned1: 2.5e5, por1: 2e5, tur1: 2e5, bel1: 1.5e5 };
+const PULLCOST = Object.fromEntries(Object.entries({ eng1: 5e5, eng2: 2.5e5, eng3: 1e5, eng4: 5e4, sco1: 1.5e5, esp1: 5e5, ita1: 5e5, ger1: 4e5, fra1: 3e5, ned1: 2.5e5, por1: 2e5, tur1: 2e5, bel1: 1.5e5 }).map(([k, v]) => [k, v * MS]));
 const pullCost = n => { const c = PULLCOST[G.clubs[G.mgr.cid].lg] || 2e5; return n === 10 ? c * 9 : c; };
 // pool: o = { leg: legends instead of current players, nat, line (G/D/M/A), lg (league id), young (21 or under) }
 // returns grade → candidate ids; legend ids are 'L<index>' (made into players the first time they are pulled, fm/xi.js)
@@ -947,7 +958,7 @@ function rollover() {
   for (const lid of PLG()) {
     const comp = G.comp[lid]; if (!comp.fin) comp.fin = standings(comp.tab).map(x => x.c);
     const n = comp.fin.length;
-    comp.fin.forEach((cid, i) => fin(cid, 'prize', Math.round((n - i) * 5.5e5 * (TIERF[lid] || .7) ** 2)));
+    comp.fin.forEach((cid, i) => fin(cid, 'prize', Math.round((n - i) * 5.5e5 * MS * (TIERF[lid] || .7) ** 2)));
   }
   if (me && typeof dealsSeasonEnd === 'function') { const order = G.comp[G.clubs[me].lg].fin || []; dealsSeasonEnd(me, order.indexOf(me) + 1, order.length); }
   // awards
@@ -1043,7 +1054,7 @@ function takeJob(cid) {
 /* ---------- new game ---------- */
 function newGame(name, cid, slot) {
   const s0 = ERA.y;
-  G = { wk2: 1, v: 2, era: s0, plg: [...PLAY_LG], slot, mgr: { name, cid, rep: clamp(CL[cid].rep - 5, 20, 80) }, season: s0, day: CAL.start + off(s0), inf: false, clubs: {}, pl: {}, y: {}, comp: {}, fx: [], nfx: 1, nid: 1, mail: [], news: [], off: [], tlog: [], hist: [], trophies: [], jobs: [], lgm: null, qual: null, stats: { pulls: 0 } };
+  G = { wk2: 1, ms2: 1, v: 2, era: s0, plg: [...PLAY_LG], slot, mgr: { name, cid, rep: clamp(CL[cid].rep - 5, 20, 80) }, season: s0, day: CAL.start + off(s0), inf: false, clubs: {}, pl: {}, y: {}, comp: {}, fx: [], nfx: 1, nid: 1, mail: [], news: [], off: [], tlog: [], hist: [], trophies: [], jobs: [], lgm: null, qual: null, stats: { pulls: 0 } };
   G.lgm = Object.fromEntries(Object.values(LG).map(L => [L.id, [...L.cids]]));
   for (const id of CLUBS) {
     const c = CL[id];
@@ -1151,9 +1162,9 @@ function recordResult(f) {
   }
   // gate & TV
   const neu = f.n, hc = G.clubs[f.h];
-  if (hc && !neu) { const att = attendance(f.h, f.a, f.c); f.att = att; fin(f.h, 'gate', att * hc.price); if (typeof shopMatchday === 'function') shopMatchday(f.h, att, f); }
-  if (neu) { const att = 50000 + ri(0, 25000); f.att = att; fin(f.h, 'gate', att * 12); fin(f.a, 'gate', att * 12); }
-  const tv = comp.t === 'L' ? TV[f.c] || 1e5 : f.c === 'cl' ? 5e5 : f.c === 'uefa' ? 1.5e5 : 6e4;
+  if (hc && !neu) { const att = attendance(f.h, f.a, f.c); f.att = att; fin(f.h, 'gate', att * hc.price + hospitality(f.h, att)); if (typeof shopMatchday === 'function') shopMatchday(f.h, att, f); }
+  if (neu) { const att = 50000 + ri(0, 25000); f.att = att; fin(f.h, 'gate', att * 12 * MS); fin(f.a, 'gate', att * 12 * MS); }
+  const tv = (comp.t === 'L' ? TV0[f.c] || 1e5 : f.c === 'cl' ? 5e5 : f.c === 'uefa' ? 1.5e5 : 6e4) * MS;
   fin(f.h, 'tv', tv); fin(f.a, 'tv', tv);
   if (typeof prizeEuroGame === 'function') prizeEuroGame(f, h, a);   // fm/biz.js
   else if (f.c === 'cl') { if (h > a) fin(f.h, 'prize', 3e5); else if (a > h) fin(f.a, 'prize', 3e5); }
@@ -1197,6 +1208,15 @@ function unpack(str) {
     for (const pid in G.pl) { const d = G.pl[pid], c = G.clubs[d.c]; if (c) d.w = Math.round(d.w * (G.wk[d.c] || G.wk[c.lg] || 2.5) / 10) * 10; }
     G.wk2 = 1;
     if (G.mgr.cid) mail('聯賽財政改革', '全聯賽球員薪金上調，而家約佔球會正常收入八成，另外多咗球場同營運開支。要賺錢就要靠成績、商業同買賣球員：去「商業」頁睇。資金變負數，董事局信心會逐個星期跌。');
+  }
+  if (!G.ms2) {   // 2026-11 money scale (MS): real-size incomes and values; old saves converted once
+    const oldK = Object.assign({}, G.wk || {});
+    const live = Object.keys(G.pl).filter(p => G.clubs[G.pl[p].c] && !G.pl[p].yt);
+    calibWages(live.map(p => [p, G.pl[p].sk, G.pl[p].c]));
+    for (const pid in G.pl) { const d = G.pl[pid], c = G.clubs[d.c]; if (!c) continue; const r = (G.wk[d.c] || G.wk[c.lg] || 2.5) / (oldK[d.c] || oldK[c.lg] || 2.5); d.w = Math.max(150, Math.round(d.w * r / 10) * 10); }
+    for (const cid in G.clubs) { const c = G.clubs[cid]; c.cash = Math.round(c.cash * MS); if (c.deals) for (const d of Object.values(c.deals)) { d.y = Math.round(d.y * MS); d.bv = Math.round((d.bv || 0) * MS); } delete c.offers; }
+    G.ms2 = 1;
+    if (G.mgr.cid) mail('球會收入同身價調整', '轉播、贊助、商品同獎金收入加大到接近真實水平，球員身價都改用真實市值計（參考 Transfermarkt）。資金、薪金同贊助合約已經按比例調整，買賣難度大致不變。');
   }
 }
 function saveGame() {

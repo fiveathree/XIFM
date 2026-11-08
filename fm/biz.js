@@ -21,7 +21,7 @@ function bizFame(cid) {
   const eu = G.comp.cl && (G.comp.cl.cl || []).includes(cid) ? .1 : 0;
   return clamp(.75 + (typeof fansOf === 'function' ? fansOf(c) : c.rep) / 250 + stars * .03 + eu, .6, 1.6);
 }
-const bizV0 = cid => .002 * 52 * G.clubs[cid].rep ** 4 * bizFame(cid);
+const bizV0 = cid => .002 * MS * 52 * G.clubs[cid].rep ** 4 * bizFame(cid);
 const slotsNow = () => Object.keys(DEALS).filter(k => !DEALS[k].from || G.season >= DEALS[k].from);
 function dealTarget(cid) {
   const c = G.clubs[cid], n = (G.lgm[c.lg] || []).length || 20, e = c.exp || 10;
@@ -177,12 +177,12 @@ function doTourPlan(cid, plan) {
 /* prize money (獎金): Europe pays to take part, per result and per round reached; domestic cups per round reached.
    League prize by position is paid at the end of the season (core.js rollover); TV money per game (core.js TV). */
 const PRIZE = {
-  cl: { part: 1.5e6, w: 3e5, d: 1e5, rd: [9e5, 1.1e6, 1.4e6], win: 2.5e6 },   // rd: winning each of the last knockout rounds before the final
-  uefa: { part: 3e5, w: 1e5, d: 5e4, rd: [1.5e5, 2e5, 3e5, 4e5], win: 8e5 },
+  cl: { part: 1.5e6 * MS, w: 3e5 * MS, d: 1e5 * MS, rd: [9e5 * MS, 1.1e6 * MS, 1.4e6 * MS], win: 2.5e6 * MS },   // rd: winning each of the last knockout rounds before the final
+  uefa: { part: 3e5 * MS, w: 1e5 * MS, d: 5e4 * MS, rd: [1.5e5 * MS, 2e5 * MS, 3e5 * MS, 4e5 * MS], win: 8e5 * MS },
 };
 const cupPrizeF = comp => { const lg = comp.id === 'fac' || comp.id === 'lc' ? 'eng1' : (comp.id || '').replace(/_c$/, '1'); return (TIERF[lg] || .8) * (comp.id === 'lc' ? .5 : 1); };
-const cupRoundPrize = (comp, r) => PRIZE[comp.id] ? (PRIZE[comp.id].rd[Math.max(0, PRIZE[comp.id].rd.length - (comp.rd.length - 1 - r))] || 0) : Math.round(4e4 * 1.6 ** r * cupPrizeF(comp) / 1e3) * 1e3;
-const cupWinPrize = comp => PRIZE[comp.id] ? PRIZE[comp.id].win : Math.round(1e6 * cupPrizeF(comp) / 1e3) * 1e3;
+const cupRoundPrize = (comp, r) => PRIZE[comp.id] ? (PRIZE[comp.id].rd[Math.max(0, PRIZE[comp.id].rd.length - (comp.rd.length - 1 - r))] || 0) : Math.round(4e4 * MS * 1.6 ** r * cupPrizeF(comp) / 1e3) * 1e3;
+const cupWinPrize = comp => PRIZE[comp.id] ? PRIZE[comp.id].win : Math.round(1e6 * MS * cupPrizeF(comp) / 1e3) * 1e3;
 // a team won its tie in round r of a cup: prize for reaching the next round
 function prizeAdvance(comp, r, cids) {
   if (/^po\d/.test(comp.id)) return;

@@ -107,7 +107,7 @@ function bizEventTab() {
       <div class="row" style="margin-top:8px"><button class="btn y" data-act="tpgo" ${open && F.days <= days ? '' : 'disabled'}>出發（${F.days} 日）</button><button class="btn" data-act="tpclr">清除</button></div>` : '<p class="note">喺左邊揀地方加入行程（最多 5 站）。次序有關係：連續喺同一洲唔使再搭長途機，轉洲就有時差。</p>';
   const done = L ? `<p><b>${L.plan.map(k => esc(TDEST[k].n)).join(' → ')}</b></p><table class="shopt tres"><tbody>${L.res.map(r => `<tr><td>${esc(TDEST[r.k].n)}</td><td>對 ${esc(r.o)}</td><td class="n"><b>${r.gf}-${r.ga}</b> ${wdl(r.gf > r.ga ? 'W' : r.gf < r.ga ? 'L' : 'D')}</td></tr>`).join('')}</tbody></table><p class="mute">出場費 ${money(L.F.pay)} · 體能 ${sign(L.F.cond)} · 季前體能 ${sign(L.F.psf)} · 默契 +${L.F.coh}${L.hurt.length ? ` · 輕傷：${L.hurt.map(p => esc(ps(p).sn)).join('、')}` : ''}</p>` : '';
   const pls = roster(cid).filter(p => !pd(p).yt).sort((a, b) => popOf(b) - popOf(a)).slice(0, 8);
-  const ad = pls.map(p => { const fee = Math.round(popOf(p) ** 2 * 60 * prF(c) / 1e3) * 1e3, cd = cdLeft(c, 'ad:' + p); return `<tr><td class="nm">${pl(p)} ${starOf(p) ? `<span class="tag t-star${starOf(p)}">${starOf(p) === 2 ? '巨星' : '明星'}</span>` : ''}</td><td class="n">${popOf(p)}</td><td class="n num">${money(fee)}</td><td><button class="btn sm" data-act="bizad" data-a="${p}" ${cd ? 'disabled' : ''}>${cd ? `${cd} 日` : '拍'}</button></td></tr>`; }).join('');
+  const ad = pls.map(p => { const fee = Math.round(popOf(p) ** 2 * 60 * MS * prF(c) / 1e3) * 1e3, cd = cdLeft(c, 'ad:' + p); return `<tr><td class="nm">${pl(p)} ${starOf(p) ? `<span class="tag t-star${starOf(p)}">${starOf(p) === 2 ? '巨星' : '明星'}</span>` : ''}</td><td class="n">${popOf(p)}</td><td class="n num">${money(fee)}</td><td><button class="btn sm" data-act="bizad" data-a="${p}" ${cd ? 'disabled' : ''}>${cd ? `${cd} 日` : '拍'}</button></td></tr>`; }).join('');
   const status = L ? '今季已經去咗巡迴。' : open ? `開波前仲有 ${days} 日可以用。` : '聯賽就嚟開波，今季冇時間去巡迴。';
   return `<div class="cols c2 m-stack tourw" style="min-height:0">
     ${pan(`季前巡迴 · 揀地方 ${info('每個地方踢一場表演賽，有出場費。長途機同時差令球員攰（體能跌）；炎熱地方耗體能、易受傷；訓練營體能同默契升得多但錢少。豪門對手同夏季邀請（出場費多三成）收得多。去過嘅海外市場，今季球衣賣得多啲。季前體能會令成季每日恢復快啲（或者慢啲）。新球員一齊去巡迴，會快啲同隊友有默契。')}`, `<p class="mute" style="margin:0 0 6px">${status}</p><table class="shopt tdest"><tbody>${dest}</tbody></table>`, { t: 1, st: 'min-height:0' })}
@@ -129,13 +129,13 @@ function bizPrizeTab() {
   const inc = [['比賽日（門票、小食、泊車）', v('gate') + v('food') + v('park')], ['商業（球衣紀念品、贊助）', v('merch') + v('spon')], ['電視轉播', v('tv')], ['獎金', v('prize')], ['賣人', v('tin')]];
   const out = [['球員薪金', v('wage')], ['職員', v('staff')], ['營運開支', v('ops')], ['買人', v('tout')], ['球場工程', v('build')], ['球探、宣傳', v('scout') + v('pr')]];
   const row = ([nm, x]) => `<tr><td>${nm}</td><td class="n ${x > 0 ? 'good' : x < 0 ? 'bad' : ''}">${money(x)}</td></tr>`;
-  const lp = i => Math.round((n - i) * 5.5e5 * (TIERF[lg] || .7) ** 2), net = sum([...inc, ...out].map(x => x[1]));
+  const lp = i => Math.round((n - i) * 5.5e5 * MS * (TIERF[lg] || .7) ** 2), net = sum([...inc, ...out].map(x => x[1]));
   const cups = Object.values(G.comp).filter(x => x.t !== 'L' && !PRIZE[x.id] && !/^po\d/.test(x.id) && (lg.startsWith('eng') ? ['fac', 'lc'].includes(x.id) : x.id === lg.replace(/\d$/, '_c')));
   const eu = k => { const P = PRIZE[k]; return `<dt>${k === 'cl' ? '歐聯' : '歐洲足協盃'}</dt><dd>參賽 ${money(P.part)} · 贏 ${money(P.w)} · 和 ${money(P.d)}<br>淘汰賽每贏一圈 ${P.rd.map(money).join(' → ')} · 冠軍 ${money(P.win)}</dd>`; };
   return `<div class="cols c2 m-stack" style="min-height:0">
     <div class="cols" style="grid-template-rows:auto auto;align-content:start">
       ${pan(`今季收支 ${info('一邊要賺錢（商業、賣人），一邊要保持戰績：獎金、轉播、門票、贊助獎金都同成績有關。薪金係最大支出。')}`, `<table><tbody>${inc.map(row).join('')}<tr class="me"><td>收入合計</td><td class="n">${money(sum(inc.map(x => x[1])))}</td></tr>${out.map(row).join('')}<tr class="me"><td>淨額</td><td class="n ${net >= 0 ? 'good' : 'bad'}">${money(net)}</td></tr></tbody></table>`)}
-      ${pan('電視轉播', `<dl class="kv"><dt>${esc(LG[lg].name)}</dt><dd>每場 ${money(TV[lg] || 1e5)}（主客隊都有）</dd><dt>歐聯</dt><dd>每場 ${money(5e5)}</dd><dt>歐洲足協盃</dt><dd>每場 ${money(1.5e5)}</dd><dt>本國盃賽</dt><dd>每場 ${money(6e4)}</dd></dl>`)}
+      ${pan('電視轉播', `<dl class="kv"><dt>${esc(LG[lg].name)}</dt><dd>每場 ${money(TV[lg] || 1e5)}（主客隊都有）</dd><dt>歐聯</dt><dd>每場 ${money(5e5 * MS)}</dd><dt>歐洲足協盃</dt><dd>每場 ${money(1.5e5 * MS)}</dd><dt>本國盃賽</dt><dd>每場 ${money(6e4 * MS)}</dd></dl>`)}
     </div>
     <div class="cols" style="grid-template-rows:auto auto auto;align-content:start;overflow:auto;min-height:0">
       ${pan(`聯賽排名獎金 ${info('季尾按名次派。')}`, `<dl class="kv"><dt>冠軍</dt><dd>${money(lp(0))}</dd><dt>第 4 名</dt><dd>${money(lp(3))}</dd><dt>第 ${Math.ceil(n / 2)} 名</dt><dd>${money(lp(Math.ceil(n / 2) - 1))}</dd><dt>最尾</dt><dd>${money(lp(n - 1))}</dd><dt>預期第 ${c.exp} 名</dt><dd>${money(lp((c.exp || 1) - 1))}</dd></dl>`)}

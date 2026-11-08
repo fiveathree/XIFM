@@ -89,7 +89,7 @@ function callUp(pid) { delete pd(pid).yt; }
    Every 1 July 3–5 prospects (15–17) join the youth team; the youth team plays a game each week. */
 const YANAME = ['', '基本', '普通', '良好', '優秀', '頂級'];
 const yaOf = c => c.ya || 1;
-const yaCost = c => Math.round((yaOf(c) + 1) ** 2 * 5e5 * (TIERF[c.lg] || .7) / 1e4) * 1e4;
+const yaCost = c => Math.round((yaOf(c) + 1) ** 2 * 5e5 * MS * (TIERF[c.lg] || .7) / 1e4) * 1e4;
 const potOf = pid => (G.y[pid] && G.y[pid].pot) || 0;
 // the potential your staff can see: the better the youth coach, the closer to the truth
 function potSeen(pid) {
