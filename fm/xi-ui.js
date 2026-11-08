@@ -48,7 +48,7 @@ function benchX(c, i) {
 }
 function pitemX(pid, k) {
   const d = pd(pid), p = ps(pid);
-  return `<div class="pitem ${UI.sel === k ? 'selp' : ''}" data-k="${k}">${cardHTML(pid)}<div style="min-width:0"><div class="nm">${pl(pid)} ${pTags(pid)}</div><div class="mt">${POSN[p.pos]}${pos2P(pid).length ? ` · ${pos2P(pid).join('/')}` : ''} · ${ageOf(pid)} 歲 · ${esc(natName(p.nat))}</div></div><div class="ef">${cardR(pid)}<small>體能 ${Math.round(d.cond)}</small></div></div>`;
+  return `<div class="pitem ${UI.sel === k ? 'selp' : ''}" data-k="${k}">${cardHTML(pid)}<div style="min-width:0"><div class="nm">${pl(pid)} ${typeof starTag === 'function' ? starTag(pid) : ''} <span class="ptg">${pTags(pid)}</span></div><div class="mt">${POSN[p.pos]}${pos2P(pid).length ? ` · ${pos2P(pid).join('/')}` : ''} · ${ageOf(pid)} 歲 · ${esc(natName(p.nat))}</div></div><div class="ef">${cardR(pid)}<small>體能 ${Math.round(d.cond)}</small></div></div>`;
 }
 
 /* ---------- 陣容 ---------- */
