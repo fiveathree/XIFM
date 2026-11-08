@@ -40,7 +40,7 @@ button{cursor:pointer}
 #app{height:100%;display:grid;grid-template-columns:200px minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) 28px;grid-template-areas:"top top" "nav main" "tick tick";
   padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
 #app[hidden]{display:none}
-#top{grid-area:top;display:grid;grid-template-columns:72px minmax(0,1fr) auto;gap:4px;padding:6px 6px 4px;background:linear-gradient(180deg,#0e2c6c,#09204f);border-bottom:2px solid var(--line)}
+#top{grid-area:top;display:grid;grid-template-columns:72px minmax(0,1fr) auto auto;gap:4px;padding:6px 6px 4px;background:linear-gradient(180deg,#0e2c6c,#09204f);border-bottom:2px solid var(--line)}
 #nav{grid-area:nav;overflow:auto;padding:8px 6px 8px 8px;display:flex;flex-direction:column;gap:10px}
 #main{grid-area:main;overflow:hidden;padding:8px 10px 8px 4px;min-width:0;display:flex;flex-direction:column;gap:8px}
 #tick{grid-area:tick;background:var(--redB);overflow:hidden;white-space:nowrap;display:flex;align-items:center;font:700 13px/1 var(--f-disp);letter-spacing:.04em;padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -61,6 +61,7 @@ button{cursor:pointer}
 .tb.next{width:110px;background:linear-gradient(180deg,#2f6fd8,#1d4c9f);font-size:22px}
 .tb .dot{width:10px;height:10px;border-radius:50%;background:#556;display:inline-block}
 .tb .dot.on{background:var(--sel);box-shadow:0 0 6px var(--sel)}
+.tb .mic{position:relative;font-size:18px;line-height:1}.tb .mic .dot{position:absolute;top:-3px;right:-8px;width:9px;height:9px}
 #menuBtn{display:none}
 
 /* nav */
@@ -273,8 +274,15 @@ tr[data-k]{user-select:none}
 /* ---------- phone ---------- */
 @media (max-width:760px){
   #app{grid-template-columns:minmax(0,1fr);grid-template-areas:"top" "main" "tick"}
-  #top{grid-template-columns:52px minmax(0,1fr) auto;padding-top:calc(env(safe-area-inset-top,0px) + 4px)}
-  .badge{width:48px;height:48px}.badge svg{width:46px;height:46px}
+  /* phone top bar: row 1 = menu (left), badge, club, mail, cash; row 2 = the three advance buttons, labelled */
+  #top{grid-template-columns:44px 40px minmax(0,1fr) auto;grid-template-areas:"menu badge info btns" "adv adv adv adv";padding-top:calc(env(safe-area-inset-top,0px) + 4px)}
+  #menuBtn{grid-area:menu;width:44px;font-size:22px}
+  .badge{grid-area:badge;width:40px;height:46px}.badge svg{width:40px;height:40px}
+  .tinfo{grid-area:info}.tbtns{grid-area:btns}.tadv{grid-area:adv}
+  .tb.cash{width:auto;min-width:56px;padding:0 6px}.tb.cash b{font-size:14px}
+  .tadv .tb{flex:1 1 0;width:auto;height:40px;flex-direction:row;gap:6px;font-size:15px}
+  .tadv .tb small{display:inline;font:700 13px/1 var(--f-body);color:var(--ink)}
+  .tadv .tb.next{flex:1.2 1 0;width:auto;font-size:16px}
   .tinfo{padding:3px 8px}.tinfo .scr{display:none}.tinfo .club b{font-size:18px}.tinfo .club small{font-size:11px}
   .tb{width:44px;font-size:12px}.tb small{display:none}.tb.next{width:58px;font-size:15px}
   #sqBtn{display:none}

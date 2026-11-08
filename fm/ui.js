@@ -57,12 +57,13 @@ const NAVG = [['球隊', ['home', 'squad', 'tactics', 'training', 'youth', 'staf
 const NEEDCLUB = new Set(['home', 'squad', 'tactics', 'training', 'youth', 'staff', 'market', 'gacha', 'album', 'contracts', 'finance', 'stadium', 'media', 'promo', 'match']);
 function rTop() {
   const cid = myCid(), f = cid && nextFx(cid), unread = G.mail.some(m => !m.rd);
-  $('#top').innerHTML = `<div class="badge" data-act="badge" title="${esc(cid ? clubName(cid) : '')}">${badgeSVG(cid, 60)}</div>
+  $('#top').innerHTML = `<button class="tb" id="menuBtn" data-act="menu" aria-label="選單">☰<small>選單</small></button>
+  <div class="badge" data-act="badge" title="${esc(cid ? clubName(cid) : '')}">${badgeSVG(cid, 60)}</div>
   <div class="tinfo"><span class="scr">${TITLE[SCR] || ''}</span><div class="club"><b>${esc(cid ? clubName(cid) : G.mgr.name + '（待業）')}</b><small>${f ? esc(fxDesc(f, cid)) : '暫時冇比賽'}</small><small class="num"><span class="dl">${fdate(G.day)}</span><span class="ds">${fdate(G.day, 'm')}</span></small></div></div>
-  <div class="tbtns">${cid ? `<button class="tb cash" data-go="finance" title="球會資金（撳入去睇財政）"><b class="num">${G.inf ? '∞' : money(G.clubs[cid].cash)}</b><small>資金</small></button>` : ''}<button class="tb" data-go="mail" aria-label="收件箱"><span class="dot ${unread ? 'on' : ''}"></span><small>收件箱</small></button>
+  <div class="tbtns">${cid ? `<button class="tb cash" data-go="finance" title="球會資金（撳入去睇財政）"><b class="num">${G.inf ? '∞' : money(G.clubs[cid].cash)}</b><small>資金</small></button>` : ''}<button class="tb" data-go="mail" aria-label="收件箱"><span class="mic">✉<span class="dot ${unread ? 'on' : ''}"></span></span><small>收件箱</small></button>
   <button class="tb" id="sqBtn" data-go="squad">陣容<small>SQUAD</small></button>
-  <button class="tb" id="menuBtn" data-act="menu" aria-label="選單">☰<small>選單</small></button>
-  <button class="tb" data-act="untilev" title="一直推進，直到有新郵件、新報價、重要日子或者比賽日">⏭<small>到下件事</small></button>
+</div>
+  <div class="tbtns tadv"><button class="tb" data-act="untilev" title="一直推進，直到有新郵件、新報價、重要日子或者比賽日">⏭<small>到下件事</small></button>
   <button class="tb" data-act="until" title="一直推進到下場比賽">⏩<small>到比賽</small></button>
   <button class="tb next" data-act="next">下一日 ▶</button></div>`;
 }
