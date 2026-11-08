@@ -218,7 +218,7 @@ function srHead() { const f = UI.sr, k = SRCOL[f.sort] ? f.sort : 'sk', dir = f.
 function clubPanel(cid) {
   const c = G.clubs[cid], ros = [...roster(cid)].sort((a, b) => POSORD.indexOf(ps(a).pos) - POSORD.indexOf(ps(b).pos) || pd(b).sk - pd(a).sk);
   const moves = G.tlog.filter(x => x.to === cid || x.from === cid).slice(0, 6);
-  modal(esc(clubName(cid)), `<div class="row"><span class="mute">${esc(LG[c.lg] ? LG[c.lg].name : '')}</span><span class="mute">球場 ${esc(CL[cid].stadium)}</span><span class="mute">${ros.length} 人</span><span class="mute">傷 ${ros.filter(p => pd(p).inj || pd(p).lin).length} · 停賽 ${ros.filter(p => pd(p).sus).length}</span></div>
+  modal(esc(clubName(cid)), `<div class="row"><span class="mute">${esc(LG[c.lg] ? LG[c.lg].name : '')}</span><span class="mute">球場 ${esc(stadName(cid))}</span><span class="mute">${ros.length} 人</span><span class="mute">傷 ${ros.filter(p => pd(p).inj || pd(p).lin).length} · 停賽 ${ros.filter(p => pd(p).sus).length}</span></div>
     <table><thead><tr><th class="n">#</th><th class="n">位</th><th>球員</th><th class="n">歲</th><th class="n">能力</th><th class="n hm">身價</th><th>狀態</th></tr></thead><tbody>${ros.map(p => `<tr class="click" data-pl="${p}"><td class="n">${pd(p).no || ''}</td><td class="n">${ps(p).pos}</td><td class="nm">${esc(ps(p).name)}</td><td class="n">${ageOf(p)}</td><td class="n">${pd(p).sk}</td><td class="n hm">${money(valueOf(p))}</td><td>${pTags(p)}</td></tr>`).join('')}</tbody></table>
     ${moves.length ? `<div class="lbl">最近轉會</div><table><tbody>${moves.map(x => `<tr><td class="n">${fdate(x.d, 's')}</td><td class="nm">${esc(ps(x.pid).sn)}</td><td>${x.to === cid ? `由 ${esc(clubName(x.from))} 加盟` : `去 ${esc(clubName(x.to))}`}</td><td class="n">${x.fee ? money(x.fee) : '自由'}</td></tr>`).join('')}</tbody></table>` : ''}`, 'tall');
 }
@@ -313,16 +313,7 @@ SCREENS.finance = () => {
   </div>`);
 };
 
-/* ---------- 球場 ---------- */
-SCREENS.stadium = () => {
-  const c = myClub(), cid = myCid(), home = G.fx.filter(f => f.h === cid && f.att && !f.n), avg = home.length ? Math.round(sum(home.map(f => f.att)) / home.length) : 0;
-  const opts = [[2000, 3e6, 120], [5000, 8e6, 240]];
-  main(`${hdr('球場')}
-  <div class="cols c2 m-stack">
-    ${pan(esc(CL[cid].stadium), `<dl class="kv"><dt>容量</dt><dd class="big">${c.cap.toLocaleString()}</dd><dt>今季平均入場</dt><dd>${avg ? avg.toLocaleString() : '—'}</dd><dt>入座率</dt><dd>${avg ? Math.round(avg / c.cap * 100) + '%' : '—'}</dd><dt>票價</dt><dd>£${c.price}</dd></dl>`)}
-    ${pan('擴建', c.build ? `<p>新看台工程進行中：+${c.build.seats.toLocaleString()} 座位，預計 ${fdate(c.build.done)} 完成。</p>` : `<table><tbody>${opts.map(([s, cost, days]) => `<tr><td>+${s.toLocaleString()} 座位</td><td class="n">${money(cost)}</td><td class="n">${days} 日</td><td><button class="btn sm" data-act="build" data-a="${s}:${cost}:${days}">興建</button></td></tr>`).join('')}</tbody></table><p class="note" style="margin-top:8px">入座率長期接近 100% 先值得擴建。</p>`, { t: 1 })}
-  </div>`);
-};
+/* ---------- 球場: fm/ground-ui.js ---------- */
 
 /* ---------- 董事局 ---------- */
 SCREENS.board = () => {
@@ -478,7 +469,7 @@ function lineupList(cid) {
 }
 function mPre() {
   const f = MT.f, c = myClub(), probs = lineupProblems(myCid()), rd = G.comp[f.c].rd?.[f.r];
-  const ven = f.n ? (rd?.ven || '中立場') : CL[f.h].stadium;
+  const ven = f.n ? (rd?.ven || '中立場') : stadName(f.h);
   main(`<div class="mtop"><div class="tm" style="text-align:right">${esc(clubName(f.h))}</div><div><div class="sc">v</div><div class="mn">${esc(compName(f.c))} · ${roundName(f)}</div></div><div class="tm">${esc(clubName(f.a))}</div></div>
   <div class="row"><span class="mute">${fdate(f.d)} · ${esc(ven)}</span><span style="margin-left:auto"></span>
     <select class="inp" data-ch="form" aria-label="陣式">${formOpts(c.form)}</select>
@@ -791,7 +782,6 @@ const ACT = {
   unlist: el => { pd(el.dataset.a).list = 0; save(); render(); },
   pull: el => { closeModal(); doPull(+el.dataset.a); },
   renewopen: el => openPlayer(el.dataset.a, 'renew'),
-  build: el => { const [s, cost, days] = el.dataset.a.split(':').map(Number), c = myClub(); if (!G.inf && c.cash < cost) return toast('資金唔夠'); fin(myCid(), 'build', -cost); c.build = { seats: s, done: G.day + days }; save(); render(); toast('工程開始'); },
   job: el => { takeJob(el.dataset.a); save(); go('home'); },
   tbc: el => { UI.tb.c = el.dataset.a; UI.tb.l = ctrs().find(x => x[0] === el.dataset.a)[2][0]; UI.tb.r = null; render(); },
   tbl: el => { UI.tb.l = el.dataset.a; UI.tb.r = null; render(); },
@@ -909,7 +899,7 @@ function showStart() {
         <div class="row" style="margin-top:8px"><label>領隊名 <input class="inp" id="wname" maxlength="20" value="${esc(W.name)}" placeholder="你嘅名"></label><span class="mute">存檔位</span>${[1, 2, 3].map(k => `<button class="chip" data-act="wslot" data-a="${k}" aria-pressed="${W.slot === k}">${k}${meta[k] ? '（會覆蓋）' : ''}</button>`).join('')}</div>
         <div class="tabs" style="margin-top:8px">${cs.map(x => `<button class="chip" data-act="wcty" data-a="${x[0]}" aria-pressed="${cty[0] === x[0]}">${x[1]}</button>`).join('')}</div>
         ${cty[2].length > 1 ? `<div class="tabs">${cty[2].map(l => `<button class="chip" data-act="wlg" data-a="${l}" aria-pressed="${lid === l}">${LG[l].name}</button>`).join('')}</div>` : ''}`, { st: 'flex:none' })}
-      ${pan(`${esc(LG[lid].name)} · 揀球會`, `<table><thead><tr><th></th><th>球會</th><th>聲望</th><th class="n">資金</th><th class="hm">球場</th><th class="n hm">容量</th><th class="hm">董事局目標</th></tr></thead><tbody>${clubs.map(c => `<tr class="click ${W.cid === c ? 'sel' : ''}" data-act="wclub" data-a="${c}"><td>${badgeSVG(c, 26)}</td><td class="nm">${esc(CL[c].name)}</td><td class="num" style="color:${W.cid === c ? 'inherit' : 'var(--sel)'}">${stars(CL[c].rep)}</td><td class="n">${money(CL[c].bank * 1e6)}</td><td class="hm nm">${esc(CL[c].stadium)}</td><td class="n hm">${CL[c].cap.toLocaleString()}</td><td class="hm">${boardGoal(lid, c)}</td></tr>`).join('')}</tbody></table>`, { st: 'flex:1' })}
+      ${pan(`${esc(LG[lid].name)} · 揀球會`, `<table><thead><tr><th></th><th>球會</th><th>聲望</th><th class="n">資金</th><th class="hm">球場</th><th class="n hm">容量</th><th class="hm">董事局目標</th></tr></thead><tbody>${clubs.map(c => `<tr class="click ${W.cid === c ? 'sel' : ''}" data-act="wclub" data-a="${c}"><td>${badgeSVG(c, 26)}</td><td class="nm">${esc(CL[c].name)}</td><td class="num" style="color:${W.cid === c ? 'inherit' : 'var(--sel)'}">${stars(CL[c].rep)}</td><td class="n">${money(CL[c].bank * 1e6)}</td><td class="hm nm">${esc(stadName(c, ERA.y))}</td><td class="n hm">${stadCap0(c, ERA.y).toLocaleString()}</td><td class="hm">${boardGoal(lid, c)}</td></tr>`).join('')}</tbody></table>`, { st: 'flex:1' })}
       <div class="row"><button class="btn" data-act="sback">返回</button><span style="margin-left:auto" class="mute">${W.cid ? esc(CL[W.cid].name) : '未揀球會'}</span><button class="btn y" data-act="wgo" ${W.cid ? '' : 'disabled'}>開始 ▶</button></div></div>`;
   }
 }

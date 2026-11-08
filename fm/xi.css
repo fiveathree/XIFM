@@ -126,3 +126,20 @@ tr.mrel{cursor:pointer}tr.mrel:hover td{background:#5a1420!important}
   .pullgrid{grid-template-columns:repeat(3,auto)}.banner .fan{display:none}
 }
 @media (prefers-reduced-motion:reduce){.xflip .in{transition:none}.card.g-UR::after{animation:none}}
+/* 球場 (fm/ground-ui.js) */
+.gwrap{min-height:0;flex:1}
+.gpan .pb{display:flex;align-items:center;justify-content:center;min-height:0;height:100%}
+.gsvg{width:100%;height:100%;max-height:100%;display:block}
+.gsvg .gst{font:700 8px 'Noto Sans TC',sans-serif;fill:#fff;text-anchor:middle;paint-order:stroke;stroke:#000a;stroke-width:2.2px}
+.gsvg .gprev{fill:#ffcf3a44;stroke:#ffcf3a;stroke-width:1.4;stroke-dasharray:4 2;animation:gpulse 1.2s ease-in-out infinite}
+@keyframes gpulse{50%{fill:#ffcf3a77}}
+@media (prefers-reduced-motion:reduce){.gsvg .gprev{animation:none}}
+.gkv{grid-template-columns:auto 1fr}
+.gopts{display:flex;flex-direction:column;gap:8px}
+.gopt{border:1px solid #2a3a63;border-radius:10px;padding:10px 12px;background:#0d1834;cursor:pointer;display:flex;flex-direction:column;gap:6px}
+.gopt.on{border-color:var(--sel);box-shadow:0 0 0 1px var(--sel) inset}
+.gopt .gtop{display:flex;justify-content:space-between;gap:8px;font-size:15px}
+.gopt .gtop .num{color:var(--sel);font-weight:700}
+.gopt dl.kv{margin:0}
+.gwork{display:flex;flex-direction:column;gap:4px;padding:4px 0}
+.gwork+.gwork{border-top:1px solid #22325a;padding-top:8px}

@@ -525,6 +525,83 @@ function attendance(cid, oppCid, comp) {
   fill *= Math.pow(base / Math.max(1, c.price), .6);
   return Math.round(c.cap * clamp(fill, .12, 1));
 }
+/* ---------- stadium (球場): names by season, stands, expansions ----------
+   FM.STADIA (fm/stadia.js) gives each club's ground and its name in every season; a move or a rename at the start of a
+   season is followed in play (stadiumMoves). Your club's ground has four stands c.std = { W, E, N, S: { s: seats, r: rows
+   added, t: tiers added }, cn: corners filled }; its seats always add up to c.cap. Building works are c.builds
+   [{ st, k, seats, cost, done, shut }] (an upper tier shuts part of the stand while it is built). */
+function stadHist(name, y) { const h = FM.STADIA && FM.STADIA[name]; if (!h) return null; let r = null; for (const e of h) if (e[0] <= y) r = e; return r; }
+function stadCapHist(name, y) { const h = FM.STADIA && FM.STADIA[name]; if (!h) return 0; let r = 0; for (const e of h) if (e[0] <= y && e[2]) r = e[2]; return r; }
+function stadName(cid, y) { const c = CL[cid]; if (!c) return ''; const e = stadHist(c.name, y || (G ? G.season : ERA.y)); return e ? e[1] : c.stadium; }
+function stadCap0(cid, y) { const c = CL[cid], e = stadHist(c.name, y); return e && e[1] !== c.stadium && stadCapHist(c.name, y) || c.cap; }   // capacity at the start of a career
+// start of a career: where the era's data has an older name for the ground, take the capacity from the history too
+function stadiumStart() {
+  for (const cid of CLUBS) G.clubs[cid].cap = stadCap0(cid, G.season);
+}
+// a new season: moves into a new ground, rebuilt stands and renames
+function stadiumMoves() {
+  for (const cid of GCL()) {
+    const name = CL[cid].name, h = FM.STADIA && FM.STADIA[name], e = h && h.find(x => x[0] === G.season); if (!e) continue;
+    const prev = stadHist(name, G.season - 1), c = G.clubs[cid], moved = !prev || prev[1] !== e[1] && e[2] > 0 && Math.abs(e[2] - c.cap) > 2000;
+    if (moved && e[2]) {
+      c.cap = e[2]; c.std = null; c.builds = [];
+      if (isUser(cid)) mail('搬入新球場', `${esc(clubName(cid))} 今季搬入 <b>${esc(e[1])}</b>，容量 ${e[2].toLocaleString()}。舊球場嘅擴建工程就此作罷。`);
+    } else if (e[2]) {
+      if (!isUser(cid)) c.cap = e[2];
+      else if (e[2] > c.cap) { c.cap = e[2]; c.std = null; mail('球場翻新完成', `<b>${esc(e[1])}</b> 翻新完成，容量增加到 ${e[2].toLocaleString()}。`); }
+    } else if (isUser(cid) && prev && prev[1] !== e[1]) mail('球場改名', `球場由今季起改名做 <b>${esc(e[1])}</b>。`);
+  }
+}
+const STDN = { W: '主看台', E: '對面看台', N: '北看台', S: '南看台' };
+function stdOf(c) {
+  if (c.std && Object.values(c.std).length) {
+    const tot = ['W', 'E', 'N', 'S'].reduce((t, k) => t + c.std[k].s, 0) + (c.std.cs || 0), shut = sum((c.builds || []).map(b => b.shut || 0));
+    if (tot - shut === c.cap) return c.std;
+  }
+  const w = Math.round(c.cap * .3), n = Math.round(c.cap * .2);
+  c.std = { W: { s: w, r: 0, t: 0 }, E: { s: w, r: 0, t: 0 }, N: { s: n, r: 0, t: 0 }, S: { s: c.cap - 2 * w - n, r: 0, t: 0 }, cn: 0, cs: 0 };
+  if (c.build) { c.builds = [{ st: 'E', k: 'row', seats: c.build.seats, cost: 0, done: c.build.done, start: G.day, shut: 0 }]; c.build = null; }
+  return c.std;
+}
+const seatCost = () => Math.round(1400 * (1 + Math.max(0, G.season - 1994) * .05) / 10) * 10;
+// what can be built on a stand ('C' = the corners)
+function buildOpts(cid, st) {
+  const c = G.clubs[cid], S = stdOf(c), busy = (c.builds || []).some(b => b.st === st), r100 = x => Math.max(100, Math.round(x / 100) * 100);
+  if (st === 'C') {
+    const seats = Math.max(600, r100(c.cap * .035));
+    return [{ k: 'corner', n: '填補角位', d: '喺兩個看台之間嘅角位起新座位', seats, cost: Math.round(seats * seatCost() * 1.15), days: 200, shut: 0, ok: !busy && S.cn < 4, why: S.cn >= 4 ? '四個角已經起滿' : busy ? '而家施工緊' : '' }];
+  }
+  const s = S[st].s;
+  const row = { k: 'row', n: '加建座位', d: '喺看台前後加幾排座位', seats: Math.max(400, r100(s * .1)), days: 120, shut: 0 };
+  row.cost = Math.round(row.seats * seatCost()); row.ok = !busy && S[st].r < 2; row.why = S[st].r >= 2 ? '呢個看台已經加過兩次' : busy ? '而家施工緊' : '';
+  const tier = { k: 'tier', n: '加建上層看台', d: '喺看台上面加多一層，施工期間封咗部份座位', seats: Math.max(1500, r100(s * .45)), days: 330, shut: r100(s * .15) };
+  tier.cost = Math.round(tier.seats * seatCost() * 1.35); tier.ok = !busy && !S[st].t; tier.why = S[st].t ? '已經有上層' : busy ? '而家施工緊' : '';
+  return [row, tier];
+}
+// expected effect of more seats: the same share of the ground fills, at today's ticket price
+function buildEffect(cid, seats) {
+  const c = G.clubs[cid], fill = attendance(cid, null, c.lg) / Math.max(1, c.cap), extra = Math.round(seats * fill);
+  const games = (G.lgm[c.lg] || []).length - 1 + 3, perSeason = extra * c.price * games;
+  return { fill, extra, perGame: extra * c.price, perSeason, games };
+}
+function startBuild(cid, st, k) {
+  const c = G.clubs[cid], o = buildOpts(cid, st).find(x => x.k === k); if (!o || !o.ok) return o ? o.why : '揀唔到';
+  if (!G.inf && c.cash < o.cost) return `要 ${money(o.cost)}，球會而家得 ${money(c.cash)}`;
+  fin(cid, 'build', -o.cost); c.builds = c.builds || [];
+  c.builds.push({ st, k, seats: o.seats, cost: o.cost, start: G.day, done: G.day + o.days, shut: o.shut });
+  if (o.shut) { c.cap -= o.shut; }
+  return null;
+}
+function finishBuilds(cid) {
+  const c = G.clubs[cid]; if (!c.builds || !c.builds.length) return;
+  for (const b of c.builds.filter(b => G.day >= b.done)) {
+    const S = stdOf(c); c.cap += b.seats + (b.shut || 0);
+    if (b.st === 'C') { S.cn++; S.cs = (S.cs || 0) + b.seats; } else { S[b.st].s += b.seats; if (b.k === 'row') S[b.st].r++; else S[b.st].t++; }
+    c.builds = c.builds.filter(x => x !== b);
+    if (isUser(cid)) mail('球場擴建完成', `${b.st === 'C' ? '角位看台' : STDN[b.st] + (b.k === 'tier' ? '上層' : '新座位')}已經落成，容量增加 ${b.seats.toLocaleString()}，而家係 ${c.cap.toLocaleString()}。`);
+  }
+}
+
 function weekly() {
   const wage = {};
   for (const pid in G.pl) { const d = G.pl[pid]; if (G.clubs[d.c]) wage[d.c] = (wage[d.c] || 0) + d.w; }
@@ -536,6 +613,7 @@ function weekly() {
     fin(cid, 'merch', Math.round(.0034 * c.rep ** 4 * lm.f * (1 + lm.boost)) + lm.star);
     fin(cid, 'spon', Math.round(.002 * c.rep ** 4 * lm.f));
     if (c.build && G.day >= c.build.done) { c.cap += c.build.seats; if (isUser(cid)) mail('球場擴建完成', `新看台已經落成，球場容量增加 ${c.build.seats.toLocaleString()} 個座位，而家係 ${c.cap.toLocaleString()}。`); c.build = null; }
+    finishBuilds(cid);
   }
 }
 
@@ -788,6 +866,7 @@ function setupSeason(s) {
   createEurope(s, o);
   for (const lid of PLG()) createLeague(lid, o);
   createCups(s, o);
+  if (s !== G.era) stadiumMoves();
   resolveClashes();
   for (const lid of PLG()) byRep(G.lgm[lid]).forEach((c, i) => { G.clubs[c].exp = i + 1; });
   for (const cid of GCL()) if (!isUser(cid)) autoPick(cid);
@@ -933,6 +1012,7 @@ function newGame(name, cid, slot) {
   reindex();
   for (const cid of CLUBS) fillYouth(cid, 18);
   for (const cid of CLUBS) { const used = new Set(); for (const p of roster(cid)) { const d = pd(p); if (!d.no || used.has(d.no)) d.no = 0; used.add(d.no); } for (const p of roster(cid)) if (!pd(p).no) pd(p).no = squadNo(cid); }
+  stadiumStart();
   setupSeason(s0);
   if (typeof seedYouth === 'function' && seedYouth(cid)) { /* real youth squad (fm/data/<era>/youth.js) */ } else if (typeof makeProspect === 'function') { for (let k = 0; k < 6; k++) makeProspect(cid); }   // starting youth team (fm/xi.js)
   autoPick(cid);
