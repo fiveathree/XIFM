@@ -1061,6 +1061,11 @@ function nextDay() {
   playToday();
   G.day++;
   const d = G.day;
+  if (G.mgr.cid) {   // key dates get a mail (so 「到下件事」 stops there)
+    const x = d - off(G.season);
+    if (x === DEADLINE - 7) mail('轉會截止前一個星期', '轉會市場 3 月 28 日截止。要買、要賣，就要趁呢個星期。');
+    if (x === DEADLINE - 1) mail('聽日轉會截止', '轉會市場聽日截止，之後要等到 7 月 1 日先再開。');
+  }
   // recovery & injuries
   const rec = {};
   for (const cid of GCL()) { const c = G.clubs[cid]; rec[cid] = [7, 6, 4.5][c.tr.int] + c.st.physio * .4 + (c.st.fit || 0) * .3; }

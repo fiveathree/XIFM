@@ -62,7 +62,8 @@ function rTop() {
   <div class="tbtns">${cid ? `<button class="tb cash" data-go="finance" title="球會資金（撳入去睇財政）"><b class="num">${G.inf ? '∞' : money(G.clubs[cid].cash)}</b><small>資金</small></button>` : ''}<button class="tb" data-go="mail" aria-label="收件箱"><span class="dot ${unread ? 'on' : ''}"></span><small>收件箱</small></button>
   <button class="tb" id="sqBtn" data-go="squad">陣容<small>SQUAD</small></button>
   <button class="tb" id="menuBtn" data-act="menu" aria-label="選單">☰<small>選單</small></button>
-  <button class="tb" data-act="until" title="一直推進到下場比賽、新報價或者 60 日">⏩<small>到比賽</small></button>
+  <button class="tb" data-act="untilev" title="一直推進，直到有新郵件、新報價、重要日子或者比賽日">⏭<small>到下件事</small></button>
+  <button class="tb" data-act="until" title="一直推進到下場比賽">⏩<small>到比賽</small></button>
   <button class="tb next" data-act="next">下一日 ▶</button></div>`;
 }
 function rNav() {
@@ -751,13 +752,35 @@ async function untilMatch() {
   else if (got) setTimeout(() => toast(`途中收到 ${got} 個轉會報價${live ? `，仲有 ${live} 個未覆（喺「轉會市場」頁）` : ''}`), 1200);
 }
 
+// 到下件事: stop at the first new mail (important days all send one: season start, transfer deadline, draws, works
+// done, contracts ending…), a new transfer or job offer, or a match day
+async function untilEvent() {
+  if (BUSY) return;
+  if (userFxToday()) return openMatch();
+  BUSY = true; MT = null;
+  const top0 = G.mail[0] && G.mail[0].id, seen = new Set(G.off.map(o => o.id)), j0 = G.jobs.length, cid0 = G.mgr.cid;
+  let why = '';
+  try {
+    for (let k = 0; k < 150; k++) {
+      nextDay();
+      if (userFxToday()) break;
+      if (G.mail[0] && G.mail[0].id !== top0) { why = G.mail[0].t; break; }
+      if (G.off.some(o => !seen.has(o.id))) { why = '新轉會報價'; break; }
+      if (G.jobs.length > j0 || G.mgr.cid !== cid0) { why = '工作邀請'; break; }
+      if (k % 4 === 3) await new Promise(r => setTimeout(r, 0));
+    }
+  } finally { BUSY = false; }
+  afterAdvance();
+  if (!userFxToday()) toast(`📅 ${fdate(G.day)}${why ? ` · ${why}` : ''}`);
+}
+
 /* =====================================================================
    ACTIONS (delegated)
    ===================================================================== */
 let TAPS = 0, TAPT = 0;
 const ACT = {
   menu: () => { const n = $('#nav'); n.dataset.open = n.dataset.open === 'true' ? 'false' : 'true'; },
-  next: advance, until: untilMatch, match: openMatch,
+  next: advance, until: untilMatch, untilev: untilEvent, match: openMatch,
   quit: () => { save(); showStart(); },
   mclose: closeModal,
   badge: () => { const n = Date.now(); TAPS = n - TAPT < 700 ? TAPS + 1 : 1; TAPT = n; if (TAPS >= 5) { TAPS = 0; G.inf = !G.inf; save(); render(); toast(G.inf ? '💰 無限資金已開啟（再連撳 5 下關閉）' : '無限資金已關閉'); } },   // 5 quick taps on the badge, top left
